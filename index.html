@@ -211,6 +211,9 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .route-cta svg{width:16px;height:16px;flex:0 0 16px}
 .route-cta:hover{background:color-mix(in srgb,var(--shade) 80%,var(--accent));text-decoration:none}
 .route-steps summary,.cockpit-more summary{min-height:38px;touch-action:manipulation}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+:where(.fuel-strip,.route-cta,.source-tile):active{transform:translateY(1px)}
+@media(prefers-reduced-motion:reduce){:where(.fuel-strip,.route-cta,.source-tile):active{transform:none}}
 .source-meta{font-size:10px;font-weight:450;color:var(--muted);letter-spacing:0;white-space:normal;text-align:right}.cockpit-panel--weather h3,.road-alert-section h3,.road-now-section h3{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 8px}
 @container (min-width:420px){.stage-utilities{grid-template-columns:minmax(0,1.55fr) minmax(0,.8fr)}}
 @media(min-width:820px){.side-detail{max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);box-shadow:var(--soft-shadow)}}
@@ -678,13 +681,40 @@ window.NORD_RETURN = '';
     </section>`;
   }
 
-  // Geopende bronpanelen blijven open wanneer hun inhoud wordt vernieuwd.
+  // Werk nieuwe bronwaarden bij zonder actieve links, focus of uitklappers te vervangen.
   function updateDynamicPanel(target,html){
-    if(!target)return;
-    const open=Array.from(target.querySelectorAll('details'),el=>el.open);
+    if(!target||target.innerHTML===html)return;
+    const template=document.createElement('template');
+    template.innerHTML=html;
+    const oldTiles=[...target.querySelectorAll('a.source-tile')];
+    const newTiles=[...template.content.querySelectorAll('a.source-tile')];
+    const oldLinks=[...target.querySelectorAll('a:not(.source-tile)')];
+    const newLinks=[...template.content.querySelectorAll('a:not(.source-tile)')];
+    const compatible=oldTiles.length===newTiles.length&&oldLinks.length===newLinks.length
+      &&oldTiles.length>0
+      &&oldTiles.every((tile,i)=>tile.querySelector('.label')?.textContent===newTiles[i].querySelector('.label')?.textContent)
+      &&oldLinks.every((link,i)=>link.getAttribute('href')===newLinks[i].getAttribute('href'));
+    if(compatible){
+      oldTiles.forEach((tile,i)=>{
+        const incoming=newTiles[i],currentValue=tile.querySelector('.value');
+        const value=incoming.querySelector('.value')?.textContent;
+        if(currentValue&&value!=null&&currentValue.textContent!==value)currentValue.textContent=value;
+        for(const attr of ['aria-label','title','href']){
+          const next=incoming.getAttribute(attr);
+          if(next!==null&&tile.getAttribute(attr)!==next)tile.setAttribute(attr,next);
+        }
+      });
+      const before=[...target.querySelectorAll('.source-meta')];
+      const after=[...template.content.querySelectorAll('.source-meta')];
+      if(before.length===after.length)before.forEach((el,i)=>{
+        if(el.textContent!==after[i].textContent)el.textContent=after[i].textContent;
+      });
+      return;
+    }
+    const opened=[...target.querySelectorAll('details')].map(el=>el.open);
     target.innerHTML=html;
     target.querySelectorAll('details').forEach((el,i)=>{
-      if(i<open.length)el.open=open[i];
+      if(i<opened.length)el.open=opened[i];
     });
   }
 
@@ -783,7 +813,7 @@ window.NORD_RETURN = '';
     return {
       maps:`https://maps.apple.com/?${new URLSearchParams({saddr:`${d.from}, ${countryName(d.fromCountry||d.country)}`,daddr:place,dirflg:'d'})}`,
       wind:`https://www.windy.com/?${coord},8`,
-      road:d.country==='no'?'https://www.vegvesen.no/trafikk':d.country==='dk'?'https://trafikinfo.dk/':'https://www.trafikverket.se/resa-och-trafik/trafikinformation/',
+      road:({no:'https://www.vegvesen.no/trafikk',dk:'https://trafikinfo.dk/',se:'https://www.trafikverket.se/resa-och-trafik/trafikinformation/',de:'https://verkehr.autobahn.de/web/main/karte/',nl:'https://www.rwsverkeersinfo.nl/'})[d.country]||'https://maps.apple.com/',
       ferry:d.ferry==='bognes'?'https://www.torghatten.no/en/our-routes/18-703':d.ferry==='bodo-moskenes'?'https://www.torghatten.no/en/our-routes/18-782':'https://www.stenaline.nl/routes/kiel-goteborg',
       aurora,
       fuel:`https://www.google.com/maps/search/?api=1&${new URLSearchParams({query:`gas station ${place}`})}`,
@@ -914,7 +944,8 @@ window.NORD_RETURN = '';
       for(const p of prices.prices){
         if(p?.fuelType!=='petrol95'||!p.stationId)continue;
         const price=Number(p.price),station=byId.get(p.stationId);
-        const at=Date.parse(String(p.updatedAt||'').replace(/Z?$/,'Z'));
+        const rawTime=String(p.updatedAt||'').trim();
+        const at=Date.parse(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(rawTime)?rawTime:rawTime+'Z');
         if(!station||!Number.isFinite(price)||price<10||price>50||!Number.isFinite(at))continue;
         if(at>now+3600000||now-at>48*3600000)continue;
         const lat=Number(station.latitude),lon=Number(station.longitude);
@@ -1262,7 +1293,13 @@ window.NORD_RETURN = '';
   function writeValues(root,selector,values){
     if(!root)return;
     root.querySelectorAll(selector).forEach((el,i)=>{
-      if(i<values.length&&el.textContent!==String(values[i]))el.textContent=values[i];
+      if(i>=values.length)return;
+      const value=String(values[i]);
+      if(el.textContent!==value)el.textContent=value;
+      // De gesproken waarde volgt altijd de zichtbare bronwaarde, ook bij live updates.
+      const tile=el.closest('a.source-tile');
+      const label=tile?.querySelector('.label')?.textContent?.trim();
+      if(label)tile.setAttribute('aria-label',label+': '+value+'. Open bron in nieuw tabblad.');
     });
   }
   // Update alleen meetwaarden; <details>, camera's, bronlinks en scroll blijven bestaan.
