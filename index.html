@@ -104,9 +104,9 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
 .roadcam-card:hover{border-color:var(--hair);text-decoration:none}
-.roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--hair)}
+.roadcam-card img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--hair)}
 .roadcam-caption{font-size:11px;font-weight:550;line-height:1.3;padding:7px 8px;min-height:32px}
-.roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
+.roadcam-fallback{display:none;aspect-ratio:4/3;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
 .roadcam-card.is-unavailable img{display:none}
 .roadcam-card.is-unavailable .roadcam-fallback{display:grid}
 .roadcam-meta{color:var(--muted);font-size:11px;line-height:1.45}
@@ -486,7 +486,7 @@ window.NORD_RETURN = '';
         </a>`;
       }).join('')}</div>`:''}
       <div class="links">${link('Meer camera’s in de omgeving',camMap(d))}</div>
-      <div class="roadcam-meta">Bron: Statens vegvesen. Beelden kunnen vertraagd, verouderd of tijdelijk onbeschikbaar zijn. Controleer wegafsluitingen apart.</div>
+      <div class="roadcam-meta">Bron: Statens vegvesen. Controleer altijd de datum en tijd in het camerabeeld. Een camera kan een oude foto tonen of uitvallen; controleer wegafsluitingen apart.</div>
     </div>`;
   }
   function bindCameraFallbacks(){
