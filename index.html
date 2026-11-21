@@ -92,11 +92,16 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .links a{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;min-height:44px;font-size:12px;color:var(--text);max-width:100%}
 .links a svg{width:15px;height:15px;color:var(--muted)}
 .links a:hover{background:var(--bg);text-decoration:none}
-.aurora-section{gap:5px}
+.aurora-section{gap:7px}
 .aurora-context{font-size:11px;color:var(--muted);line-height:1.35;margin:0 0 3px}
-.aurora-widget{max-width:100%;min-width:0;width:100%;overflow-wrap:anywhere}
-.aurora-widget iframe{max-width:100%;display:block;border:0;border-radius:10px}
-.aurora-widget>a{font-size:12px}
+.aurora-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.aurora-tile{min-width:0;padding:9px 4px;min-height:75px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.aurora-tile svg{width:18px;height:18px;margin:0 0 3px}
+.aurora-tile .value{font-size:17px;line-height:1.3}
+.aurora-tile .label{font-size:11px;line-height:1.25}
+.aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
+.aurora-meta a{font-size:11px}
+@media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
 .notice{font-size:12px;color:var(--muted)}
 .notice.important{color:var(--warn)}
 .graph{border-radius:12px;background:var(--bg);padding:12px 12px 8px;overflow:hidden}
@@ -488,7 +493,7 @@ window.NORD_RETURN = '';
           <div class="info-box weather-tile" title="Gemiddelde bewolkingsgraad">${ico('cloudy')}<div class="value">${fmt(w.cloud,'%')}</div><div class="label">Bewolking</div></div>
         </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
       </div>
-      ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section"><h3>Noorderlicht · ${esc(d.place)}</h3><p class="aurora-context">Live voor vanavond, niet voor ${esc(labelDate(d.date))}${AURORA_PLACES[d.place].region?' · regio '+esc(AURORA_PLACES[d.place].region):''}</p><div data-aurora-widget="${esc(AURORA_PLACES[d.place].key)}"></div></section>`:''}
+      ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
       ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
         <div class="metric-row"><span class="label">Van</span><span class="number">${esc(d.from)}</span></div>
@@ -506,46 +511,99 @@ window.NORD_RETURN = '';
       ${!w?'':aged?'<p class="snow-note">Weerwaarden kunnen verouderd zijn. Controleer voor vertrek opnieuw.</p>':'<p class="snow-note">Weerwaarden gelden voor de bestemming en de volledige dag, niet voor de hele rijroute.</p>'}
     </div>`;
   }
-  // Officiële Nordlyskart-widget per overnachtingsplaats.
-  // Geen ongedocumenteerde data-API of scraping; de bronlink blijft zichtbaar.
-  // Een widget wordt maar eenmaal per plaats geïnitialiseerd en daarna hergebruikt.
-  const auroraWidgets=new Map();
-  function mountAuroraWidget(){
-    const d=days().find(day=>day.id===selected);
-    const place=AURORA_PLACES[d?.place];
-    if(!place)return;
-    const selector='[data-aurora-widget="'+place.key+'"]';
-    const target=desktopLayout.matches
-      ? $('sideDetail').querySelector(selector)
-      : $('timeline').querySelector('.day-card.is-open .day-details '+selector);
-    if(!target)return;
-    let widget=auroraWidgets.get(place.key);
-    if(widget){
-      if(widget.parentNode!==target)target.appendChild(widget);
-      return;
+  // Alleen actuele brondata, geen eigen noorderlichtvoorspellingen of webscraping.
+  // NOAA OVATION is een kortetermijnmodel voor aurora direct boven de plaats;
+  // Kp is wereldwijd, Open-Meteo levert bewolking op de huidige locatie.
+  const auroraState={oval:null,kp:null,ovalAt:0,kpAt:0,cloud:new Map(),pending:null};
+  const NOAA_OVAL='https://services.swpc.noaa.gov/json/ovation_aurora_latest.json';
+  const NOAA_KP='https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json';
+  const auroraTime=t=>{
+    if(typeof t!=='string')return null;
+    const parsed=Date.parse(t.includes('T')?t:t.replace(' ','T')+'Z');
+    return Number.isFinite(parsed)?parsed:null;
+  };
+  function localOval(d){
+    const o=auroraState.oval;
+    if(!o || !Array.isArray(o.coordinates) || o.coordinates.length<100)return null;
+    const time=auroraTime(o['Forecast Time']);
+    // Oude nowcasts nooit presenteren als een actuele voorspelling.
+    if(time===null || Math.abs(Date.now()-time)>90*60000)return null;
+    const longitude=(d.lon+360)%360;
+    let best=null,minimum=Infinity;
+    for(const c of o.coordinates){
+      if(!Array.isArray(c)||c.length<3)continue;
+      const x=Number(c[0]),y=Number(c[1]),value=Number(c[2]);
+      if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(value))continue;
+      const dx=Math.min(Math.abs(x-longitude),360-Math.abs(x-longitude));
+      const distance=dx*dx+Math.pow(y-d.lat,2);
+      if(distance<minimum){minimum=distance;best=value;}
     }
-    widget=document.createElement('div');
-    widget.className='aurora-widget';
-    const source=document.createElement('a');
-    source.className='nk-widget';
-    source.href=place.url;
-    source.textContent='Nordlyskart';
-    source.dataset.widget='i-kveld/'+place.key;
-    source.dataset.lang='en';
-    source.dataset.width='340';
-    source.dataset.height='250';
-    source.dataset.title='Northern lights in '+d.place+' tonight';
-    widget.appendChild(source);
-    target.appendChild(widget);
-    auroraWidgets.set(place.key,widget);
-    // De officiële embed verwerkt nieuwe widgets bij het laden.
-    // Bij blokkering door de browser blijft de bronlink klikbaar.
-    const script=document.createElement('script');
-    script.async=true;
-    script.src='https://nordlyskart.no/widget.js';
-    script.addEventListener('load',()=>script.remove(),{once:true});
-    script.addEventListener('error',()=>script.remove(),{once:true});
-    widget.appendChild(script);
+    return minimum<=4 && best!==null && best>=0 && best<=100?best:null;
+  }
+  function kpNow(){
+    const rows=auroraState.kp;
+    if(!Array.isArray(rows))return null;
+    for(let i=rows.length-1;i>0;i--){
+      const row=rows[i];if(!Array.isArray(row))continue;
+      const time=auroraTime(row[0]),v=Number(row[1]);
+      if(time!==null && Date.now()-time>=0 && Date.now()-time<6*3600000 && v>=0 && v<=9)return v;
+    }
+    return null;
+  }
+  function auroraContent(d){
+    const oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
+    const valueCloud=cloud && Date.now()-cloud.at<65*60000?cloud.value:null;
+    const tiles=[
+      {icon:'moonstar',label:'Aurora · 30 min',value:oval===null?'—':Math.round(oval)+'%'},
+      {icon:'cloudy',label:'Bewolking nu',value:valueCloud===null?'—':Math.round(valueCloud)+'%'},
+      {icon:'compass',label:'Kp actueel',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1})}
+    ];
+    const age=auroraTime(auroraState.oval?.['Forecast Time']);
+    const updated=age!==null && oval!==null?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'}).format(new Date(age)):'—';
+    const locality=AURORA_PLACES[d.place];
+    return `<p class="aurora-context">Actueel voor nu, niet voor ${esc(labelDate(d.date))}${locality?.region?' · regio '+esc(locality.region):''}</p>
+      <div class="aurora-tiles">${tiles.map(t=>`<div class="info-box aurora-tile">${ico(t.icon)}<div class="value">${esc(t.value)}</div><div class="label">${esc(t.label)}</div></div>`).join('')}</div>
+      <div class="aurora-meta">NOAA-model: activiteit boven de locatie, geen zichtgarantie. Bij bewolking kan het noorderlicht onzichtbaar blijven. Forecast ${updated}.<br>
+      ${link('Lokale verwachting · Nordlyskart',locality?.url||'https://nordlyskart.no/en/northern-lights')}
+      · ${link('NOAA bron','https://www.spaceweather.gov/products/aurora-30-minute-forecast')}</div>`;
+  }
+  function updateAuroraDisplay(){
+    const d=days().find(day=>day.id===selected);
+    if(!AURORA_PLACES[d?.place])return;
+    const target=desktopLayout.matches
+      ? $('sideDetail').querySelector('.aurora-dynamic')
+      : $('timeline').querySelector('.day-card.is-open .aurora-dynamic');
+    if(target)target.innerHTML=auroraContent(d);
+  }
+  async function fetchAurora(force=false){
+    const d=days().find(day=>day.id===selected);
+    if(!AURORA_PLACES[d?.place])return;
+    const now=Date.now(),id=locationId(d),jobs=[];
+    if(force || now-auroraState.ovalAt>10*60000){
+      auroraState.ovalAt=now;
+      jobs.push(getJSON(NOAA_OVAL,12000).then(result=>{
+        if(!Array.isArray(result?.coordinates))throw Error('Missing NOAA coordinates');
+        auroraState.oval=result;
+      }).catch(()=>{auroraState.oval=null;}));
+    }
+    if(force || now-auroraState.kpAt>10*60000){
+      auroraState.kpAt=now;
+      jobs.push(getJSON(NOAA_KP,10000).then(result=>{
+        if(!Array.isArray(result))throw Error('Invalid NOAA Kp');
+        auroraState.kp=result;
+      }).catch(()=>{auroraState.kp=null;}));
+    }
+    const current=auroraState.cloud.get(id);
+    if(force || !current || now-current.at>15*60000){
+      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
+      jobs.push(getJSON('https://api.open-meteo.com/v1/forecast?'+q,10000).then(result=>{
+        const cloud=Number(result?.current?.cloud_cover);
+        auroraState.cloud.set(id,{at:Date.now(),value:Number.isFinite(cloud)&&cloud>=0&&cloud<=100?cloud:null});
+      }).catch(()=>{auroraState.cloud.set(id,{at:Date.now(),value:null});}));
+    }
+    updateAuroraDisplay();
+    await Promise.all(jobs);
+    updateAuroraDisplay();
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopLayout=window.matchMedia('(min-width:820px)');
@@ -576,7 +634,7 @@ window.NORD_RETURN = '';
       if(button)button.setAttribute('aria-expanded',String(isActive));
     }
     $('sideDetail').innerHTML=detailContent(d);
-    mountAuroraWidget();
+    fetchAurora().catch(()=>{});
     $('sideDetail').scrollTop=0;
   }
   window.addEventListener('scroll',()=>{
@@ -615,7 +673,7 @@ window.NORD_RETURN = '';
     }).join('');
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
-    mountAuroraWidget();
+    fetchAurora().catch(()=>{});
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
       if(id!==selected){
@@ -672,7 +730,7 @@ window.NORD_RETURN = '';
   function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
-  $('refresh').addEventListener('click',()=>refresh(true));
+  $('refresh').addEventListener('click',()=>{refresh(true);fetchAurora(true).catch(()=>{});});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
