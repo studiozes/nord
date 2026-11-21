@@ -576,6 +576,7 @@ window.NORD_RETURN = '';
     if(target)target.innerHTML=auroraContent(d);
   }
   async function fetchAurora(force=false){
+    if(auroraState.pending)return auroraState.pending;
     const d=days().find(day=>day.id===selected);
     if(!AURORA_PLACES[d?.place])return;
     const now=Date.now(),id=locationId(d),jobs=[];
@@ -602,8 +603,8 @@ window.NORD_RETURN = '';
       }).catch(()=>{auroraState.cloud.set(id,{at:Date.now(),value:null});}));
     }
     updateAuroraDisplay();
-    await Promise.all(jobs);
-    updateAuroraDisplay();
+    auroraState.pending=Promise.all(jobs).then(updateAuroraDisplay).finally(()=>{auroraState.pending=null;});
+    return auroraState.pending;
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopLayout=window.matchMedia('(min-width:820px)');
@@ -696,8 +697,8 @@ window.NORD_RETURN = '';
     try{const res=await fetch(url,{signal:ac.signal,cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);return await res.json()}finally{clearTimeout(t)}
   }
   async function mapConcurrent(items,limit,handler){let i=0;const jobs=Array.from({length:Math.min(limit,items.length)},async()=>{while(i<items.length){const item=items[i++];try{await handler(item)}catch{lastError=true}}});await Promise.all(jobs)}
-  async function getWeather(d){
-    const key=dataKey(d);if(fresh(d))return;
+  async function getWeather(d,force=false){
+    const key=dataKey(d);if(!force && fresh(d))return;
     const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),daily:'temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean',timezone:d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo',forecast_days:'16'});
     const out=await getJSON('https://api.open-meteo.com/v1/forecast?'+q,11000);
     const dateIdx=out?.daily?.time?.indexOf(d.date)??-1;
@@ -721,7 +722,7 @@ window.NORD_RETURN = '';
     const today=dateAtHome();
     const uniqueWeather=arr.filter((d,i,a)=>{ const gap=(Date.parse(d.date+'T12:00:00Z')-Date.parse(today+'T12:00:00Z'))/MS_DAY;return gap>=0 && gap<=15 && (force || !fresh(d)) && a.findIndex(x=>dataKey(x)===dataKey(d))===i;});
     await Promise.all([
-      mapConcurrent(uniqueWeather,3,d=>getWeather(d)),
+      mapConcurrent(uniqueWeather,3,d=>getWeather(d,force)),
       mapConcurrent(uniqueSun,3,d=>getSun(d))
     ]);
     if(cycle===refreshCycle){busy=false;render();if(pendingRefresh){pendingRefresh=false;refresh();}}
