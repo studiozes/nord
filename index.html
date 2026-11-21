@@ -60,7 +60,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .glance.warn strong,.glance.warn svg{color:var(--warn)}
 .glance.alert strong,.glance.alert svg{color:var(--alert)}
 .day-details{padding:0 14px 15px}
-.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:10px;display:grid;gap:10px}
+.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:10px;display:grid;gap:9px}
 .step-list{list-style:none;margin:0 0 2px 0;padding:0 0 0 15px;border-left:1px solid var(--hair)}.step-list li{position:relative;padding:4px 0 4px 6px;font-size:12px;line-height:1.4}.step-list li::before{content:'';position:absolute;left:-19px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .detail-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .detail-heading h2{font-size:17px;letter-spacing:-.3px;font-weight:620;margin:0}
@@ -71,7 +71,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .weather-tile svg{width:17px;height:17px;margin:0 0 2px}
 .weather-tile .value{font-size:16px;line-height:1.15}
 .weather-tile .label{font-size:11px;line-height:1.2}
-@container (min-width:450px){.weather-tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@container (min-width:390px){.weather-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @container (max-width:310px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .info-box{border-radius:11px;background:var(--bg);padding:5px 4px;text-align:center;min-width:0}
 .info-box svg{width:16px;height:16px;margin:0 auto 2px;display:block;color:var(--muted)}
@@ -96,11 +96,21 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .source-tile .value{max-width:100%;overflow-wrap:anywhere;white-space:normal}
 .source-tile svg{width:16px;height:16px;max-width:16px;max-height:16px;flex:0 0 16px;margin:0 auto 2px}
 .stage-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.stage-tiles--two{grid-template-columns:repeat(2,minmax(0,1fr))}
-.stage-tile .value{font-size:13px}
+.stage-tile .value{font-size:13px;line-height:1.22}
+.stage-tile .label{order:-1;margin:0 0 3px}
+.stage-tile svg{margin:0 auto 2px}
+.stage-tile--static{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:62px}
+.stage-tile--static .value{overflow-wrap:anywhere;white-space:normal}
+.stage-tile .value{overflow-wrap:anywhere;white-space:normal}
 .route-steps{font-size:12px}
 .route-steps summary{cursor:pointer;min-height:34px;display:flex;align-items:center;color:var(--muted)}
 .road-alert-details{font-size:11px;color:var(--muted)}
 .road-alert-details summary{cursor:pointer;padding:3px 0}
+@container (min-width:390px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.aurora-tile .value{overflow-wrap:anywhere;white-space:normal}
+.cockpit-more{display:block;font-size:11px;color:var(--muted)}
+.cockpit-more summary{cursor:pointer;min-height:26px;display:flex;align-items:center}
+.cockpit-more .links{margin-top:4px}
 .aurora-section{gap:7px}
 .aurora-context{font-size:11px;color:var(--muted);line-height:1.35;margin:0 0 3px}
 .aurora-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
@@ -126,12 +136,12 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .road-alert-entry .road-alert-name{font-weight:590}
 .road-alert-entry .road-alert-description{color:var(--muted);font-size:11px;margin-top:2px}
 .road-alert-meta{color:var(--muted);font-size:11px;line-height:1.45}
-.roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
-.roadcam-card:hover{border-color:var(--hair);text-decoration:none}
-.roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:contain;background:var(--hair)}
+.roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.roadcam-card{display:block;background:var(--bg);border-radius:11px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent;padding:4px}
+.roadcam-card:hover{border-color:var(--hair);background:var(--shade);text-decoration:none}
+.roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:contain;background:var(--bg);border-radius:7px}
 .roadcam-caption{font-size:11px;font-weight:550;line-height:1.25;padding:5px 6px;min-height:29px}
-.roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
+.roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:8px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
 .roadcam-card.is-unavailable img{display:none}
 .roadcam-card.is-unavailable .roadcam-fallback{display:grid}
 .roadcam-meta{color:var(--muted);font-size:11px;line-height:1.45}
@@ -443,9 +453,11 @@ window.NORD_RETURN = '';
     snowflake:'<path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 5l3-3 3 3m-6 14 3 3 3-3M4.5 11 3.3 7l4.4-1M16.3 18l4.4-1-1.2-4M7.7 18l-4.4-1 1.2-4M19.5 11l1.2-4-4.4-1"/>',
     humidity:'<path d="M12 3C9 7 5 10.2 5 14a7 7 0 0 0 14 0c0-3.8-4-7-7-11z"/><path d="M9 15h.01M15 12h.01M9 18l6-9"/>',
     sunrise:'<path d="M2 18h20M5 21h14M6 15a6 6 0 0 1 12 0M12 2v5M3 7l3 3m15-3-3 3"/>',
-    sunset:'<path d="M2 18h20M5 21h14M6 15a6 6 0 0 1 12 0M12 7V2m-3 3 3-3 3 3"/>',
+    sunset:'<path d="M2 18h20M5 21h14M6 15a6 6 0 0 1 12 0M12 2v8m-3-3 3 3 3-3"/>',
     clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
     road:'<circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M8 5h8a4 4 0 0 1 0 8H8a3 3 0 0 0 0 6h8"/>',
+    pin:'<path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+    flag:'<path d="M5 22V3m0 1c5-3 8 3 15 0v12c-7 3-10-3-15 0"/>',
     alert:'<path d="m12 3 10 18H2L12 3z"/><path d="M12 9v5m0 3h.01"/>',
     roadblock:'<rect x="3" y="8" width="18" height="10" rx="1"/><path d="m7 8 5 10m0-10 5 10M6 21v-3m12 3v-3"/>',
     ship:'<path d="m3 14 9-4 9 4-3 6H6zm4-2V5h10v7M10 5V2h4v3M2 22q2-2 5 0 3-2 5 0 3-2 5 0 3-2 5 0"/>',
@@ -696,9 +708,11 @@ window.NORD_RETURN = '';
   // Iedere informatietegel is zelf een link naar de bron van de waarde.
   // Geen extra server of eigen databeheer; ontbrekende gegevens blijven '—'.
   const LOCAL_TZ=d=>d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo';
+  const WEATHER_DAILY_FIELDS='temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean,relative_humidity_2m_mean,moon_phase';
+  const WEATHER_HOURLY_FIELDS='cloud_cover';
   const weatherDailyUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
     latitude:String(d.lat),longitude:String(d.lon),
-    daily:'temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean',
+    daily:WEATHER_DAILY_FIELDS,hourly:WEATHER_HOURLY_FIELDS,
     timezone:LOCAL_TZ(d),forecast_days:'16'
   });
   const weatherCurrentUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
@@ -976,12 +990,32 @@ window.NORD_RETURN = '';
   async function mapConcurrent(items,limit,handler){let i=0;const jobs=Array.from({length:Math.min(limit,items.length)},async()=>{while(i<items.length){const item=items[i++];try{await handler(item)}catch{lastError=true}}});await Promise.all(jobs)}
   async function getWeather(d,force=false){
     const key=dataKey(d);if(!force && fresh(d))return;
-    const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),daily:'temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean',timezone:d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo',forecast_days:'16'});
+    const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),daily:WEATHER_DAILY_FIELDS,hourly:WEATHER_HOURLY_FIELDS,timezone:LOCAL_TZ(d),forecast_days:'16'});
     const out=await getJSON('https://api.open-meteo.com/v1/forecast?'+q,11000);
     const dateIdx=out?.daily?.time?.indexOf(d.date)??-1;
     if(dateIdx<0)return;
     const val=k=>out?.daily?.[k]?.[dateIdx];
-    weatherCache[key]={when:Date.now(),value:{temp:n(val('temperature_2m_mean')),feel:n(val('apparent_temperature_mean')),icon:codeIcon(val('weather_code')),gust:n(val('wind_gusts_10m_max')),snow:n(val('snowfall_sum')),cloud:n(val('cloud_cover_mean'))}};
+    // Gemiddelde bewolking van de geselecteerde avond 18:00 tot de volgende ochtend 06:00 (lokale tijd).
+    const hourly=out?.hourly||{},nextDay=addDays(d.date,1),night=[];
+    if(Array.isArray(hourly.time)&&Array.isArray(hourly.cloud_cover)){
+      hourly.time.forEach((t,i)=>{
+        if(typeof t!=='string')return;
+        const day=t.slice(0,10),hour=Number(t.slice(11,13)),v=n(hourly.cloud_cover[i]);
+        if((day===d.date&&hour>=18)||(day===nextDay&&hour<6)){
+          if(v!==null&&v>=0&&v<=100)night.push(v);
+        }
+      });
+    }
+    const phase=n(val('moon_phase'));
+    const moonlight=phase!==null&&phase>=0&&phase<=1?Math.round((1-Math.cos(phase*Math.PI*2))*50):null;
+    weatherCache[key]={when:Date.now(),value:{
+      temp:n(val('temperature_2m_mean')),feel:n(val('apparent_temperature_mean')),
+      icon:codeIcon(val('weather_code')),gust:n(val('wind_gusts_10m_max')),
+      snow:n(val('snowfall_sum')),cloud:n(val('cloud_cover_mean')),
+      humidity:n(val('relative_humidity_2m_mean')),
+      nightCloud:night.length>=9?Math.round(night.reduce((a,b)=>a+b,0)/night.length):null,
+      moonlight
+    }};
     safePut('weather',weatherCache);render();
   }
   async function getSun(d){
