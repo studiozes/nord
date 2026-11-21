@@ -207,6 +207,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .stay-provider-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:var(--shade);color:var(--accent)}
 .stay-provider-icon svg{width:17px;height:17px}
 .stay-provider-name{font-size:12px;line-height:1.2;font-weight:600;white-space:nowrap}
+.stay-provider-hint{font-size:10px;line-height:1.15;color:var(--muted);font-weight:450}
 .stay-special{display:flex;align-items:center;gap:7px;min-height:34px;padding:4px 5px;color:var(--muted);font-size:11px;font-weight:550;text-decoration:none}
 .stay-special svg{width:14px;height:14px;flex:0 0 14px}
 .stay-special:hover{color:var(--accent);text-decoration:none}
@@ -888,12 +889,13 @@ window.NORD_RETURN = '';
     });
     return {booking,airbnb,homeToGo,special};
   }
-  function stayProvider(icon,name,url,extra=''){
+  function stayProvider(icon,name,url,extra='',hint=''){
     return '<a class="stay-provider" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer"'
       +' title="'+esc(extra||'Zoek overnachtingen op '+name)+'"'
       +' aria-label="'+esc(name+'. '+(extra||'Open zoekresultaten')+'.')+'">'
       +'<span class="stay-provider-icon">'+ico(icon)+'</span>'
-      +'<span class="stay-provider-name">'+esc(name)+'</span></a>';
+      +'<span class="stay-provider-name">'+esc(name)+'</span>'
+      +(hint?'<span class="stay-provider-hint">'+esc(hint)+'</span>':'')+'</a>';
   }
   function stayContent(d){
     // Op de veerbootnachten en bij thuiskomst zijn geen extra accommodaties nodig.
@@ -906,7 +908,7 @@ window.NORD_RETURN = '';
       +'<div class="stay-providers">'
       +stayProvider('bed','Booking',links.booking,'Bestemming, datum en twee gasten ingevuld')
       +stayProvider('pin','Airbnb',links.airbnb,'Bestemming, datum en twee gasten ingevuld')
-      +stayProvider('compass','HomeToGo',links.homeToGo,'Regiopagina; controleer bestemming, datum en gasten op de website')
+      +stayProvider('compass','HomeToGo',links.homeToGo,'Regiopagina; controleer bestemming, datum en gasten op de website','datum zelf')
       +'</div>'
       +'<a class="stay-special" href="'+esc(links.special)+'" target="_blank" rel="noopener noreferrer"'
       +' title="Ontdek eenvoudige hutten, huisjes en bijzondere plekken rondom de eindbestemming; geen live beschikbaarheid">'
