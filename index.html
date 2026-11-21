@@ -121,7 +121,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
 .aurora-meta a{font-size:11px}
 @media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
-.road-now-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.road-now-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 .road-now-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:62px;padding:5px 3px}
 .road-now-tile svg{width:17px;height:17px;margin:0 0 2px}
 .road-now-tile .value{font-size:16px;line-height:1.2}
@@ -570,7 +570,7 @@ window.NORD_RETURN = '';
   function dataKey(d){return `${locationId(d)}@${d.date}`}
   const weather=d=>weatherCache[dataKey(d)]?.value || null;
   const solar=d=>sunCache[dataKey(d)]?.value || null;
-  const fresh=d=>{const item=weatherCache[dataKey(d)];return item && Date.now()-item.when<60*60*1000 && item.value && Object.hasOwn(item.value,'humidity') && Object.hasOwn(item.value,'nightCloud') && Object.hasOwn(item.value,'moonlight')};
+  const fresh=d=>{const item=weatherCache[dataKey(d)];return item && Date.now()-item.when<60*60*1000 && item.value && Object.hasOwn(item.value,'humidity') && Object.hasOwn(item.value,'nightCloud') && Object.hasOwn(item.value,'moonlight') && Object.hasOwn(item.value,'windDir') && Object.hasOwn(item.value,'precipChance')};
   const codeIcon=c=>c==null?'cloudy':c===0?'sun':c<=3?'part':[45,48].includes(c)?'cloudy':[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c)?'rain':[71,73,75,77,85,86].includes(c)?'snow':'cloudy';
   // Lokale bronnen bij de geplande overnachtingsplaatsen.
   // Reine en Mefjordvær gebruiken de bevestigde gemeentepagina (Moskenes / Senja).
@@ -613,9 +613,11 @@ window.NORD_RETURN = '';
     const fresh=point && Date.now()-point.at<20*60000;
     const rain=fresh?n(point.precip):null;
     const humidity=fresh?n(point.humidity):null;
+    const visibility=fresh?n(point.visibility):null;
     const bearing=fresh?directionLabel(point.direction):'—';
     const rainText=rain===null||rain<0?'—':rain.toLocaleString('nl-NL',{maximumFractionDigits:1})+' mm';
     const humidityText=humidity===null||humidity<0||humidity>100?'—':Math.round(humidity)+'%';
+    const visibilityText=visibility===null||visibility<0?'—':visibility<1000?Math.round(visibility)+' m':(visibility/1000).toLocaleString('nl-NL',{maximumFractionDigits:1})+' km';
     const sourceWeather='https://vegvar.atlas.vegvesen.no/';
     const sourceYr='https://www.yr.no/en';
     return `<section class="details-section road-now-section">
@@ -623,7 +625,8 @@ window.NORD_RETURN = '';
       <div class="road-now-tiles">
         ${sourceTile('rain',rainText,'Neerslag nu',weatherCurrentUrl(d),'road-now-tile','Modelwaarde voor neerslag · Open-Meteo')}
         ${sourceTile('humidity',humidityText,'Luchtvochtigheid',weatherCurrentUrl(d),'road-now-tile','Actuele relatieve luchtvochtigheid · Open-Meteo')}
-        ${sourceTile('compass',bearing,'Wind uit',weatherCurrentUrl(d),'road-now-tile','Actuele windrichting · Open-Meteo')}
+        ${sourceTile('compass',bearing,'Wind uit',weatherCurrentUrl(d),'road-now-tile','Actuele windrichting op 10 meter · Open-Meteo')}
+        ${sourceTile('compass',visibilityText,'Zicht',weatherCurrentUrl(d),'road-now-tile','Modelinschatting zicht op deze locatie, geen daadwerkelijke meting langs de weg · Open-Meteo')}
       </div>
       <details class="cockpit-more"><summary>Wegweer en Yr.no</summary>
         <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
@@ -836,7 +839,7 @@ window.NORD_RETURN = '';
   // Iedere informatietegel is zelf een link naar de bron van de waarde.
   // Geen extra server of eigen databeheer; ontbrekende gegevens blijven '—'.
   const LOCAL_TZ=d=>d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo';
-  const WEATHER_DAILY_FIELDS='temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean,relative_humidity_2m_mean,moon_phase';
+  const WEATHER_DAILY_FIELDS='temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,wind_direction_10m_dominant,precipitation_probability_max,snowfall_sum,cloud_cover_mean,relative_humidity_2m_mean,moon_phase';
   const WEATHER_HOURLY_FIELDS='cloud_cover';
   const weatherDailyUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
     latitude:String(d.lat),longitude:String(d.lon),
@@ -845,7 +848,7 @@ window.NORD_RETURN = '';
   });
   const weatherCurrentUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
     latitude:String(d.lat),longitude:String(d.lon),
-    current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m',
+    current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m,visibility',
     timezone:LOCAL_TZ(d)
   });
   const solarSourceUrl=d=>'https://api.sunrise-sunset.org/v2?'+new URLSearchParams({
@@ -1150,7 +1153,9 @@ window.NORD_RETURN = '';
           ${sourceTile('thermometer',fmtDeg(w?.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo')}
           ${sourceTile('feels',fmtDeg(w?.feel),'Voelt als',weatherDailyUrl(d),'weather-tile','Gemiddelde gevoelstemperatuur · Open-Meteo')}
           ${sourceTile('wind',fmt(w?.gust,' km/u'),'Windstoten',weatherDailyUrl(d),'weather-tile','Maximale windstoten · Open-Meteo')}
+          ${sourceTile('compass',directionLabel(w?.windDir),'Wind uit',weatherDailyUrl(d),'weather-tile','Overheersende windrichting van de dag, waar de wind vandaan komt · Open-Meteo')}
           ${sourceTile('snowflake',n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm','Sneeuwval',weatherDailyUrl(d),'weather-tile','Sneeuwval van deze dag · Open-Meteo')}
+          ${sourceTile('rain',fmt(w?.precipChance,'%'),'Neerslagkans',weatherDailyUrl(d),'weather-tile','Hoogste berekende uurlijkse neerslagkans op deze dag; geen kans voor de volledige etappe · Open-Meteo')}
           ${sourceTile('cloudy',fmt(w?.cloud,'%'),'Bewolking',weatherDailyUrl(d),'weather-tile','Gemiddelde bewolking van deze dag · Open-Meteo')}
           ${sourceTile('humidity',fmt(w?.humidity,'%'),'Luchtvochtigheid',weatherDailyUrl(d),'weather-tile','Gemiddelde relatieve luchtvochtigheid op deze datum · Open-Meteo')}
         </div>
@@ -1276,13 +1281,13 @@ window.NORD_RETURN = '';
     }
     const current=auroraState.cloud.get(id);
     if(force || !current || now-current.at>15*60000){
-      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
+      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m,visibility',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
       jobs.push(getJSON('https://api.open-meteo.com/v1/forecast?'+q,10000).then(result=>{
         const cloud=Number(result?.current?.cloud_cover);
         const v=key=>result?.current?.[key];
         const num=key=>v(key)===null||v(key)===undefined||!Number.isFinite(Number(v(key)))?null:Number(v(key));
         auroraState.cloud.set(id,{at:Date.now(),value:Number.isFinite(cloud)&&cloud>=0&&cloud<=100?cloud:null,
-          precip:num('precipitation'),humidity:num('relative_humidity_2m'),direction:num('wind_direction_10m')});
+          precip:num('precipitation'),humidity:num('relative_humidity_2m'),direction:num('wind_direction_10m'),visibility:num('visibility')});
       }).catch(()=>{auroraState.cloud.set(id,{at:Date.now(),value:null});}));
     }
     updateAuroraDisplay();
@@ -1362,7 +1367,9 @@ window.NORD_RETURN = '';
     fmtDeg(w?.temp),
     fmtDeg(w?.feel),
     fmt(w?.gust,' km/u'),
+    directionLabel(w?.windDir),
     n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm',
+    fmt(w?.precipChance,'%'),
     fmt(w?.cloud,'%'),
     fmt(w?.humidity,'%')
   ];
@@ -1492,6 +1499,7 @@ window.NORD_RETURN = '';
     weatherCache[key]={when:Date.now(),value:{
       temp:n(val('temperature_2m_mean')),feel:n(val('apparent_temperature_mean')),
       icon:codeIcon(val('weather_code')),gust:n(val('wind_gusts_10m_max')),
+      windDir:n(val('wind_direction_10m_dominant')),precipChance:n(val('precipitation_probability_max')),
       snow:n(val('snowfall_sum')),cloud:n(val('cloud_cover_mean')),
       humidity:n(val('relative_humidity_2m_mean')),
       nightCloud:night.length>=9?Math.round(night.reduce((a,b)=>a+b,0)/night.length):null,
