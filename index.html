@@ -779,7 +779,7 @@ window.NORD_RETURN = '';
 
   // Benzine 95: betrouwbare referentie per bestemmingsland, niet per individueel tankstation.
   const FUEL_URL={
-    no:'https://drivstoffappen.no/drivstoffpriser',
+    no:'https://www.fuel-prices.eu/Norway/',
     se:'https://www.fuel-prices.eu/live/sweden/',
     dk:'https://www.fuel-prices.eu/live/denmark/',
     de:'https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en',
@@ -787,8 +787,7 @@ window.NORD_RETURN = '';
   };
   const fuelPrices=new Map(),fuelPending=new Map(),fuelAttempts=new Map();
   const fuelCountry=d=>String(d.country||'').toLowerCase();
-  const fuelUrl=c=>c==='no'&&fuelPrices.get(c)
-    ?'https://www.ssb.no/en/statbank/table/09654':FUEL_URL[c]||FUEL_URL.nl;
+  const fuelUrl=c=>FUEL_URL[c]||FUEL_URL.nl;
   const fuelDate=v=>/^\d{4}M\d{2}$/.test(v)?v.slice(5,7)+'-'+v.slice(0,4):
     /^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(8,10)+'-'+v.slice(5,7):'';
   function fuelText(c){
@@ -828,9 +827,9 @@ window.NORD_RETURN = '';
     const country=fuelCountry(d),national=fuelText(country);
     return {
       ...national,
-      meta:national.value==='—'&&country==='no'?'Regio: geen recente prijzen · open bron':
+      meta:national.value==='—'&&country==='no'?'Regio: geen recente prijzen · landelijke bron':
         national.value==='—'?national.meta:'Landelijk · '+national.meta,
-      url:national.value==='—'&&country==='no'?REGIONAL_NO_SOURCE:fuelUrl(country)
+      url:fuelUrl(country)
     };
   }
   function updateRegionalFuel(d){
