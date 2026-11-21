@@ -77,6 +77,18 @@ De dagwaarden worden binnen de bestaande weershorizon van 16 dagen opgehaald, vi
 
 Bij prijsbedragen in kronen is `NOK/SEK/DKK` de hoofdwaarde. De kleine euro-indicatie is apart aanklikbaar, laat de ECB-peildatum zien en verandert niet de oorspronkelijke prijs. Een ontbrekende koers geeft `≈ € —/l`, zonder schatting. De EUR-omrekening hoort bij de getoonde benzineprijs en is niet per definitie de koers op de dag waarop die benzineprijs werd gemeten.
 
+## Overnachten tijdens de etappe
+
+De compacte accommodatiezoeker staat meteen onder **Etappe**, vóór het weer. In de reisstand worden de geplande eindbestemming, incheckdatum en standaard één nacht gekozen, voor **2 personen**.
+
+- **Booking** en **Airbnb** openen een externe zoektocht met de bestemming, in- en uitcheckdatum en twee gasten in de zoeklink. Controleer deze waarden op de website; platforms kunnen hun URL-indeling veranderen.
+- **HomeToGo** opent een gecontroleerde bestemmings- of regiopagina (specifiek Lofoten, Tromsø of Göteborg waar beschikbaar, anders Noorwegen, Zweden of de homepage). Er is geen betrouwbaar geverifieerde deep-link voor alle zoekfilters samen. Daarom staat bij de tegel **filters zelf**. De gebruiker stelt de juiste stad, datums en gasten daar zelf in.
+- **Cabins & bijzondere plekken** is een subtiele extra zoeklink in Google Maps voor eenvoudige hutten, Noorse rorbuer of Zweedse stugor. Deze link toont ontdekkingsmogelijkheden, geen vooraf gecontroleerde beschikbaarheid.
+- Op **21 januari** en **2 februari** overnachten de reizigers op de Stena Line; op de thuiskomstdag is geen extra boeking nodig. Op deze drie dagen verschijnt geen accommodatiezoeker, ook niet in de teststand.
+- De interface gebruikt drie kleine iconen in de Nord-stijl, zonder grote logo's, prijsvergelijker, datumformulier of extra widgets.
+
+De voorkeur is bewust **budgetvriendelijk en bijzonder**, bij benadering € 100 per nacht, maar er is géén harde prijsfilter. Een zelfstandig huisje of cabin met **één bed** kan al passen; we vragen nooit twee bedden of twee slaapkamers. Een slaapmat en slaapzak kunnen een alternatief zijn als dat praktisch en door de verhuurder toegestaan is. Verwarming, bereikbaarheid in de winter en eigen sanitaire voorzieningen zijn belangrijker dan luxe; controleer dit en mogelijke schoonmaakkosten en toeslagen zelf. De externe links maken geen reservering en garanderen geen beschikbare accommodatie.
+
 ## Actuele omstandigheden en wegweer
 
 Bij Noorse bestemmingen toont Nord naast de bestaande dagvoorspelling vier **actuele Open-Meteo-modelwaarden**: neerslag, luchtvochtigheid, windrichting en zicht. De gegevens worden tegelijk met de bestaande actuele bewolkingswaarde aangevraagd, zonder extra API of server. De handmatige verversknop vraagt deze waarden opnieuw op. Deze modelwaarden zijn **geen daadwerkelijke metingen op de weg** en gelden voor het huidige moment, niet voor de toekomstige reisdatum.
