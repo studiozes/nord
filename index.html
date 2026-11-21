@@ -720,7 +720,9 @@ window.NORD_RETURN = '';
         <div class="metric-row"><span class="label">Naar</span><span class="number">${esc(d.place)}</span></div>
         ${mode==='trip' ? `<div class="metric-row"><span class="label">Rijafstand geschat</span><span class="number">${Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'Nog te bepalen'}</span></div>`:''}
         ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
-${mode==='trip'?"        ${d.roadEstimateNote?`<p class=\"snow-note\">${esc(d.roadEstimateNote)}</p>`:''}\n        <p class=\"snow-note\">Afstand is een voorlopige schatting voor autorijden, exclusief veerboottrajecten. Controleer de route voor vertrek.</p>\n":''}        ${d.ferry?'<p class="snow-note">Veerboot gepland. Vertrek en actuele dienstregeling controleren bij vervoerder.</p>':''}
+        ${mode==='trip' && d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
+        ${mode==='trip'?'<p class="snow-note">Geschatte autorit, zonder eventuele veerbootafstanden. Controleer de route voor vertrek.</p>':''}
+        ${d.ferry?'<p class="snow-note">Veerboot gepland. Vertrek en actuele dienstregeling controleren bij vervoerder.</p>':''}
         <p class="snow-note">Weg- en veerbootstatus worden hier nog niet automatisch gecontroleerd. Open voor vertrek de officiële bron.</p>
       </div>
       <div class="details-section"><h3>Direct openen</h3><div class="links">
