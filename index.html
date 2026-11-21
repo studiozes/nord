@@ -185,6 +185,12 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
   .cockpit-panel--light .source-tile .value,.cockpit-duo--roads .source-tile .value{grid-column:3;grid-row:1;text-align:right;font-size:14px;white-space:nowrap}
 }
 
+.fuel-quote{display:grid;gap:3px;min-width:0;align-content:start}
+.fuel-fx{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:2px 6px;min-width:0;color:var(--muted);font-size:11px;line-height:1.3;padding:0 5px;text-decoration:none}
+.fuel-fx:hover{text-decoration:underline}
+.fuel-fx-value{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.fuel-fx-date{color:var(--muted);font-weight:450}
+.fuel-fx:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 /* Final readability refinements; compact, without reducing hit targets. */
 .heading .update{font-size:12px}
 .detail-heading small{font-size:12px}
@@ -883,11 +889,65 @@ window.NORD_RETURN = '';
   const fuelUrl=c=>FUEL_URL[c]||FUEL_URL.nl;
   const fuelDate=v=>/^\d{4}M\d{2}$/.test(v)?v.slice(5,7)+'-'+v.slice(0,4):
     /^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(8,10)+'-'+v.slice(5,7):'';
+
+  // Euro-indicatie: ECB-referentiekoers, geen realtime bank- of wisselkantoortarief.
+  const FX_API='https://api.frankfurter.dev/v2/rates?base=EUR&quotes=NOK,SEK,DKK&providers=ecb';
+  const FX_SOURCE='https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html';
+  const FX_CODES=new Set(['NOK','SEK','DKK']);
+  const fxRates=new Map();
+  let fxPending=null,fxLastAttempt=0,fxLastSuccess=0;
+  function fxConversion(amount,currency){
+    if(!FX_CODES.has(currency)||!Number.isFinite(Number(amount))||Number(amount)<=0)return null;
+    const item=fxRates.get(currency);
+    const euro=item?Number(amount)/item.rate:null;
+    return {
+      value:'≈ € '+(euro===null?'—':new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(euro))+'/l',
+      date:item?'ECB · '+fuelDate(item.date):'ECB · koers —'
+    };
+  }
+  function fuelFxLink(x){
+    const fx=fxConversion(x.amount,x.currency);
+    if(!fx)return '';
+    return '<a class="fuel-fx" href="'+esc(FX_SOURCE)+'" target="_blank" rel="noopener noreferrer"'
+      +' title="Indicatieve omrekening met ECB-referentiekoers, geen pomp- of bankkoers"'
+      +' aria-label="'+esc('Euro-omrekening: '+fx.value+'. '+fx.date+'. Open ECB-bron.')+'">'
+      +'<span class="fuel-fx-value">'+esc(fx.value)+'</span>'
+      +'<span class="fuel-fx-date">'+esc(fx.date)+'</span></a>';
+  }
+  function updateFxDisplay(){
+    const d=days().find(x=>x.id===selected);
+    if(d)updateFuel(fuelCountry(d));
+  }
+  async function fetchFx(force=false){
+    if(fxPending)return fxPending;
+    const now=Date.now();
+    if(!force&&now-fxLastSuccess<12*3600000)return;
+    if(!force&&now-fxLastAttempt<10*60000)return;
+    fxLastAttempt=now;
+    fxPending=(async()=>{
+      const rows=await getJSON(FX_API,11000);
+      if(!Array.isArray(rows))return;
+      let accepted=0;
+      for(const row of rows){
+        const code=String(row?.quote||'').toUpperCase();
+        const rate=Number(row?.rate),date=String(row?.date||'');
+        if(String(row?.base||'').toUpperCase()!=='EUR'||!FX_CODES.has(code))continue;
+        if(!Number.isFinite(rate)||rate<2||rate>50||!/^\d{4}-\d{2}-\d{2}$/.test(date))continue;
+        const elapsed=Date.now()-Date.parse(date+'T12:00:00Z');
+        if(!Number.isFinite(elapsed)||elapsed< -86400000||elapsed>7*86400000)continue;
+        fxRates.set(code,{rate,date});
+        accepted++;
+      }
+      if(accepted)fxLastSuccess=Date.now();
+    })().catch(()=>{}).finally(()=>{fxPending=null;updateFxDisplay()});
+    return fxPending;
+  }
+
   function fuelText(c){
     const x=fuelPrices.get(c);
-    if(!x)return {value:'—',meta:'Landelijk · bron openen'};
+    if(!x)return {value:'—',meta:'Landelijk · bron openen',amount:null,currency:null};
     const str=new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(x.price);
-    return {value:(x.currency==='NOK'?'NOK ':'€ ')+str+'/l',meta:x.type+' · '+fuelDate(x.date)};
+    return {value:(x.currency==='NOK'?'NOK ':x.currency==='SEK'?'SEK ':x.currency==='DKK'?'DKK ':'€ ')+str+'/l',meta:x.type+' · '+fuelDate(x.date),amount:x.price,currency:x.currency};
   }
 
   // Een regionale dagindicatie is alleen geldig als minstens drie afzonderlijke
@@ -911,7 +971,7 @@ window.NORD_RETURN = '';
     return {
       value:'NOK '+new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(item.price)+'/l',
       meta:'Regio 40 km · '+item.stations+' stations · meldingen ≤48 uur, laatst '+fuelDate(item.date),
-      url:REGIONAL_NO_SOURCE
+      url:REGIONAL_NO_SOURCE,amount:item.price,currency:'NOK'
     };
   }
   function fuelDisplay(d){
@@ -974,23 +1034,35 @@ window.NORD_RETURN = '';
 
   function fuelStrip(d){
     const c=fuelCountry(d),x=fuelDisplay(d);
-    return `<a class="fuel-strip" data-fuel="${esc(c)}" href="${esc(x.url)}" target="_blank"
+    return `<div class="fuel-quote" data-fuel="${esc(c)}"><a class="fuel-strip" href="${esc(x.url)}" target="_blank"
         rel="noopener noreferrer" title="Actuele regionale benzine-95-prijs bij voldoende recente stations; anders expliciet landelijke indicatie">
       <span class="fuel-name">${ico('fuel')}Benzine 95</span>
       <span class="fuel-number">${esc(x.value)}</span>
       <small class="fuel-meta">${esc(x.meta)}</small>
-    </a>`;
+    </a>${fuelFxLink(x)}</div>`;
   }
   function updateFuel(c){
     const selectedDay=days().find(d=>d.id===selected);
     const x=selectedDay&&fuelCountry(selectedDay)===c?fuelDisplay(selectedDay):null;
     if(!x)return;
-    document.querySelectorAll('.fuel-strip[data-fuel="'+c+'"]').forEach(el=>{
-      el.href=x.url;
-      const n=el.querySelector('.fuel-number'),m=el.querySelector('.fuel-meta');
+    document.querySelectorAll('.fuel-quote[data-fuel="'+c+'"]').forEach(wrapper=>{
+      const priceLink=wrapper.querySelector('.fuel-strip');
+      if(!priceLink)return;
+      priceLink.href=x.url;
+      const n=priceLink.querySelector('.fuel-number'),m=priceLink.querySelector('.fuel-meta');
       if(n)n.textContent=x.value;
       if(m)m.textContent=x.meta;
-      el.setAttribute('aria-label','Benzine 95 '+x.value+'. '+x.meta+'. Open bron.');
+      priceLink.setAttribute('aria-label','Benzine 95 '+x.value+'. '+x.meta+'. Open bron.');
+      const converted=fxConversion(x.amount,x.currency),fx=wrapper.querySelector('.fuel-fx');
+      if(converted){
+        if(!fx)wrapper.insertAdjacentHTML('beforeend',fuelFxLink(x));
+        else{
+          const value=fx.querySelector('.fuel-fx-value'),date=fx.querySelector('.fuel-fx-date');
+          if(value)value.textContent=converted.value;
+          if(date)date.textContent=converted.date;
+          fx.setAttribute('aria-label','Euro-omrekening: '+converted.value+'. '+converted.date+'. Open ECB-bron.');
+        }
+      }else if(fx)fx.remove();
     });
   }
   function ssb95(json){
@@ -1255,6 +1327,7 @@ window.NORD_RETURN = '';
     bindCameraFallbacks();
     loadFuel(fuelCountry(d)).catch(()=>{});
     loadRegionalFuel(d).catch(()=>{});
+    fetchFx().catch(()=>{});
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('sideDetail').scrollTop=0;
@@ -1370,6 +1443,7 @@ window.NORD_RETURN = '';
     if(fuelDay){
       loadFuel(fuelCountry(fuelDay)).catch(()=>{});
       loadRegionalFuel(fuelDay).catch(()=>{});
+      fetchFx().catch(()=>{});
     }
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
@@ -1464,7 +1538,7 @@ window.NORD_RETURN = '';
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');syncBrowserTheme();
   systemDark.addEventListener('change',()=>{if(!document.documentElement.dataset.theme)syncBrowserTheme()});
-  $('refresh').addEventListener('click',()=>{refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});}});
+  $('refresh').addEventListener('click',()=>{refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});fetchFx(true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
