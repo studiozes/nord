@@ -1212,7 +1212,7 @@ window.NORD_RETURN = '';
     const longitude=(d.lon+360)%360;
     let best=null,minimum=Infinity;
     for(const c of o.coordinates){
-      if(!Array.isArray(c)||c.length<3)continue;
+      if(!Array.isArray(c)||c.length<3||c.some(v=>v===null||v===undefined||v===''))continue;
       const x=Number(c[0]),y=Number(c[1]),value=Number(c[2]);
       if(!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(value))continue;
       const dx=Math.min(Math.abs(x-longitude),360-Math.abs(x-longitude));
@@ -1225,7 +1225,7 @@ window.NORD_RETURN = '';
     const rows=auroraState.kp;
     if(!Array.isArray(rows))return null;
     for(let i=rows.length-1;i>0;i--){
-      const row=rows[i];if(!Array.isArray(row))continue;
+      const row=rows[i];if(!Array.isArray(row)||row[1]===null||row[1]===undefined||row[1]==='')continue;
       const time=auroraTime(row[0]),v=Number(row[1]);
       if(time!==null && Date.now()-time>=0 && Date.now()-time<6*3600000 && v>=0 && v<=9)return v;
     }
