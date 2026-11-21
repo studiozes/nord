@@ -64,6 +64,7 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .glance.alert strong,.glance.alert svg{color:var(--alert)}
 .day-details{padding:0 14px 15px}
 .detail-inner{border-top:1px solid var(--hair);padding-top:15px;display:grid;gap:16px}
+.step-list{list-style:none;margin:0 0 2px 0;padding:0 0 0 15px;border-left:1px solid var(--hair)}.step-list li{position:relative;padding:4px 0 4px 6px;font-size:12px;line-height:1.4}.step-list li::before{content:'';position:absolute;left:-19px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .detail-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .detail-heading h2{font-size:17px;letter-spacing:-.3px;font-weight:620;margin:0}
 .detail-heading small{color:var(--muted);font-size:11px}
@@ -129,19 +130,226 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 // Pas hier de reisroute aan. Dit is een voorlopige planning, niet gesynchroniseerd met Polarsteps.
 // Laat onbekende afstanden of tijden op null staan; zet geen verzonnen waarden in de cockpit.
 window.NORD_PLAN = [
-  { date:'2027-01-21', from:'Schijndel', place:'Vojens',       country:'dk', lat:55.25, lon:9.30,   km:730, drive:'8 uur', ferry:null },
-  { date:'2027-01-22', from:'Vojens',   place:'Vojens',       country:'dk', lat:55.25, lon:9.30,   km:0, drive:'Rustdag', ferry:null },
-  { date:'2027-01-23', from:'Vojens',   place:'Frederikstad', country:'no', lat:59.22, lon:10.93,  km:null, drive:null, ferry:'stena' },
-  { date:'2027-01-24', from:'Frederikstad', place:'Trondheim',country:'no', lat:63.43, lon:10.40,  km:570, drive:'8 uur', ferry:null },
-  { date:'2027-01-25', from:'Trondheim',place:'Mo i Rana',   country:'no', lat:66.31, lon:14.14,  km:480, drive:'7½ uur', ferry:null },
-  { date:'2027-01-26', from:'Mo i Rana',place:'Lødingen',    country:'no', lat:68.41, lon:15.99,  km:420, drive:'7½ uur', ferry:'bognes' },
-  { date:'2027-01-27', from:'Lødingen', place:'Andenes',     country:'no', lat:69.31, lon:16.12,  km:190, drive:'3½ uur', ferry:null },
-  { date:'2027-01-28', from:'Andenes',  place:'Andenes',     country:'no', lat:69.31, lon:16.12,  km:0, drive:'Lokale ritten', ferry:null },
-  { date:'2027-01-29', from:'Andenes',  place:'Alta',        country:'no', lat:69.97, lon:23.27,  km:580, drive:'9 uur', ferry:null },
-  { date:'2027-01-30', from:'Alta',     place:'Honningsvåg',country:'no', lat:70.98, lon:25.97,  km:210, drive:'4 uur', ferry:null },
-  { date:'2027-01-31', from:'Honningsvåg',place:'Noordkaap', country:'no', lat:71.17, lon:25.78, km:null, drive:null, ferry:null, optional:true }
+  {
+    "date": "2027-01-21",
+    "from": "Schijndel",
+    "fromCountry": "nl",
+    "place": "Kiel",
+    "country": "de",
+    "lat": 54.3233,
+    "lon": 10.1394,
+    "ferry": "stena",
+    "steps": [
+      "Schijndel",
+      "Kiel",
+      "Nachtboot Kiel – Göteborg"
+    ],
+    "note": "Overnachting aan boord van Stena Line."
+  },
+  {
+    "date": "2027-01-22",
+    "from": "Göteborg",
+    "fromCountry": "se",
+    "place": "Tynset",
+    "country": "no",
+    "lat": 62.2736,
+    "lon": 10.7757,
+    "steps": [
+      "Göteborg",
+      "Svinesund",
+      "Østerdalen",
+      "Tynset"
+    ]
+  },
+  {
+    "date": "2027-01-23",
+    "from": "Tynset",
+    "fromCountry": "no",
+    "place": "Mo i Rana",
+    "country": "no",
+    "lat": 66.313,
+    "lon": 14.1428,
+    "steps": [
+      "Tynset",
+      "Kvikne",
+      "Hell",
+      "Laksforsen",
+      "Mosjøen",
+      "Mo i Rana",
+      "Krokstrand (overnachtingsalternatief)"
+    ]
+  },
+  {
+    "date": "2027-01-24",
+    "from": "Mo i Rana",
+    "fromCountry": "no",
+    "place": "Reine",
+    "country": "no",
+    "lat": 67.9327,
+    "lon": 13.0891,
+    "ferry": "bodo-moskenes",
+    "steps": [
+      "Mo i Rana",
+      "Saltfjellet",
+      "Poolcirkel",
+      "Saltstraumen (optioneel)",
+      "Bodø",
+      "Veerboot Bodø – Moskenes",
+      "Reine / Sørvågen"
+    ],
+    "note": "Overnachten in Reine of Sørvågen, afhankelijk van de route en beschikbaarheid."
+  },
+  {
+    "date": "2027-01-25",
+    "from": "Reine",
+    "fromCountry": "no",
+    "place": "Svolvær",
+    "country": "no",
+    "lat": 68.2343,
+    "lon": 14.5689,
+    "steps": [
+      "Reine / Sørvågen",
+      "Lofoten",
+      "Svolvær"
+    ]
+  },
+  {
+    "date": "2027-01-26",
+    "from": "Svolvær",
+    "fromCountry": "no",
+    "place": "Mefjordvær",
+    "country": "no",
+    "lat": 69.5185,
+    "lon": 17.4382,
+    "steps": [
+      "Svolvær",
+      "Narvik",
+      "Finnsnes",
+      "Bergsbotn",
+      "Mefjordvær"
+    ]
+  },
+  {
+    "date": "2027-01-27",
+    "from": "Mefjordvær",
+    "fromCountry": "no",
+    "place": "Tromsø",
+    "country": "no",
+    "lat": 69.6492,
+    "lon": 18.9553,
+    "steps": [
+      "Mefjordvær",
+      "Senja",
+      "Tromsø"
+    ]
+  },
+  {
+    "date": "2027-01-28",
+    "from": "Tromsø",
+    "fromCountry": "no",
+    "place": "Alta",
+    "country": "no",
+    "lat": 69.9689,
+    "lon": 23.2716,
+    "steps": [
+      "Tromsø",
+      "Lyngen (optioneel)",
+      "Olderdalen",
+      "Kvænangsfjellet",
+      "Alta"
+    ],
+    "note": "In Alta beoordelen we weer en wegen voordat we richting Noordkaap vertrekken."
+  },
+  {
+    "date": "2027-01-29",
+    "from": "Alta",
+    "fromCountry": "no",
+    "place": "Honningsvåg",
+    "country": "no",
+    "lat": 70.9822,
+    "lon": 25.9705,
+    "steps": [
+      "Alta",
+      "Sennalandet",
+      "Porsangerfjord",
+      "Nordkapptunnelen",
+      "Honningsvåg",
+      "Noordkaap (optioneel)"
+    ],
+    "note": "Honningsvåg is de gewenste uitvalsbasis; Noordkaap alleen wanneer het weer en de wegstatus het toelaten."
+  },
+  {
+    "date": "2027-01-30",
+    "from": "Honningsvåg",
+    "fromCountry": "no",
+    "place": "Alta",
+    "country": "no",
+    "lat": 69.9689,
+    "lon": 23.2716,
+    "steps": [
+      "Honningsvåg / Magerøya",
+      "Noordkaap (tweede poging, optioneel)",
+      "Alta"
+    ],
+    "note": "Reservedag voor een tweede Noordkaappoging. De invulling hangt af van de omstandigheden."
+  },
+  {
+    "date": "2027-01-31",
+    "from": "Alta",
+    "fromCountry": "no",
+    "place": "Luleå",
+    "country": "se",
+    "lat": 65.5848,
+    "lon": 22.1567,
+    "steps": [
+      "Alta",
+      "Luleå"
+    ]
+  },
+  {
+    "date": "2027-02-01",
+    "from": "Luleå",
+    "fromCountry": "se",
+    "place": "Gävle",
+    "country": "se",
+    "lat": 60.6749,
+    "lon": 17.1413,
+    "steps": [
+      "Luleå",
+      "Gävle"
+    ]
+  },
+  {
+    "date": "2027-02-02",
+    "from": "Gävle",
+    "fromCountry": "se",
+    "place": "Göteborg",
+    "country": "se",
+    "lat": 57.7089,
+    "lon": 11.9746,
+    "ferry": "stena",
+    "steps": [
+      "Gävle",
+      "Göteborg",
+      "Nachtboot Göteborg – Kiel"
+    ],
+    "note": "Overnachting aan boord van Stena Line."
+  },
+  {
+    "date": "2027-02-03",
+    "from": "Kiel",
+    "fromCountry": "de",
+    "place": "Schijndel",
+    "country": "nl",
+    "lat": 51.6191,
+    "lon": 5.4311,
+    "steps": [
+      "Kiel",
+      "Schijndel"
+    ]
+  }
 ];
-window.NORD_RETURN = 'Terug via de oostzijde van Zweden · etappes volgen';
+window.NORD_RETURN = '';
 
 </script>
 <script>
@@ -192,7 +400,8 @@ window.NORD_RETURN = 'Terug via de oostzijde van Zweden · etappes volgen';
   let mode=safeGet('mode','preview')==='trip'?'trip':'preview';
   let selected=null;
   let busy=false, lastError=false;
-  const placeCountry=d=>d.country==='dk'?'Denmark':d.country==='se'?'Sweden':'Norway';
+  const countryName=c=>({dk:'Denmark',se:'Sweden',no:'Norway',de:'Germany',nl:'Netherlands'})[c]||'Norway';
+  const placeCountry=d=>countryName(d.country);
   const previewPlaces=ROUTE.filter((d,i)=>!d.optional && (i===0 || d.place!==ROUTE[i-1].place)).slice(0,9);
   function days(){
     if(mode==='trip')return ROUTE.map((d,i)=>({...d,id:'trip-'+i,stage:'trip'}));
@@ -209,10 +418,10 @@ window.NORD_RETURN = 'Terug via de oostzijde van Zweden · etappes volgen';
     const north={ 'Trondheim':'trondheim','Mo i Rana':'rana','Lødingen':'lodingen','Andenes':'andoy','Alta':'alta','Honningsvåg':'nordkapp','Noordkaap':'nordkapp','Frederikstad':'fredrikstad' };
     const aurora=north[d.place]?`https://nordlyskart.no/en/northern-lights/${north[d.place]}`:'https://nordlyskart.no/en/northern-lights';
     return {
-      maps:`https://maps.apple.com/?${new URLSearchParams({saddr:`${d.from}, ${placeCountry(d)}`,daddr:place,dirflg:'d'})}`,
+      maps:`https://maps.apple.com/?${new URLSearchParams({saddr:`${d.from}, ${countryName(d.fromCountry||d.country)}`,daddr:place,dirflg:'d'})}`,
       wind:`https://www.windy.com/?${coord},8`,
       road:d.country==='no'?'https://www.vegvesen.no/trafikk':d.country==='dk'?'https://trafikinfo.dk/':'https://www.trafikverket.se/resa-och-trafik/trafikinformation/',
-      ferry:d.ferry==='bognes'?'https://www.torghatten.no/en/our-routes/18-703':'https://www.stenaline.nl/klantenservice/actuele-dienstregeling',
+      ferry:d.ferry==='bognes'?'https://www.torghatten.no/en/our-routes/18-703':d.ferry==='bodo-moskenes'?'https://www.torghatten.no/en/our-routes/18-782':'https://www.stenaline.nl/routes/kiel-goteborg',
       aurora,
       fuel:`https://www.google.com/maps/search/?api=1&${new URLSearchParams({query:`gas station ${place}`})}`,
       stay:`https://www.booking.com/searchresults.html?${new URLSearchParams({ss:place,checkin:d.date,checkout:addDays(d.date,1),group_adults:'4',no_rooms:'1'})}`
@@ -248,11 +457,12 @@ window.NORD_RETURN = 'Terug via de oostzijde van Zweden · etappes volgen';
         <div class="metric-row"><span class="label">Sneeuwval verwacht</span><span class="number">${n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm'}</span></div>
         <div class="metric-row"><span class="label">Bewolking gemiddeld</span><span class="number">${fmt(w?.cloud,'%')}</span></div>
       </div>
+      ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
         <div class="metric-row"><span class="label">Van</span><span class="number">${esc(d.from)}</span></div>
         <div class="metric-row"><span class="label">Naar</span><span class="number">${esc(d.place)}</span></div>
         ${mode==='trip' ? `<div class="metric-row"><span class="label">Afstand voorlopig</span><span class="number">${d.km===null?'Nog te bepalen':esc(d.km+' km')}</span></div>`:''}
-        ${d.optional?'<p class="snow-note">Optionele bestemming afhankelijk van weg- en weersomstandigheden.</p>':''}
+        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
         ${d.ferry?'<p class="snow-note">Veerboot gepland. Vertrek en actuele dienstregeling controleren bij vervoerder.</p>':''}
         <p class="snow-note">Weg- en veerbootstatus worden hier nog niet automatisch gecontroleerd. Open voor vertrek de officiële bron.</p>
       </div>
@@ -270,7 +480,7 @@ window.NORD_RETURN = 'Terug via de oostzijde van Zweden · etappes volgen';
     if(!arr.some(d=>d.id===selected))selected=arr[0].id;
     $('mode-preview').setAttribute('aria-pressed',String(mode==='preview'));
     $('mode-trip').setAttribute('aria-pressed',String(mode==='trip'));
-    $('range').textContent=mode==='preview'?'Actueel weer op onze routeplaatsen':'21 januari 2027 · Voorlopige planning';
+    $('range').textContent=mode==='preview'?'Actueel weer op onze routeplaatsen':'21 januari – 3 februari 2027';
     $('update').textContent=busy?'Vernieuwen…':lastError?'Niet alle gegevens beschikbaar':mode==='preview'?'Weer voor de komende dagen':'Reisplanning 2027';
     const cards=arr.map(d=>{
       const w=weather(d),s=solar(d),open=d.id===selected,hasWarning=false;
@@ -289,7 +499,7 @@ window.NORD_RETURN = 'Terug via de oostzijde van Zweden · etappes volgen';
         </div></button>
         <div class="day-details" id="detail-${esc(d.id)}" ${open?'':'hidden'}>${open?detailContent(d):''}</div></article>`;
     }).join('');
-    $('timeline').innerHTML=cards+(mode==='trip'?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
+    $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const same=btn.dataset.select===selected;
