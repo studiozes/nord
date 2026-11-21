@@ -23,6 +23,18 @@ Nord houdt bewust de bestaande compacte opzet: een tijdlijn links, een per etapp
 
 Controleer bij iedere wijziging zowel de light/dark-weergave als kleine en brede schermen. Live weergave en bereikbaarheid van externe API's zijn afzonderlijke controles en zijn niet gegarandeerd door een JavaScript-syntaxcontrole.
 
+## Tweede kwaliteitsronde (november 2026)
+
+De vorm en functies blijven bewust hetzelfde. Deze ronde corrigeert details die vooral merkbaar zijn bij intensief gebruik en het regelmatig ophalen van externe gegevens:
+
+- **Consistente actuele waarden:** bij het bijwerken van weer- en bronwaarden wordt ook de toegankelijke (gesproken) waarde van de klikbare tegel bijgewerkt.
+- **Rustige interactie:** de bronpanelen voor noorderlicht, wegweer en wegmeldingen verversen bij ongewijzigde indeling hun bestaande gegevens en labels in plaats van het hele onderdeel te vervangen. Links, uitklappers en toetsenbordfocus blijven daardoor zoveel mogelijk behouden.
+- **Juiste verkeersbronnen:** de link *Verkeer* gebruikt nu per bestemmingsland Vegvesen (NO), Trafikverket (SE), Trafikinfo (DK), Autobahn GmbH (DE) of Rijkswaterstaat (NL). Het blijft een externe bronpagina, geen automatisch gecontroleerde volledige route.
+- **Brongegevens zorgvuldig verwerken:** een benzineprijsmelding met een expliciete tijdzone wordt als zodanig gelezen, zonder onterecht een tweede UTC-aanduiding toe te voegen. De eis van minimaal drie recente Noorse stations binnen 40 km blijft ongewijzigd.
+- **Afwerking:** grotere peildatum- en bronlabels, consistente zichtbare toetsenbordfocus, en een browserkleur die de lichte of donkere modus volgt (ook bij automatische systeemstand).
+
+Geen nieuwe accounts, widgets, algoritmische veiligheidsclaims of extra informatietegels toegevoegd. Werking van externe diensten, responsiviteit en visuele weergave op een echt toestel moeten aanvullend live worden getest.
+
 ## Broncode en gegevens
 
 Voor deze eerste publicatie is alles (HTML, CSS, JavaScript, route en icoon) bewust samengebracht in één zelfstandig `index.html`. Updates aan dit bestand verschijnen na de eerstvolgende GitHub Pages-publicatie.
