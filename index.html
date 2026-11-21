@@ -211,7 +211,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .route-cta svg{width:16px;height:16px;flex:0 0 16px}
 .route-cta:hover{background:color-mix(in srgb,var(--shade) 80%,var(--accent));text-decoration:none}
 .route-steps summary,.cockpit-more summary{min-height:38px;touch-action:manipulation}
-.source-meta{font-size:10px;font-weight:450;color:var(--muted);letter-spacing:0;white-space:normal;text-align:right}.cockpit-panel--weather h3{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 8px}
+.source-meta{font-size:10px;font-weight:450;color:var(--muted);letter-spacing:0;white-space:normal;text-align:right}.cockpit-panel--weather h3,.road-alert-section h3,.road-now-section h3{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 8px}
 @container (min-width:420px){.stage-utilities{grid-template-columns:minmax(0,1.55fr) minmax(0,.8fr)}}
 @media(min-width:820px){.side-detail{max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);box-shadow:var(--soft-shadow)}}
 @media(max-width:374px){.day-glance strong,.day-glance .glance{font-size:11px}.stage-utilities{gap:5px}}
@@ -604,7 +604,7 @@ window.NORD_RETURN = '';
     const sourceWeather='https://vegvar.atlas.vegvesen.no/';
     const sourceYr='https://www.yr.no/en';
     return `<section class="details-section road-now-section">
-      <h3>Actueel weer</h3>
+      <h3>Actueel weer <small class="source-meta">${fresh?'Model · '+updatedTime(point.at):'Model · —'}</small></h3>
       <div class="road-now-tiles">
         ${sourceTile('rain',rainText,'Neerslag nu',weatherCurrentUrl(d),'road-now-tile','Modelwaarde voor neerslag · Open-Meteo')}
         ${sourceTile('humidity',humidityText,'Luchtvochtigheid',weatherCurrentUrl(d),'road-now-tile','Actuele relatieve luchtvochtigheid · Open-Meteo')}
@@ -670,7 +670,7 @@ window.NORD_RETURN = '';
       {icon:'alert',value:result?String(result.other):'—',label:'Meldingen'},
       {icon:'road',value:String(points.length),label:'Controlepunten'}
     ];
-    return `<section class="details-section road-alert-section"><h3>Wegmeldingen</h3>
+    return `<section class="details-section road-alert-section"><h3>Wegmeldingen <small class="source-meta">${result?'Vegvesen · '+updatedTime(result.at):'Vegvesen · —'}</small></h3>
       <div class="road-alert-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,source,'road-alert-tile',info)).join('')}</div>
       <details class="cockpit-more"><summary>Kaarten · Vegvesen</summary>
         <div class="links">${ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')}</div>
@@ -1237,7 +1237,7 @@ window.NORD_RETURN = '';
     const el=$('update');if(!el)return;
     el.textContent=busy?'Vernieuwen…':
       lastError?'Niet alle bronnen beschikbaar':
-      lastCheckedAt?'Gecontroleerd '+updatedTime(lastCheckedAt):
+      lastCheckedAt?'Weer gecontroleerd '+updatedTime(lastCheckedAt):
       mode==='preview'?'Weer voor de komende dagen':'Reisplanning 2027';
   }
   function weatherMeta(d){
