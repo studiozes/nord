@@ -60,24 +60,70 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .glance.warn strong,.glance.warn svg{color:var(--warn)}
 .glance.alert strong,.glance.alert svg{color:var(--alert)}
 .day-details{padding:0 14px 15px}
-.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:10px;display:grid;gap:12px}
+.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:15px;display:grid;gap:16px}
 .step-list{list-style:none;margin:0 0 2px 0;padding:0 0 0 15px;border-left:1px solid var(--hair)}.step-list li{position:relative;padding:4px 0 4px 6px;font-size:12px;line-height:1.4}.step-list li::before{content:'';position:absolute;left:-19px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .detail-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .detail-heading h2{font-size:17px;letter-spacing:-.3px;font-weight:620;margin:0}
 .detail-heading small{color:var(--muted);font-size:11px}
-.cockpit-group,.details-section{display:grid;gap:5px;min-width:0}
-.cockpit-group{gap:8px}
-.cockpit-group h3,.details-section h4{margin:0;font-size:12px}
-.details-section h4,.cockpit-note{color:var(--muted)}
-.cockpit-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,96px),1fr));gap:5px}
-.cockpit-tile{display:flex;flex-direction:column;justify-content:center;min-width:0;min-height:44px;padding:5px 7px;border:1px solid var(--hair);border-radius:8px;background:var(--bg);color:var(--text);text-decoration:none;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
-.cockpit-tile:hover{text-decoration:underline}
-.cockpit-tile:focus-visible,.cockpit-more summary:focus-visible{outline:2px solid currentColor;outline-offset:1px}
-.cockpit-tile strong{font-size:13px;font-variant-numeric:tabular-nums}
-.cockpit-note{margin:0;font-size:11px;line-height:1.4}
-.cockpit-more{font-size:12px}
-.cockpit-more summary{cursor:pointer;padding:5px 0}
-.cockpit-more[open] summary{margin-bottom:4px}
+.detail-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.weather-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:74px;padding:7px 4px}
+.weather-tile svg{width:17px;height:17px;margin:0 0 2px}
+.weather-tile .value{font-size:16px;line-height:1.15}
+.weather-tile .label{font-size:11px;line-height:1.2}
+@container (min-width:450px){.weather-tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@container (max-width:310px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.info-box{border-radius:12px;background:var(--bg);padding:8px 5px;text-align:center;min-width:0}
+.info-box svg{width:17px;height:17px;margin:0 auto 2px;display:block;color:var(--muted)}
+.info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
+.info-box .label{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.25}
+.details-section{display:grid;gap:7px}
+.details-section h3{font-size:12px;font-weight:620;margin:0;color:var(--muted);letter-spacing:.01em}
+.metric-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--hair);padding:8px 0;font-size:13px}
+.metric-row:first-of-type{border-top:0}
+.metric-row .number{font-variant-numeric:tabular-nums;font-weight:550;text-align:right}
+.metric-row .label{color:var(--muted)}
+.snow-note{color:var(--muted);font-size:11px;line-height:1.45}
+.links{display:flex;flex-wrap:wrap;gap:7px}
+.links a{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;min-height:44px;font-size:12px;color:var(--text);max-width:100%}
+.links a svg{width:15px;height:15px;color:var(--muted)}
+.detail-inner a svg{display:inline-block;width:14px;height:14px;max-width:14px;max-height:14px;flex:0 0 14px;vertical-align:-2px}
+.links a:hover{background:var(--bg);text-decoration:none}
+.aurora-section{gap:7px}
+.aurora-context{font-size:11px;color:var(--muted);line-height:1.35;margin:0 0 3px}
+.aurora-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.aurora-tile{min-width:0;padding:9px 4px;min-height:75px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.aurora-tile svg{width:18px;height:18px;margin:0 0 3px}
+.aurora-tile .value{font-size:17px;line-height:1.3}
+.aurora-tile .label{font-size:11px;line-height:1.25;text-align:center}
+.aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
+.aurora-meta a{font-size:11px}
+@media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
+.road-now-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.road-now-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:74px;padding:7px 3px}
+.road-now-tile svg{width:17px;height:17px;margin:0 0 2px}
+.road-now-tile .value{font-size:16px;line-height:1.2}
+.road-now-tile .label{font-size:11px;line-height:1.25}
+.road-now-note{font-size:11px;line-height:1.45;color:var(--muted)}
+.road-alert-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.road-alert-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:78px;padding:7px 3px}
+.road-alert-tile svg{width:17px;height:17px;margin:0 0 2px}
+.road-alert-tile .value{font-size:16px;line-height:1.2}
+.road-alert-tile .label{font-size:11px;line-height:1.2;text-align:center}
+.road-alert-entry{border-top:1px solid var(--hair);padding:8px 0;font-size:12px;line-height:1.35}
+.road-alert-entry .road-alert-name{font-weight:590}
+.road-alert-entry .road-alert-description{color:var(--muted);font-size:11px;margin-top:2px}
+.road-alert-meta{color:var(--muted);font-size:11px;line-height:1.45}
+.roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
+.roadcam-card:hover{border-color:var(--hair);text-decoration:none}
+.roadcam-card img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--hair)}
+.roadcam-caption{font-size:11px;font-weight:550;line-height:1.3;padding:7px 8px;min-height:32px}
+.roadcam-fallback{display:none;aspect-ratio:4/3;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
+.roadcam-card.is-unavailable img{display:none}
+.roadcam-card.is-unavailable .roadcam-fallback{display:grid}
+.roadcam-meta{color:var(--muted);font-size:11px;line-height:1.45}
+@container (max-width:310px){.roadcam-grid{grid-template-columns:1fr}}
 .notice{font-size:12px;color:var(--muted)}
 .notice.important{color:var(--warn)}
 .graph{border-radius:12px;background:var(--bg);padding:12px 12px 8px;overflow:hidden}
@@ -121,8 +167,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
   </main>
 <script>
 // Pas hier de reisroute aan. Dit is een voorlopige planning, niet gesynchroniseerd met Polarsteps.
-// roadEstimateKm komt uit OSRM-autoroutes via de geplande hoofdpunten.
-// Gebruik polarstepsRoadKm alleen voor gecontroleerde rijkilometers zonder vaarafstand.
+// Laat onbekende afstanden of tijden op null staan; zet geen verzonnen waarden in de cockpit.
 window.NORD_PLAN = [
   {
     "date": "2027-01-21",
@@ -132,14 +177,14 @@ window.NORD_PLAN = [
     "country": "de",
     "lat": 54.3233,
     "lon": 10.1394,
-    "roadEstimateKm": 572,
     "ferry": "stena",
     "steps": [
       "Schijndel",
       "Kiel",
       "Nachtboot Kiel – Göteborg"
     ],
-    "note": "Overnachting aan boord van Stena Line."
+    "note": "Overnachting aan boord van Stena Line.",
+    "roadEstimateKm": 572
   },
   {
     "date": "2027-01-22",
@@ -149,13 +194,13 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 62.2736,
     "lon": 10.7757,
-    "roadEstimateKm": 628,
     "steps": [
       "Göteborg",
       "Svinesund",
       "Østerdalen",
       "Tynset"
-    ]
+    ],
+    "roadEstimateKm": 628
   },
   {
     "date": "2027-01-23",
@@ -165,7 +210,6 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 66.313,
     "lon": 14.1428,
-    "roadEstimateKm": 663,
     "steps": [
       "Tynset",
       "Kvikne",
@@ -174,7 +218,8 @@ window.NORD_PLAN = [
       "Mosjøen",
       "Mo i Rana",
       "Krokstrand (overnachtingsalternatief)"
-    ]
+    ],
+    "roadEstimateKm": 663
   },
   {
     "date": "2027-01-24",
@@ -184,7 +229,6 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 67.9327,
     "lon": 13.0891,
-    "roadEstimateKm": 236,
     "ferry": "bodo-moskenes",
     "steps": [
       "Mo i Rana",
@@ -195,7 +239,8 @@ window.NORD_PLAN = [
       "Veerboot Bodø – Moskenes",
       "Reine / Sørvågen"
     ],
-    "note": "Overnachten in Reine of Sørvågen, afhankelijk van de route en beschikbaarheid."
+    "note": "Overnachten in Reine of Sørvågen, afhankelijk van de route en beschikbaarheid.",
+    "roadEstimateKm": 236
   },
   {
     "date": "2027-01-25",
@@ -205,12 +250,12 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 68.2343,
     "lon": 14.5689,
-    "roadEstimateKm": 121,
     "steps": [
       "Reine / Sørvågen",
       "Lofoten",
       "Svolvær"
-    ]
+    ],
+    "roadEstimateKm": 121
   },
   {
     "date": "2027-01-26",
@@ -220,14 +265,14 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 69.5185,
     "lon": 17.4382,
-    "roadEstimateKm": 440,
     "steps": [
       "Svolvær",
       "Narvik",
       "Finnsnes",
       "Bergsbotn",
       "Mefjordvær"
-    ]
+    ],
+    "roadEstimateKm": 440
   },
   {
     "date": "2027-01-27",
@@ -237,13 +282,13 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 69.6492,
     "lon": 18.9553,
-    "roadEstimateKm": 236,
-    "roadEstimateNote": "Via Finnsnes over land.",
     "steps": [
       "Mefjordvær",
       "Senja",
       "Tromsø"
-    ]
+    ],
+    "roadEstimateKm": 236,
+    "roadEstimateNote": "Via Finnsnes over land."
   },
   {
     "date": "2027-01-28",
@@ -253,8 +298,6 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 69.9689,
     "lon": 23.2716,
-    "roadEstimateKm": 390,
-    "roadEstimateNote": "Via E8/E6 over land. Een route via de Lyngen-veerboten wijkt af.",
     "steps": [
       "Tromsø",
       "Lyngen (optioneel)",
@@ -262,7 +305,9 @@ window.NORD_PLAN = [
       "Kvænangsfjellet",
       "Alta"
     ],
-    "note": "In Alta beoordelen we weer en wegen voordat we richting Noordkaap vertrekken."
+    "note": "In Alta beoordelen we weer en wegen voordat we richting Noordkaap vertrekken.",
+    "roadEstimateKm": 390,
+    "roadEstimateNote": "Via E8/E6 over land. Een route via de Lyngen-veerboten wijkt af."
   },
   {
     "date": "2027-01-29",
@@ -272,7 +317,6 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 70.9822,
     "lon": 25.9705,
-    "roadEstimateKm": 207,
     "steps": [
       "Alta",
       "Sennalandet",
@@ -281,7 +325,8 @@ window.NORD_PLAN = [
       "Honningsvåg",
       "Noordkaap (optioneel)"
     ],
-    "note": "Honningsvåg is de gewenste uitvalsbasis; Noordkaap alleen wanneer het weer en de wegstatus het toelaten."
+    "note": "Honningsvåg is de gewenste uitvalsbasis; Noordkaap alleen wanneer het weer en de wegstatus het toelaten.",
+    "roadEstimateKm": 207
   },
   {
     "date": "2027-01-30",
@@ -291,13 +336,13 @@ window.NORD_PLAN = [
     "country": "no",
     "lat": 69.9689,
     "lon": 23.2716,
-    "roadEstimateKm": 207,
     "steps": [
       "Honningsvåg / Magerøya",
       "Noordkaap (tweede poging, optioneel)",
       "Alta"
     ],
-    "note": "Reservedag voor een tweede Noordkaappoging. De invulling hangt af van de omstandigheden."
+    "note": "Reservedag voor een tweede Noordkaappoging. De invulling hangt af van de omstandigheden.",
+    "roadEstimateKm": 207
   },
   {
     "date": "2027-01-31",
@@ -307,11 +352,11 @@ window.NORD_PLAN = [
     "country": "se",
     "lat": 65.5848,
     "lon": 22.1567,
-    "roadEstimateKm": 609,
     "steps": [
       "Alta",
       "Luleå"
-    ]
+    ],
+    "roadEstimateKm": 609
   },
   {
     "date": "2027-02-01",
@@ -321,11 +366,11 @@ window.NORD_PLAN = [
     "country": "se",
     "lat": 60.6749,
     "lon": 17.1413,
-    "roadEstimateKm": 734,
     "steps": [
       "Luleå",
       "Gävle"
-    ]
+    ],
+    "roadEstimateKm": 734
   },
   {
     "date": "2027-02-02",
@@ -335,14 +380,14 @@ window.NORD_PLAN = [
     "country": "se",
     "lat": 57.7089,
     "lon": 11.9746,
-    "roadEstimateKm": 533,
     "ferry": "stena",
     "steps": [
       "Gävle",
       "Göteborg",
       "Nachtboot Göteborg – Kiel"
     ],
-    "note": "Overnachting aan boord van Stena Line."
+    "note": "Overnachting aan boord van Stena Line.",
+    "roadEstimateKm": 533
   },
   {
     "date": "2027-02-03",
@@ -352,11 +397,11 @@ window.NORD_PLAN = [
     "country": "nl",
     "lat": 51.6191,
     "lon": 5.4311,
-    "roadEstimateKm": 570,
     "steps": [
       "Kiel",
       "Schijndel"
-    ]
+    ],
+    "roadEstimateKm": 570
   }
 ];
 window.NORD_RETURN = '';
@@ -454,6 +499,7 @@ window.NORD_RETURN = '';
     'Honningsvåg':[{name:'E69 Noordkaap',id:'2000012_1',page:'https://www.vegvesen.no/trafikk/vaerveikamera/2000012?lat=71.15675&lng=25.779207&zoom=12'},
                   {name:'E6 Sennalandet · aanrijroute',id:'2000065_1'}]
   });
+  let roadcamStamp=Date.now();
   const camMap=d=>'https://www.vegvesen.no/trafikk/hvaskjer?'+new URLSearchParams({
     lat:String(d.lat),lng:String(d.lon),zoom:'9',layers:'ctv'
   });
@@ -472,14 +518,18 @@ window.NORD_RETURN = '';
     const bearing=fresh?directionLabel(point.direction):'—';
     const rainText=rain===null||rain<0?'—':rain.toLocaleString('nl-NL',{maximumFractionDigits:1})+' mm';
     const humidityText=humidity===null||humidity<0||humidity>100?'—':Math.round(humidity)+'%';
-    const source=openMeteoUrl(d,'current');
-    return cockpitSection('Weer nu',[
-      tile('Neerslag · 15 min',source,rainText),
-      tile('Luchtvochtigheid',source,humidityText),
-      tile('Wind uit',source,bearing),
-      tile('Wegmetingen · Vegvesen','https://vegvar.atlas.vegvesen.no/'),
-      tile('Yr','https://www.yr.no/en')
-    ],'Open-Meteo-model voor de bestemming. Wegdekmetingen staan bij Vegvesen.');
+    const sourceWeather='https://vegvar.atlas.vegvesen.no/';
+    const sourceYr='https://www.yr.no/en';
+    return `<section class="details-section road-now-section">
+      <h3>Actueel weer · ${esc(d.place)}</h3>
+      <div class="road-now-tiles">
+        <div class="info-box road-now-tile" title="Modelwaarde voor neerslag in de afgelopen 15 minuten">${ico('rain')}<div class="value">${esc(rainText)}</div><div class="label">Neerslag nu</div></div>
+        <div class="info-box road-now-tile" title="Actuele relatieve luchtvochtigheid volgens Open-Meteo">${ico('humidity')}<div class="value">${esc(humidityText)}</div><div class="label">Luchtvochtigheid</div></div>
+        <div class="info-box road-now-tile" title="Windrichting volgens Open-Meteo; wind komt uit deze richting">${ico('compass')}<div class="value">${esc(bearing)}</div><div class="label">Wind uit</div></div>
+      </div>
+      <p class="road-now-note">Actuele modelwaarden van Open-Meteo op de bestemming, geen metingen langs de weg en niet voor de geselecteerde reisdatum. Voor echte wegdektemperaturen gebruik je de meetstations van Vegvesen.</p>
+      <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
+    </section>`;
   }
 
   // Officiële, openbare WFS: meldingen rond bekende routepunten, niet de hele rijroute.
@@ -528,15 +578,21 @@ window.NORD_RETURN = '';
   function roadAlertsContent(d){
     const points=roadPoints(d);if(!points.length)return '';
     const result=roadKnown(d),loading=roadPending.has(roadKey(d));
+    const tiles=[
+      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitingsmeldingen'},
+      {icon:'alert',value:result?String(result.other):'—',label:'Overige meldingen'},
+      {icon:'road',value:String(points.length),label:'Routepunten'}
+    ];
+    let html='<section class="details-section road-alert-section"><h3>Wegmeldingen · '+esc(d.place)+'</h3>';
+    html+='<div class="road-alert-tiles">'+tiles.map(t=>'<div class="info-box road-alert-tile">'+ico(t.icon)+'<div class="value">'+esc(t.value)+'</div><div class="label">'+esc(t.label)+'</div></div>').join('')+'</div>';
+    if(result?.items?.length)html+='<div>'+result.items.slice(0,3).map(item=>
+      '<div class="road-alert-entry"><div class="road-alert-name">'+esc(item.closed?'Afsluitingsmelding':'Overige melding')+' · '+esc(item.road||item.location||'Wegtraject')+'</div><div class="road-alert-description">'+esc((item.description||item.location||'Bekijk de officiële kaart').slice(0,145))+'</div></div>'
+    ).join('')+'</div>';
+    const message=result?'Opgehaald '+new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(result.at))+'. Ook geplande meldingen kunnen meetellen.':loading?'Meldingen ophalen bij Vegvesen…':'Geen bevestigde gegevens: onbekend is niet nul.';
+    html+='<div class="road-alert-meta">'+esc(message)+'<p>Circa 25 km rond '+esc(points.map(p=>p.name).join(' · '))+'. Geen controle van de volledige route of de berijdbaarheid.</p></div>';
     const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
-    const source=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
-    const status=result?'Opgehaald '+new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(result.at))+'. Geplande meldingen kunnen meetellen.':loading?'Meldingen ophalen…':'Geen bevestigde gegevens.';
-    const area='Circa 25 km rond '+points.map(p=>p.name).join(', ')+'. Controleer de volledige route, afsluitingen en berijdbaarheid bij Vegvesen.';
-    return cockpitSection('Wegmeldingen · Vegvesen',[
-      tile('Afsluitingsmeldingen',source,result?.closed??'—'),
-      tile('Overige meldingen',source,result?.other??'—'),
-      ...ROAD_MAP_VIEWS.map(view=>tile(view.label,roadMapUrl(focus,view)))
-    ],status+' '+area);
+    html+='<div class="links">'+ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')+'</div></section>';
+    return html;
   }
   function updateRoadAlerts(d){
     const active=days().find(x=>x.id===selected);
@@ -562,10 +618,11 @@ window.NORD_RETURN = '';
       const end=roadDate(p.endTime);if(end!==null&&end<now)continue;
       const description=String(p.description||''),kind=String(p.secondaryTypes||'')+' '+String(p.situationType||'');
       const closed=/\b(stengt|stenging|stengning|vinterstengt|nattestengt|avstengt|closed|closure|roadclosure|roadclosed|fullclosure)\b/i.test(description+' '+kind)&&!/\b(ikke stengt|kan bli stengt|ikke lenger stengt)\b/i.test(description);
-      incidents.set(id,Boolean(incidents.get(id)||closed));
+      const item={closed,road:String(p.roadNumber||''),location:String(p.locationDescription||''),description};
+      if(!incidents.has(id)||(!incidents.get(id).closed&&closed))incidents.set(id,item);
     }
-    const closed=[...incidents.values()].filter(Boolean).length;
-    return {closed,other:incidents.size-closed};
+    const items=[...incidents.values()].sort((a,b)=>Number(b.closed)-Number(a.closed));
+    return {closed:items.filter(x=>x.closed).length,other:items.filter(x=>!x.closed).length,items:items.slice(0,6)};
   }
   async function fetchRoadAlerts(d,force=false){
     const points=roadPoints(d);if(!points.length)return;
@@ -586,67 +643,42 @@ window.NORD_RETURN = '';
   }
   function roadcamContent(d){
     const cams=ROUTE_CAMERAS[d.place]||[];
-    return cockpitSection('Wegcamera’s · Vegvesen',[
-      ...cams.map(cam=>tile(cam.name,cam.page||'https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id))),
-      tile('Camerakaart',camMap(d))
-    ],'Controleer de tijd op het beeld. Camera’s kunnen uitvallen of oude beelden tonen. Controleer afsluitingen apart.');
+    const token=Math.max(roadcamStamp,Math.floor(Date.now()/60000)*60000);
+    return `<div class="details-section roadcam-section"><h3>Wegcamera's · ${esc(d.place)}</h3>
+      ${cams.length?`<div class="roadcam-grid">${cams.map(cam=>{
+        const image='https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id)+'?v='+token;
+        const target=cam.page||'https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id);
+        return `<a class="roadcam-card" href="${esc(target)}" target="_blank" rel="noopener noreferrer" title="Open bron: ${esc(cam.name)}">
+          <img loading="lazy" src="${esc(image)}" alt="Wegcamera ${esc(cam.name)}">
+          <span class="roadcam-fallback">Geen camerabeeld · open bron</span>
+          <span class="roadcam-caption">${esc(cam.name)}</span>
+        </a>`;
+      }).join('')}</div>`:''}
+      <div class="links">${link('Meer camera’s in de omgeving',camMap(d))}</div>
+      <div class="roadcam-meta">Bron: Statens vegvesen. Controleer altijd de datum en tijd in het camerabeeld. Een camera kan een oude foto tonen of uitvallen; controleer wegafsluitingen apart.</div>
+    </div>`;
   }
-  const appleRoute=(from,to)=>'https://maps.apple.com/?'+new URLSearchParams({saddr:from,daddr:to,dirflg:'d'});
+  function bindCameraFallbacks(){
+    document.querySelectorAll('.roadcam-card img').forEach(img=>{
+      const fallback=()=>img.closest('.roadcam-card')?.classList.add('is-unavailable');
+      img.addEventListener('error',fallback,{once:true});
+      if(img.complete && img.naturalWidth===0)fallback();
+    });
+  }
   function urls(d){
     const coord=`${d.lat},${d.lon}`;const place=`${d.place}, ${placeCountry(d)}`;
+    const aurora=AURORA_PLACES[d.place]?.url || 'https://nordlyskart.no/en/northern-lights';
     return {
-      maps:appleRoute(d.from+', '+countryName(d.fromCountry||d.country),d.ferry==='bodo-moskenes'?'Bodø ferjekai, Norway':place),
-      afterFerry:d.ferry==='bodo-moskenes'?appleRoute('Moskenes ferjekai, Norway',place):null,
+      maps:`https://maps.apple.com/?${new URLSearchParams({saddr:`${d.from}, ${countryName(d.fromCountry||d.country)}`,daddr:place,dirflg:'d'})}`,
       wind:`https://www.windy.com/?${coord},8`,
-      road:({
-        no:'https://www.vegvesen.no/trafikk/',
-        dk:'https://trafikinfo.dk/',
-        de:'https://verkehr.autobahn.de/web/main/karte/',
-        nl:'https://www.rijkswaterstaat.nl/wegen/verkeersinformatie-en-werkzaamheden',
-        se:'https://www.trafikverket.se/resa-och-trafik/trafikinformation/'
-      })[d.country],
+      road:d.country==='no'?'https://www.vegvesen.no/trafikk':d.country==='dk'?'https://trafikinfo.dk/':'https://www.trafikverket.se/resa-och-trafik/trafikinformation/',
       ferry:d.ferry==='bognes'?'https://www.torghatten.no/en/our-routes/18-703':d.ferry==='bodo-moskenes'?'https://www.torghatten.no/en/our-routes/18-782':'https://www.stenaline.nl/routes/kiel-goteborg',
+      aurora,
       fuel:`https://www.google.com/maps/search/?api=1&${new URLSearchParams({query:`gas station ${place}`})}`,
       stay:`https://www.booking.com/searchresults.html?${new URLSearchParams({ss:place,checkin:d.date,checkout:addDays(d.date,1),group_adults:'4',no_rooms:'1'})}`
     };
   }
-  function tile(label,href,value){
-    return `<a class="cockpit-tile" href="${esc(href)}" target="_blank" rel="noopener noreferrer">${value===undefined?'':`<strong>${esc(value)}</strong>`}<span>${esc(label)}</span></a>`;
-  }
-  function cockpitSection(title,tiles,note=''){
-    return `<section class="details-section"><h4>${esc(title)}</h4>
-      <div class="cockpit-tiles">${tiles.join('')}</div>
-      ${note?`<p class="cockpit-note">${esc(note)}</p>`:''}
-    </section>`;
-  }
-  const currentFields='cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m';
-  const dailyFields='temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean';
-  const openMeteoUrl=(d,period='daily')=>'https://open-meteo.com/en/docs?'+new URLSearchParams({latitude:d.lat,longitude:d.lon,[period]:period==='daily'?dailyFields:currentFields});
-  const sunUrl=d=>'https://api.sunrise-sunset.org/v2?'+new URLSearchParams({lat:d.lat,lng:d.lon,date:d.date});
-  const validKm=km=>(typeof km==='number'||typeof km==='string'&&km.trim()!=='')&&Number.isFinite(Number(km))&&Number(km)>=0;
-  function stageDistance(d){
-    if(validKm(d.polarstepsRoadKm))return {label:'Rijafstand · Polarsteps',href:'https://www.polarsteps.com/',value:Number(d.polarstepsRoadKm).toLocaleString('nl-NL')+' km'};
-    if(validKm(d.roadEstimateKm))return {label:'Geschatte rijafstand · OSRM / OpenStreetMap',href:'https://project-osrm.org/',value:'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km'};
-    return {label:'Rijafstand',value:'Nog te bepalen'};
-  }
-  function stageContent(d,u){
-    const distance=stageDistance(d);
-    const ferryNames={stena:d.country==='de'?'Kiel – Göteborg':'Göteborg – Kiel','bodo-moskenes':'Bodø – Moskenes',bognes:'Bognes – Lødingen'};
-    const route=[
-      tile('Autoroute · Apple Kaarten',u.maps,d.from+' → '+(u.afterFerry?'Bodø':d.place)),
-      ...(u.afterFerry?[tile('Autoroute na de boot · Apple Kaarten',u.afterFerry,'Moskenes → '+d.place)]:[]),
-      tile(distance.label,distance.href||u.maps,distance.value),
-      ...(d.ferry?[tile('Veerboot · dienstregeling',u.ferry,ferryNames[d.ferry])]:[]),
-      tile('Tanken · Google Maps',u.fuel),
-      tile('Overnachten · Booking.com',u.stay)
-    ];
-    const note=[validKm(d.polarstepsRoadKm)?null:d.roadEstimateNote,d.ferry?'Vaarafstand staat los van rijkilometers. Controleer vertrek en dienstregeling bij de vervoerder.':''].filter(Boolean).join(' ');
-    return `${cockpitSection('Etappe',route,note)}
-      ${d.steps?.length?`<details class="cockpit-more"><summary>Tussenstops en reisnotities</summary>
-        <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
-        ${d.note?`<p class="cockpit-note">${esc(d.note)}</p>`:''}
-      </details>`:''}`;
-  }
+  function link(text,href){return `<a target="_blank" rel="noopener noreferrer" href="${esc(href)}">${esc(text)}${ico('link')}</a>`}
   const readableSun=(d,kind)=>{
     const s=solar(d); if(!s)return '—';
     if(s.sun_status==='polar_night')return kind==='length'?'0u 00':'Geen';
@@ -662,37 +694,41 @@ window.NORD_RETURN = '';
   function detailContent(d){
     const w=weather(d),u=urls(d),src=weatherCache[dataKey(d)];
     const aged=src && Date.now()-src.when>4*3600000;
-    const meteo=openMeteoUrl(d);
-    const snow=n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm';
     return `<div class="detail-inner">
       <div class="detail-heading"><h2>${esc(d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
-      <section class="cockpit-group">
-        <h3>${mode==='trip'?'Reisdatum':'Verwachting voor deze dag'}</h3>
-        ${mode==='trip'?stageContent(d,u):''}
-        ${cockpitSection('Daglicht · Sunrise-Sunset',[
-          tile('Zonsopkomst',sunUrl(d),readableSun(d,'rise')),
-          tile('Zonsondergang',sunUrl(d),readableSun(d,'set')),
-          tile('Daglicht',sunUrl(d),readableSun(d,'length'))
-        ],solar(d)?.sun_status==='polar_night'?'Poolnacht: schemering is mogelijk.':'')}
-        ${cockpitSection('Dagweer · Open-Meteo',[
-          tile('Temperatuur',meteo,fmtDeg(w?.temp)),
-          tile('Voelt als',meteo,fmtDeg(w?.feel)),
-          tile('Windstoten',meteo,fmt(w?.gust,' km/u')),
-          tile('Sneeuwval',meteo,snow),
-          tile('Bewolking',meteo,fmt(w?.cloud,'%'))
-        ],!w?'Nog geen verwachting voor deze datum.':aged?'Mogelijk verouderd. Dagwaarden voor de bestemming.':'Dagwaarden voor de bestemming.')}
-      </section>
-      <section class="cockpit-group">
-        <h3>Actueel bij deze route</h3>
-        <div class="cockpit-tiles">
-          ${tile('Verkeerskaart',u.road)}
-          ${tile('Windkaart · Windy',u.wind)}
-        </div>
-        ${d.country==='no'?'<div class="road-now-dynamic">'+roadNowContent(d)+'</div>':''}
-        ${roadPoints(d).length?'<div class="road-alerts-dynamic">'+roadAlertsContent(d)+'</div>':'<p class="cockpit-note">Controleer afsluitingen en berijdbaarheid bij de verkeersbron.</p>'}
-        ${d.country==='no'?roadcamContent(d):''}
-        ${AURORA_PLACES[d.place]?'<div class="aurora-dynamic">'+auroraContent(d)+'</div>':''}
-      </section>
+      <div class="detail-rows">
+        <div class="info-box">${ico('sunrise')}<div class="value">${readableSun(d,'rise')}</div><div class="label">Zonsopkomst</div></div>
+        <div class="info-box">${ico('sunset')}<div class="value">${readableSun(d,'set')}</div><div class="label">Zonsondergang</div></div>
+        <div class="info-box">${ico('clock')}<div class="value">${readableSun(d,'length')}</div><div class="label">Daglicht</div></div>
+      </div>
+      <div class="details-section"><h3>Weer</h3>
+        ${w? `<div class="weather-tiles">
+          <div class="info-box weather-tile" title="Gemiddelde dagtemperatuur">${ico('thermometer')}<div class="value">${fmtDeg(w.temp)}</div><div class="label">Temperatuur</div></div>
+          <div class="info-box weather-tile" title="Gemiddelde gevoelstemperatuur">${ico('feels')}<div class="value">${fmtDeg(w.feel)}</div><div class="label">Voelt als</div></div>
+          <div class="info-box weather-tile" title="Maximale windstoten van de dag">${ico('wind')}<div class="value">${fmt(w.gust,' km/u')}</div><div class="label">Windstoten</div></div>
+          <div class="info-box weather-tile" title="Verwachte sneeuwval gedurende de dag">${ico('snowflake')}<div class="value">${n(w.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm'}</div><div class="label">Sneeuwval</div></div>
+          <div class="info-box weather-tile" title="Gemiddelde bewolkingsgraad">${ico('cloudy')}<div class="value">${fmt(w.cloud,'%')}</div><div class="label">Bewolking</div></div>
+        </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
+      </div>
+      ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
+      ${d.country==='no'?`<div class="road-now-dynamic">${roadNowContent(d)}</div>`:''}
+      ${roadPoints(d).length?`<div class="road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
+      ${d.country==='no'?roadcamContent(d):''}
+      ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
+      <div class="details-section"><h3>Etappe</h3>
+        <div class="metric-row"><span class="label">Van</span><span class="number">${esc(d.from)}</span></div>
+        <div class="metric-row"><span class="label">Naar</span><span class="number">${esc(d.place)}</span></div>
+        ${mode==='trip' ? `<div class="metric-row"><span class="label">Rijafstand geschat</span><span class="number">${Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'Nog te bepalen'}</span></div>`:''}
+        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
+${mode==='trip'?"        ${d.roadEstimateNote?`<p class=\"snow-note\">${esc(d.roadEstimateNote)}</p>`:''}\n        <p class=\"snow-note\">Afstand is een voorlopige schatting voor autorijden, exclusief veerboottrajecten. Controleer de route voor vertrek.</p>\n":''}        ${d.ferry?'<p class="snow-note">Veerboot gepland. Vertrek en actuele dienstregeling controleren bij vervoerder.</p>':''}
+        <p class="snow-note">Weg- en veerbootstatus worden hier nog niet automatisch gecontroleerd. Open voor vertrek de officiële bron.</p>
+      </div>
+      <div class="details-section"><h3>Direct openen</h3><div class="links">
+        ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
+        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
+      </div></div>
+      ${solar(d)?.sun_status==='polar_night'?'<p class="snow-note">Poolnacht: geen zonsopkomst, maar schemering is nog mogelijk.</p>':''}
+      ${!w?'':aged?'<p class="snow-note">Weerwaarden kunnen verouderd zijn. Controleer voor vertrek opnieuw.</p>':'<p class="snow-note">Weerwaarden gelden voor de bestemming en de volledige dag, niet voor de hele rijroute.</p>'}
     </div>`;
   }
   // Alleen actuele brondata, geen eigen noorderlichtvoorspellingen of webscraping.
@@ -737,15 +773,19 @@ window.NORD_RETURN = '';
   function auroraContent(d){
     const oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
     const valueCloud=cloud && Date.now()-cloud.at<65*60000?cloud.value:null;
+    const tiles=[
+      {icon:'moonstar',label:'Kans op aurora',title:'NOAA-modelwaarde voor aurora boven de locatie over ongeveer 30 minuten; geen zichtgarantie',value:oval===null?'—':Math.round(oval)+'%'},
+      {icon:'cloudy',label:'Bewolking nu',value:valueCloud===null?'—':Math.round(valueCloud)+'%'},
+      {icon:'compass',label:'Kp actueel',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1})}
+    ];
     const age=auroraTime(auroraState.oval?.['Forecast Time']);
-    const updated=age!==null&&oval!==null?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'}).format(new Date(age)):null;
-    const source='https://www.spaceweather.gov/products/aurora-30-minute-forecast';
-    return cockpitSection('Noorderlicht',[
-      tile('Auroramodel · NOAA',source,oval===null?'—':Math.round(oval)+'%'),
-      tile('Bewolking nu · Open-Meteo',openMeteoUrl(d,'current'),valueCloud===null?'—':Math.round(valueCloud)+'%'),
-      tile('Kp · NOAA','https://www.swpc.noaa.gov/products/planetary-k-index',kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1})),
-      tile('Lokale verwachting · Nordlyskart',AURORA_PLACES[d.place].url)
-    ],'NOAA-model voor circa 30 minuten. Zicht hangt ook af van bewolking en duisternis.'+(updated?' Modeltijd '+updated+'.':''));
+    const updated=age!==null && oval!==null?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'}).format(new Date(age)):'—';
+    const locality=AURORA_PLACES[d.place];
+    return `<p class="aurora-context">Actueel voor nu, niet voor ${esc(labelDate(d.date))}${locality?.region?' · regio '+esc(locality.region):''}</p>
+      <div class="aurora-tiles">${tiles.map(t=>`<div class="info-box aurora-tile" title="${esc(t.title||t.label)}">${ico(t.icon)}<div class="value">${esc(t.value)}</div><div class="label">${esc(t.label)}</div></div>`).join('')}</div>
+      <div class="aurora-meta">Kans: NOAA-model voor aurora boven de locatie over circa 30 minuten, geen garantie dat je het ziet. Bewolking en duisternis zijn ook bepalend. Forecast ${updated}.<br>
+      ${link('Lokale verwachting · Nordlyskart',locality?.url||'https://nordlyskart.no/en/northern-lights')}
+      · ${link('NOAA bron','https://www.spaceweather.gov/products/aurora-30-minute-forecast')}</div>`;
   }
   function updateAuroraDisplay(){
     const d=days().find(day=>day.id===selected);
@@ -780,12 +820,12 @@ window.NORD_RETURN = '';
     }
     const current=auroraState.cloud.get(id);
     if(force || !current || now-current.at>15*60000){
-      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:currentFields,timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
+      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
       jobs.push(getJSON('https://api.open-meteo.com/v1/forecast?'+q,10000).then(result=>{
-        const cloud=n(result?.current?.cloud_cover);
+        const cloud=Number(result?.current?.cloud_cover);
         const v=key=>result?.current?.[key];
         const num=key=>v(key)===null||v(key)===undefined||!Number.isFinite(Number(v(key)))?null:Number(v(key));
-        auroraState.cloud.set(id,{at:Date.now(),value:cloud!==null&&cloud>=0&&cloud<=100?cloud:null,
+        auroraState.cloud.set(id,{at:Date.now(),value:Number.isFinite(cloud)&&cloud>=0&&cloud<=100?cloud:null,
           precip:num('precipitation'),humidity:num('relative_humidity_2m'),direction:num('wind_direction_10m')});
       }).catch(()=>{auroraState.cloud.set(id,{at:Date.now(),value:null});}));
     }
@@ -828,6 +868,7 @@ window.NORD_RETURN = '';
       if(button)button.setAttribute('aria-expanded',String(isActive));
     }
     $('sideDetail').innerHTML=detailContent(d);
+    bindCameraFallbacks();
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('sideDetail').scrollTop=0;
@@ -868,6 +909,7 @@ window.NORD_RETURN = '';
     }).join('');
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
+    bindCameraFallbacks();
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
@@ -894,7 +936,7 @@ window.NORD_RETURN = '';
   async function mapConcurrent(items,limit,handler){let i=0;const jobs=Array.from({length:Math.min(limit,items.length)},async()=>{while(i<items.length){const item=items[i++];try{await handler(item)}catch{lastError=true}}});await Promise.all(jobs)}
   async function getWeather(d,force=false){
     const key=dataKey(d);if(!force && fresh(d))return;
-    const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),daily:dailyFields,timezone:d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo',forecast_days:'16'});
+    const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),daily:'temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean',timezone:d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo',forecast_days:'16'});
     const out=await getJSON('https://api.open-meteo.com/v1/forecast?'+q,11000);
     const dateIdx=out?.daily?.time?.indexOf(d.date)??-1;
     if(dateIdx<0)return;
@@ -904,7 +946,7 @@ window.NORD_RETURN = '';
   }
   async function getSun(d){
     const key=dataKey(d);if(sunCache[key])return;
-    const out=await getJSON(sunUrl(d),12000);
+    const out=await getJSON('https://api.sunrise-sunset.org/v2?'+new URLSearchParams({lat:String(d.lat),lng:String(d.lon),date:d.date}),12000);
     if(!['normal','polar_night','midnight_sun'].includes(out?.sun_status))throw Error('Onbekende zonstatus');
     sunCache[key]={when:Date.now(),value:{sun_status:out.sun_status,sunrise:out.sunrise,sunset:out.sunset,day_length:out.day_length}};
     safePut('sun',sunCache);render();
@@ -926,7 +968,7 @@ window.NORD_RETURN = '';
   function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
-  $('refresh').addEventListener('click',()=>{refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d)fetchRoadAlerts(d,true).catch(()=>{});});
+  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d)fetchRoadAlerts(d,true).catch(()=>{});});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
