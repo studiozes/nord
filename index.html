@@ -63,20 +63,19 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .glance.warn strong,.glance.warn svg{color:var(--warn)}
 .glance.alert strong,.glance.alert svg{color:var(--alert)}
 .day-details{padding:0 14px 15px}
-.detail-inner{border-top:1px solid var(--hair);padding-top:15px;display:grid;gap:16px}
+.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:15px;display:grid;gap:16px}
 .step-list{list-style:none;margin:0 0 2px 0;padding:0 0 0 15px;border-left:1px solid var(--hair)}.step-list li{position:relative;padding:4px 0 4px 6px;font-size:12px;line-height:1.4}.step-list li::before{content:'';position:absolute;left:-19px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .detail-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .detail-heading h2{font-size:17px;letter-spacing:-.3px;font-weight:620;margin:0}
 .detail-heading small{color:var(--muted);font-size:11px}
 .detail-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.weather-tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
-.weather-tile{grid-column:span 2;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:74px;padding:7px 4px}
-.weather-tile:nth-child(4),.weather-tile:nth-child(5){grid-column:span 3}
+.weather-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:74px;padding:7px 4px}
 .weather-tile svg{width:17px;height:17px;margin:0 0 2px}
 .weather-tile .value{font-size:16px;line-height:1.15}
 .weather-tile .label{font-size:11px;line-height:1.2}
-@media(min-width:1120px){.weather-tiles{grid-template-columns:repeat(5,minmax(0,1fr))}.weather-tile,.weather-tile:nth-child(4),.weather-tile:nth-child(5){grid-column:auto}}
-@media(max-width:374px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.weather-tile,.weather-tile:nth-child(4),.weather-tile:nth-child(5){grid-column:auto}.weather-tile:nth-child(5){grid-column:span 2}}
+@container (min-width:450px){.weather-tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@container (max-width:310px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .info-box{border-radius:12px;background:var(--bg);padding:8px 5px;text-align:center;min-width:0}
 .info-box svg{width:17px;height:17px;margin:0 auto 2px;display:block;color:var(--muted)}
 .info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
@@ -98,7 +97,7 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .aurora-tile{min-width:0;padding:9px 4px;min-height:75px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .aurora-tile svg{width:18px;height:18px;margin:0 0 3px}
 .aurora-tile .value{font-size:17px;line-height:1.3}
-.aurora-tile .label{font-size:11px;line-height:1.25}
+.aurora-tile .label{font-size:11px;line-height:1.25;text-align:center}
 .aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
 .aurora-meta a{font-size:11px}
 @media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
@@ -554,7 +553,7 @@ window.NORD_RETURN = '';
     const oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
     const valueCloud=cloud && Date.now()-cloud.at<65*60000?cloud.value:null;
     const tiles=[
-      {icon:'moonstar',label:'Aurora · 30 min',value:oval===null?'—':Math.round(oval)+'%'},
+      {icon:'moonstar',label:'Kans op aurora',title:'NOAA-modelwaarde voor aurora boven de locatie over ongeveer 30 minuten; geen zichtgarantie',value:oval===null?'—':Math.round(oval)+'%'},
       {icon:'cloudy',label:'Bewolking nu',value:valueCloud===null?'—':Math.round(valueCloud)+'%'},
       {icon:'compass',label:'Kp actueel',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1})}
     ];
@@ -562,8 +561,8 @@ window.NORD_RETURN = '';
     const updated=age!==null && oval!==null?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'}).format(new Date(age)):'—';
     const locality=AURORA_PLACES[d.place];
     return `<p class="aurora-context">Actueel voor nu, niet voor ${esc(labelDate(d.date))}${locality?.region?' · regio '+esc(locality.region):''}</p>
-      <div class="aurora-tiles">${tiles.map(t=>`<div class="info-box aurora-tile">${ico(t.icon)}<div class="value">${esc(t.value)}</div><div class="label">${esc(t.label)}</div></div>`).join('')}</div>
-      <div class="aurora-meta">NOAA-model: activiteit boven de locatie, geen zichtgarantie. Bij bewolking kan het noorderlicht onzichtbaar blijven. Forecast ${updated}.<br>
+      <div class="aurora-tiles">${tiles.map(t=>`<div class="info-box aurora-tile" title="${esc(t.title||t.label)}">${ico(t.icon)}<div class="value">${esc(t.value)}</div><div class="label">${esc(t.label)}</div></div>`).join('')}</div>
+      <div class="aurora-meta">Kans: NOAA-model voor aurora boven de locatie over circa 30 minuten, geen garantie dat je het ziet. Bewolking en duisternis zijn ook bepalend. Forecast ${updated}.<br>
       ${link('Lokale verwachting · Nordlyskart',locality?.url||'https://nordlyskart.no/en/northern-lights')}
       · ${link('NOAA bron','https://www.spaceweather.gov/products/aurora-30-minute-forecast')}</div>`;
   }
