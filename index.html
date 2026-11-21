@@ -197,6 +197,24 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .cockpit-panel--actions .links a{font-size:12px}
 .roadcam-card:focus-visible,.fuel-strip:focus-visible,.route-cta:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+
+/* Overnachten: three source shortcuts, no booking widgets or live price claims. */
+.cockpit-panel--stay .details-section{gap:7px}
+.cockpit-panel--stay h3{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;justify-content:space-between}
+.stay-providers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.stay-provider{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:68px;padding:10px 5px;border:1px solid var(--hair);border-radius:11px;background:var(--panel);color:var(--text);text-align:center;text-decoration:none;transition:border-color .18s ease,background .18s ease}
+.stay-provider:hover{border-color:var(--accent);background:var(--shade);text-decoration:none}
+.stay-provider-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:var(--shade);color:var(--accent)}
+.stay-provider-icon svg{width:17px;height:17px}
+.stay-provider-name{font-size:12px;line-height:1.2;font-weight:600;white-space:nowrap}
+.stay-special{display:flex;align-items:center;gap:7px;min-height:34px;padding:4px 5px;color:var(--muted);font-size:11px;font-weight:550;text-decoration:none}
+.stay-special svg{width:14px;height:14px;flex:0 0 14px}
+.stay-special:hover{color:var(--accent);text-decoration:none}
+.stay-special svg:last-child{margin-left:auto}
+.stay-provider:focus-visible,.stay-special:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:374px){.stay-provider{min-height:64px;padding:7px 3px}.stay-provider-name{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.stay-provider{transition:none}}
+
 /* Nord polish: restrained contrast, readable measurements, clear route action. */
 :root{--soft-shadow:0 8px 26px rgba(25,38,53,.045)}
 :root[data-theme=dark]{--soft-shadow:0 8px 26px rgba(0,0,0,.14)}
@@ -838,6 +856,63 @@ window.NORD_RETURN = '';
     };
   }
   function link(text,href){return `<a target="_blank" rel="noopener noreferrer" href="${esc(href)}">${esc(text)}${ico('link')}</a>`}
+
+  // Zoek altijd voor twee gasten en één nacht bij de eindbestemming.
+  // Geen verplichte beddenfilter of harde prijsgrens: een kleine cabin met één bed kan passend zijn.
+  function staySearch(d){
+    const location=d.place+', '+countryName(d.country);
+    const checkin=d.date,checkout=addDays(checkin,1);
+    const booking='https://www.booking.com/searchresults.html?'+new URLSearchParams({
+      ss:location,checkin,checkout,group_adults:'2',group_children:'0',no_rooms:'1',lang:'nl'
+    });
+    const airbnb='https://www.airbnb.com/s/'+encodeURIComponent(location)+'/homes?'+new URLSearchParams({
+      query:location,checkin,checkout,adults:'2',locale:'nl'
+    });
+    // HomeToGo publiceert geen bestendige, verifieerbare zoeklink voor
+    // locatie + datums + gasten samen. Gebruik uitsluitend bestaande regiopagina's.
+    const homeToGoByPlace={
+      'Reine':'https://www.hometogo.nl/f/lofoten-eilandengroep/',
+      'Svolvær':'https://www.hometogo.nl/f/lofoten-eilandengroep/',
+      'Tromsø':'https://www.hometogo.nl/f/tromsoe/',
+      'Göteborg':'https://www.hometogo.nl/f/goeteborg/'
+    };
+    const homeToGo=homeToGoByPlace[d.place]||({
+      no:'https://www.hometogo.nl/f/noorwegen/',
+      se:'https://www.hometogo.nl/f/zweden/',
+      nl:'https://www.hometogo.nl/',
+      de:'https://www.hometogo.nl/'
+    }[d.country]||'https://www.hometogo.nl/');
+    const terms=d.country==='no'?'rorbu cabin winter accommodation':d.country==='se'?'stuga cabin winter accommodation':'small cabin unique accommodation';
+    const special='https://www.google.com/maps/search/?api=1&'+new URLSearchParams({
+      query:terms+' '+location
+    });
+    return {booking,airbnb,homeToGo,special};
+  }
+  function stayProvider(icon,name,url,extra=''){
+    return '<a class="stay-provider" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer"'
+      +' title="'+esc(extra||'Zoek overnachtingen op '+name)+'"'
+      +' aria-label="'+esc(name+'. '+(extra||'Open zoekresultaten')+'.')+'">'
+      +'<span class="stay-provider-icon">'+ico(icon)+'</span>'
+      +'<span class="stay-provider-name">'+esc(name)+'</span></a>';
+  }
+  function stayContent(d){
+    // Op de veerbootnachten en bij thuiskomst zijn geen extra accommodaties nodig.
+    if(d.ferry==='stena'||d.place==='Schijndel')return '';
+    const links=staySearch(d);
+    const dateFmt=new Intl.DateTimeFormat('nl-NL',{day:'numeric',month:'short',timeZone:'UTC'});
+    const nights=dateFmt.format(new Date(d.date+'T12:00:00Z'))+' – '+dateFmt.format(new Date(addDays(d.date,1)+'T12:00:00Z'));
+    return '<div class="cockpit-panel cockpit-panel--stay"><div class="details-section">'
+      +'<h3>Overnachten <small class="source-meta">'+esc(nights)+' · 2 personen</small></h3>'
+      +'<div class="stay-providers">'
+      +stayProvider('bed','Booking',links.booking,'Bestemming, datum en twee gasten ingevuld')
+      +stayProvider('pin','Airbnb',links.airbnb,'Bestemming, datum en twee gasten ingevuld')
+      +stayProvider('compass','HomeToGo',links.homeToGo,'Regiopagina; controleer bestemming, datum en gasten op de website')
+      +'</div>'
+      +'<a class="stay-special" href="'+esc(links.special)+'" target="_blank" rel="noopener noreferrer"'
+      +' title="Ontdek eenvoudige hutten, huisjes en bijzondere plekken rondom de eindbestemming; geen live beschikbaarheid">'
+      +ico('pin')+'<span>Cabins & bijzondere plekken</span>'+ico('link')+'</a>'
+      +'</div></div>';
+  }
   // Iedere informatietegel is zelf een link naar de bron van de waarde.
   // Geen extra server of eigen databeheer; ontbrekende gegevens blijven '—'.
   const LOCAL_TZ=d=>d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo';
@@ -1152,6 +1227,7 @@ window.NORD_RETURN = '';
           </a>
         </div>
       </div>
+      ${stayContent(d)}
       <div class="cockpit-duo cockpit-duo--conditions">
         <div class="cockpit-panel cockpit-panel--weather">
       <div class="details-section"><h3>Weer <a class="source-meta" href="${esc(weatherDailyUrl(d))}" target="_blank" rel="noopener noreferrer" title="Open de daggegevens bij Open-Meteo">${esc(weatherMeta(d))}</a></h3>
@@ -1186,7 +1262,7 @@ window.NORD_RETURN = '';
       <div class="cockpit-panel cockpit-panel--actions">
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
-        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)} ${link('Overnachten',u.stay)}
+        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)}
       </div></div>
       </div>
 
