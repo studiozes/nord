@@ -32,7 +32,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .icon-button svg{width:19px;height:19px}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:23px;min-height:40px}
 .modes{display:flex;border-radius:11px;padding:3px;background:var(--panel);gap:2px;flex:0 0 auto}
-.modes button{border:0;background:transparent;border-radius:8px;min-height:34px;padding:5px 11px;font-size:13px;font-weight:550}
+.modes button{border:0;background:transparent;border-radius:8px;min-height:44px;padding:5px 11px;font-size:13px;font-weight:550}
 .modes button[aria-pressed=true]{background:var(--shade);color:var(--accent)}
 .update{font-size:11px;color:var(--muted);text-align:right;line-height:1.25}
 .heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px}
@@ -40,20 +40,20 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .heading p{font-size:12px;margin:0;color:var(--muted);text-align:right}
 .layout{display:block}
 .timeline{display:grid;gap:8px;min-width:0}
-.day-card{background:var(--panel);border-radius:15px;overflow:hidden;min-width:0;border:1px solid transparent}
+.day-card{scroll-margin-top:16px;background:var(--panel);border-radius:15px;overflow:hidden;min-width:0;border:1px solid transparent}
 .day-card.is-open{border-color:var(--hair)}
-.day-button{display:block;width:100%;border:0;background:none;text-align:left;padding:13px 13px 12px;min-height:83px}
+.day-button{touch-action:manipulation;display:block;width:100%;border:0;background:none;text-align:left;padding:13px 13px 12px;min-height:83px}
 .day-main{display:flex;align-items:center;gap:10px;min-width:0}
 .day-date{width:46px;flex:0 0 46px;display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;color:var(--muted)}
 .day-date .num{font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--text);font-variant-numeric:tabular-nums}
 .day-date .month{font-size:11px}
 .day-summary{min-width:0;flex:1}
 .day-title{font-size:14px;font-weight:620;line-height:1.24;letter-spacing:-.12px;overflow-wrap:anywhere}
-.day-route{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.32}
+.day-route{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.32}
 .day-weather{width:68px;flex:0 0 68px;text-align:right;display:grid;grid-template-columns:23px 1fr;align-items:center;gap:3px}
 .day-weather svg{height:22px;width:22px;color:#8aa5bc}
 .day-weather .reading{font-size:18px;font-weight:580;letter-spacing:-.4px;font-variant-numeric:tabular-nums;line-height:1.1}
-.day-weather .feel{grid-column:1/-1;font-size:10px;color:var(--muted);line-height:1.25}
+.day-weather .feel{grid-column:1/-1;font-size:11px;color:var(--muted);line-height:1.25}
 .chevron{height:16px;width:16px;flex:0 0 16px;color:var(--muted);transition:transform .16s ease}
 .is-open .chevron{transform:rotate(90deg)}
 .day-glance{margin:9px 0 0 56px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;align-items:center}
@@ -72,7 +72,7 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .info-box{border-radius:12px;background:var(--bg);padding:11px 7px;text-align:center;min-width:0}
 .info-box svg{width:20px;height:20px;margin:0 auto 3px;display:block;color:var(--muted)}
 .info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
-.info-box .label{font-size:10px;color:var(--muted);margin-top:4px}
+.info-box .label{font-size:11px;color:var(--muted);margin-top:4px}
 .details-section{display:grid;gap:7px}
 .details-section h3{font-size:12px;font-weight:620;margin:0;color:var(--muted);letter-spacing:.01em}
 .metric-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--hair);padding:8px 0;font-size:13px}
@@ -81,7 +81,7 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .metric-row .label{color:var(--muted)}
 .snow-note{color:var(--muted);font-size:11px;line-height:1.45}
 .links{display:flex;flex-wrap:wrap;gap:7px}
-.links a{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;min-height:41px;font-size:12px;color:var(--text);max-width:100%}
+.links a{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;min-height:44px;font-size:12px;color:var(--text);max-width:100%}
 .links a svg{width:15px;height:15px;color:var(--muted)}
 .links a:hover{background:var(--bg);text-decoration:none}
 .notice{font-size:12px;color:var(--muted)}
@@ -93,7 +93,7 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .return-card{background:transparent;border:1px dashed var(--hair);border-radius:15px;padding:15px;color:var(--muted);display:flex;gap:12px;align-items:center;font-size:12px}
 .return-card svg{width:21px;height:21px;flex:0 0 21px}
 .side-detail{display:none}
-@media(min-width:820px){.app-shell{padding-top:26px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:sticky;top:16px;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:245px}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
+@media(min-width:820px){.app-shell{padding-top:26px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:sticky;top:16px;max-height:68vh;max-height:68dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:245px}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
 @media(max-width:374px){.app-shell{padding-left:10px;padding-right:10px}.day-button{padding-left:10px;padding-right:10px}.day-main{gap:7px}.day-date{width:38px;flex-basis:38px}.day-weather{width:58px;flex-basis:58px}.day-weather .reading{font-size:16px}.day-glance{margin-left:45px}.glance{font-size:10px;gap:2px}.glance svg{width:13px;height:13px;flex-basis:13px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
@@ -474,8 +474,48 @@ window.NORD_RETURN = '';
       ${!w?'<p class="snow-note">Weerverwachting voor deze dag is nog niet beschikbaar.</p>':aged?'<p class="snow-note">Weerwaarden kunnen verouderd zijn. Controleer voor vertrek opnieuw.</p>':'<p class="snow-note">Weerwaarden gelden voor de bestemming en de volledige dag, niet voor de hele rijroute.</p>'}
     </div>`;
   }
+  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const desktopLayout=window.matchMedia('(min-width:820px)');
+  let scrollSyncPausedUntil=0, scrollFrame=0;
+
+  // Desktop: rechterpaneel toont automatisch de dag waar links langs wordt gescrold.
+  // Niet opnieuw de hele tijdlijn opbouwen tijdens het scrollen: dat voorkomt verspringen.
+  function syncDesktopSelection(){
+    scrollFrame=0;
+    if(!desktopLayout.matches || Date.now()<scrollSyncPausedUntil)return;
+    const cards=[...$('timeline').querySelectorAll('.day-card')];
+    if(!cards.length)return;
+    const pivot=Math.min(220,Math.max(90,window.innerHeight*.3));
+    let active=cards[0];
+    for(const card of cards){
+      if(card.getBoundingClientRect().top<=pivot)active=card;
+      else break;
+    }
+    const id=active.dataset.id;
+    if(!id || id===selected)return;
+    const d=days().find(day=>day.id===id);
+    if(!d)return;
+    selected=id;
+    for(const card of cards){
+      const isActive=card.dataset.id===id;
+      card.classList.toggle('is-open',isActive);
+      const button=card.querySelector('[data-select]');
+      if(button)button.setAttribute('aria-expanded',String(isActive));
+    }
+    $('sideDetail').innerHTML=detailContent(d);
+    $('sideDetail').scrollTop=0;
+  }
+  window.addEventListener('scroll',()=>{
+    if(!desktopLayout.matches || scrollFrame)return;
+    scrollFrame=requestAnimationFrame(syncDesktopSelection);
+  },{passive:true});
+  desktopLayout.addEventListener('change',()=>{
+    render();
+    if(desktopLayout.matches)syncDesktopSelection();
+  });
   function render(){
     const arr=days();
+    const desktop=window.matchMedia('(min-width:820px)').matches;
     if(!arr.length){$('timeline').textContent='Geen reisdagen beschikbaar';return;}
     if(!arr.some(d=>d.id===selected))selected=arr[0].id;
     $('mode-preview').setAttribute('aria-pressed',String(mode==='preview'));
@@ -486,7 +526,7 @@ window.NORD_RETURN = '';
       const w=weather(d),s=solar(d),open=d.id===selected,hasWarning=false;
       const sub=mode==='preview'?'Testetappe · '+(d.from===d.place?'Lokale ritten':d.from+' → '+d.place):d.from===d.place?'Lokale ritten':`${d.from} → ${d.place}`;
       return `<article class="day-card${open?' is-open':''}" data-id="${esc(d.id)}">
-        <button type="button" class="day-button" data-select="${esc(d.id)}" aria-expanded="${open}" aria-controls="detail-${esc(d.id)}">
+        <button type="button" class="day-button" data-select="${esc(d.id)}" aria-expanded="${open}" aria-controls="${desktop?'sideDetail':'detail-'+esc(d.id)}">
         <div class="day-main"><span class="day-date"><span class="num">${esc(labelDate(d.date,{day:'numeric'}))}</span><span class="month">${esc(labelDate(d.date,{weekday:'short',month:'short'}))}</span></span>
         <span class="day-summary"><span class="day-title">${esc(d.place)}${d.optional?' · optie':''}</span><span class="day-route" style="display:block">${esc(sub)}</span></span>
         <span class="day-weather">${ico(w?.icon||'cloudy')}<span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">Voelt ${fmtDeg(w?.feel)}</span></span>
@@ -502,9 +542,20 @@ window.NORD_RETURN = '';
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
-      const same=btn.dataset.select===selected;
-      // Eén selectie per keer; aantikken van dezelfde dag houdt deze open.
-      if(!same){selected=btn.dataset.select;render();}
+      const id=btn.dataset.select;
+      if(id!==selected){
+        selected=id;
+        scrollSyncPausedUntil=Date.now()+900;
+        render();
+        $('sideDetail').scrollTop=0;
+      }
+      // De geselecteerde dag gaat op smalle schermen naar boven.
+      // Op brede schermen blijft de gekozen dag in beeld zonder grote sprong.
+      const card=[...$('timeline').querySelectorAll('.day-card')].find(el=>el.dataset.id===id);
+      if(card)requestAnimationFrame(()=>card.scrollIntoView({
+        block:desktopLayout.matches?'nearest':'start',
+        behavior:reduceMotion.matches?'auto':'smooth'
+      }));
     }));
   }
   async function getJSON(url,timeout=10000){
