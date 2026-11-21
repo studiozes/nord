@@ -101,6 +101,16 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
 .aurora-meta a{font-size:11px}
 @media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
+.roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
+.roadcam-card:hover{border-color:var(--hair);text-decoration:none}
+.roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--hair)}
+.roadcam-caption{font-size:11px;font-weight:550;line-height:1.3;padding:7px 8px;min-height:32px}
+.roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
+.roadcam-card.is-unavailable img{display:none}
+.roadcam-card.is-unavailable .roadcam-fallback{display:grid}
+.roadcam-meta{color:var(--muted);font-size:11px;line-height:1.45}
+@container (max-width:310px){.roadcam-grid{grid-template-columns:1fr}}
 .notice{font-size:12px;color:var(--muted)}
 .notice.important{color:var(--warn)}
 .graph{border-radius:12px;background:var(--bg);padding:12px 12px 8px;overflow:hidden}
@@ -447,6 +457,45 @@ window.NORD_RETURN = '';
     'Luleå':{key:'se-lulea',url:'https://nordlyskart.no/en/northern-lights/sweden/lulea'},
     'Gävle':{key:'se-gavle',url:'https://nordlyskart.no/en/northern-lights/sweden/gavle'}
   });
+  // Alleen officieel gepubliceerde camera-ID's en (waar bevestigd) cameradetailpagina's.
+  // De naam beschrijft het wegtraject; camera's hoeven niet in de bestemming zelf te staan.
+  const ROUTE_CAMERAS=Object.freeze({
+    'Mo i Rana':[{name:'E6 Saltfjellet · noordelijke route',id:'1829006_1'}],
+    'Reine':[{name:'Moskenes veerhaven',id:'3000615_1',page:'https://www.vegvesen.no/trafikk/vaerveikamera/3000615?lat=67.8999&lng=13.04428&zoom=12'},
+             {name:'E6 Saltfjellet · aanrijroute',id:'1829006_1'}],
+    'Alta':[{name:'E6 Alta Vest',id:'3000938_1',page:'https://www.vegvesen.no/trafikk/vaerveikamera/3000938'},
+            {name:'E6 Sennalandet · richting Noordkaap',id:'2000065_1'}],
+    'Honningsvåg':[{name:'E69 Noordkaap',id:'2000012_1',page:'https://www.vegvesen.no/trafikk/vaerveikamera/2000012?lat=71.15675&lng=25.779207&zoom=12'},
+                  {name:'E6 Sennalandet · aanrijroute',id:'2000065_1'}]
+  });
+  let roadcamStamp=Date.now();
+  const camMap=d=>'https://www.vegvesen.no/trafikk/hvaskjer?'+new URLSearchParams({
+    lat:String(d.lat),lng:String(d.lon),zoom:'9',layers:'ctv'
+  });
+  function roadcamContent(d){
+    const cams=ROUTE_CAMERAS[d.place]||[];
+    const token=Math.max(roadcamStamp,Math.floor(Date.now()/60000)*60000);
+    return `<div class="details-section roadcam-section"><h3>Wegcamera's · ${esc(d.place)}</h3>
+      ${cams.length?`<div class="roadcam-grid">${cams.map(cam=>{
+        const image='https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id)+'?v='+token;
+        const target=cam.page||'https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id);
+        return `<a class="roadcam-card" href="${esc(target)}" target="_blank" rel="noopener noreferrer" title="Open bron: ${esc(cam.name)}">
+          <img loading="lazy" src="${esc(image)}" alt="Wegcamera ${esc(cam.name)}">
+          <span class="roadcam-fallback">Geen camerabeeld · open bron</span>
+          <span class="roadcam-caption">${esc(cam.name)}</span>
+        </a>`;
+      }).join('')}</div>`:''}
+      <div class="links">${link('Meer camera’s in de omgeving',camMap(d))}</div>
+      <div class="roadcam-meta">Bron: Statens vegvesen. Beelden kunnen vertraagd, verouderd of tijdelijk onbeschikbaar zijn. Controleer wegafsluitingen apart.</div>
+    </div>`;
+  }
+  function bindCameraFallbacks(){
+    document.querySelectorAll('.roadcam-card img').forEach(img=>{
+      const fallback=()=>img.closest('.roadcam-card')?.classList.add('is-unavailable');
+      img.addEventListener('error',fallback,{once:true});
+      if(img.complete && img.naturalWidth===0)fallback();
+    });
+  }
   function urls(d){
     const coord=`${d.lat},${d.lon}`;const place=`${d.place}, ${placeCountry(d)}`;
     const aurora=AURORA_PLACES[d.place]?.url || 'https://nordlyskart.no/en/northern-lights';
@@ -493,6 +542,7 @@ window.NORD_RETURN = '';
         </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
       </div>
       ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
+      ${d.country==='no'?roadcamContent(d):''}
       ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
         <div class="metric-row"><span class="label">Van</span><span class="number">${esc(d.from)}</span></div>
@@ -640,6 +690,7 @@ window.NORD_RETURN = '';
       if(button)button.setAttribute('aria-expanded',String(isActive));
     }
     $('sideDetail').innerHTML=detailContent(d);
+    bindCameraFallbacks();
     fetchAurora().catch(()=>{});
     $('sideDetail').scrollTop=0;
   }
@@ -679,6 +730,7 @@ window.NORD_RETURN = '';
     }).join('');
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
+    bindCameraFallbacks();
     fetchAurora().catch(()=>{});
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
@@ -736,7 +788,7 @@ window.NORD_RETURN = '';
   function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
-  $('refresh').addEventListener('click',()=>{refresh(true);fetchAurora(true).catch(()=>{});});
+  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
