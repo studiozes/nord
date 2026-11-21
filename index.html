@@ -157,6 +157,26 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .side-detail{display:none}
 @media(min-width:820px){.app-shell{padding-top:16px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:sticky;top:16px;max-height:68vh;max-height:68dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:245px}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
 @media(max-width:374px){.app-shell{padding-left:10px;padding-right:10px}.day-button{padding-left:10px;padding-right:10px}.day-main{gap:7px}.day-date{width:38px;flex-basis:38px}.day-weather{width:58px;flex-basis:58px}.day-weather .reading{font-size:16px}.day-glance{margin-left:45px}.glance{font-size:10px;gap:2px}.glance svg{width:13px;height:13px;flex-basis:13px}}
+/* Compact gegroepeerde cockpit: de geselecteerde etappe blijft bovenaan. */
+.cockpit-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.cockpit-panel{display:grid;align-content:start;gap:6px;min-width:0;padding:9px;border:1px solid var(--hair);border-radius:13px}
+.cockpit-panel .details-section{min-width:0}
+.cockpit-panel--stage .route-steps summary{min-height:29px}
+.cockpit-duo--roads>.cockpit-panel:only-child{grid-column:1/-1}
+.cockpit-expand{min-width:0;overflow:hidden;border:1px solid var(--hair);border-radius:13px}
+.cockpit-expand summary{min-height:42px;display:flex;align-items:center;padding:8px 12px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:620}
+.cockpit-expand[open] summary{border-bottom:1px solid var(--hair)}
+.roadcam-content{display:grid;gap:8px;padding:9px}
+@container (min-width:420px){
+  .cockpit-duo{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cockpit-panel--weather .weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cockpit-panel--light .detail-rows,.cockpit-duo--roads .road-alert-tiles,.cockpit-duo--roads .road-now-tiles{grid-template-columns:minmax(0,1fr)}
+  .cockpit-panel--light .source-tile,.cockpit-duo--roads .road-alert-tile,.cockpit-duo--roads .road-now-tile{display:grid;grid-template-columns:18px minmax(0,1fr) auto;align-items:center;gap:5px;min-height:69px;padding:7px 7px;text-align:left}
+  .cockpit-duo--roads .road-alert-tile,.cockpit-duo--roads .road-now-tile{min-height:46px}
+  .cockpit-panel--light .source-tile svg,.cockpit-duo--roads .source-tile svg{grid-column:1;grid-row:1;margin:0}
+  .cockpit-panel--light .source-tile .label,.cockpit-duo--roads .source-tile .label{grid-column:2;grid-row:1;margin:0;text-align:left;overflow-wrap:anywhere}
+  .cockpit-panel--light .source-tile .value,.cockpit-duo--roads .source-tile .value{grid-column:3;grid-row:1;text-align:right;font-size:14px;white-space:nowrap}
+}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 </style>
@@ -668,7 +688,8 @@ window.NORD_RETURN = '';
   function roadcamContent(d){
     const cams=ROUTE_CAMERAS[d.place]||[];
     const token=Math.max(roadcamStamp,Math.floor(Date.now()/60000)*60000);
-    return `<div class="details-section roadcam-section"><h3>Wegcamera's · ${esc(d.place)}</h3>
+    return `<details class="cockpit-expand roadcam-section"><summary>Wegcamera's · ${esc(d.place)}</summary>
+      <div class="roadcam-content">
       ${cams.length?`<div class="roadcam-grid">${cams.map(cam=>{
         const image='https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id)+'?v='+token;
         const cameraNumber=String(cam.id).split('_')[0];
@@ -682,7 +703,8 @@ window.NORD_RETURN = '';
         </a>`;
       }).join('')}</div>`:''}
       <div class="links">${link('Alle wegcamera’s',camMap(d))}</div>
-    </div>`;
+      </div>
+    </details>`;
   }
   function bindCameraFallbacks(){
     document.querySelectorAll('.roadcam-card img').forEach(img=>{
@@ -751,6 +773,7 @@ window.NORD_RETURN = '';
     const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
       <div class="detail-heading"><h2>${esc(d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
+      <div class="cockpit-panel cockpit-panel--stage">
       <div class="details-section"><h3>Etappe</h3>
         <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
           ${staticStageTile('pin',d.from,'Van')}
@@ -763,11 +786,9 @@ window.NORD_RETURN = '';
         ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
         ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
       </details>`:''}
-      <div class="detail-rows">
-        ${sourceTile('sunrise',readableSun(d,'rise'),'Zonsopkomst',solarSourceUrl(d))}
-        ${sourceTile('sunset',readableSun(d,'set'),'Zonsondergang',solarSourceUrl(d))}
-        ${sourceTile('clock',readableSun(d,'length'),'Daglicht',solarSourceUrl(d))}
       </div>
+      <div class="cockpit-duo cockpit-duo--conditions">
+        <div class="cockpit-panel cockpit-panel--weather">
       <div class="details-section"><h3>Weer</h3>
         <div class="weather-tiles">
           ${sourceTile('thermometer',fmtDeg(w?.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo')}
@@ -778,14 +799,29 @@ window.NORD_RETURN = '';
           ${sourceTile('humidity',fmt(w?.humidity,'%'),'Luchtvochtigheid',weatherDailyUrl(d),'weather-tile','Gemiddelde relatieve luchtvochtigheid op deze datum · Open-Meteo')}
         </div>
       </div>
-      ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
-      ${d.country==='no'?`<div class="road-now-dynamic">${roadNowContent(d)}</div>`:''}
-      ${roadPoints(d).length?`<div class="road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
+        </div>
+        <div class="cockpit-panel cockpit-panel--light">
+          <div class="details-section"><h3>Daglicht</h3>
+      <div class="detail-rows">
+        ${sourceTile('sunrise',readableSun(d,'rise'),'Zonsopkomst',solarSourceUrl(d))}
+        ${sourceTile('sunset',readableSun(d,'set'),'Zonsondergang',solarSourceUrl(d))}
+        ${sourceTile('clock',readableSun(d,'length'),'Daglicht',solarSourceUrl(d))}
+      </div>
+          </div>
+        </div>
+      </div>
+      ${roadPoints(d).length || d.country==='no'?`<div class="cockpit-duo cockpit-duo--roads">
+        ${roadPoints(d).length?`<div class="cockpit-panel road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
+        ${d.country==='no'?`<div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>`:''}
+      </div>`:''}
+      ${AURORA_PLACES[d.place]?`<div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>`:''}
       ${d.country==='no'?roadcamContent(d):''}
+      <div class="cockpit-panel cockpit-panel--actions">
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
         ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
       </div></div>
+      </div>
 
     </div>`;
   }
