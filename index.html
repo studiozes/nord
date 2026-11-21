@@ -547,8 +547,15 @@ window.NORD_RETURN = '';
     }
     return 'Intersects(geometry, POLYGON(('+ring.join(',')+')))';
   }
-  const roadMapUrl=p=>'https://www.vegvesen.no/trafikk/hvaskjer?'+new URLSearchParams({
-    lat:String(p.lat),lng:String(p.lon),zoom:'8',layers:'fo',fosort:'pop',tusort:'pop',brsort:'pop'
+  // Vier officiële Vegvesen-kaartweergaven; alleen de kaartpositie volgt de etappe.
+  const ROAD_MAP_VIEWS=Object.freeze([
+    {key:'passes',label:'Bergpassen',params:{layers:'fo',tusort:'pop',brsort:'pop',fosort:'pop'}},
+    {key:'traffic',label:'Meldingen + verkeer',params:{tusort:'pop',brsort:'sta',fosort:'pop',showTfl:'1',a:'active_now-active_later'}},
+    {key:'passes-flow',label:'Bergpassen + verkeer',params:{tusort:'pop',brsort:'sta',fosort:'pop',showTfl:'1',layers:'fo'}},
+    {key:'tunnels-flow',label:'Tunnels + verkeer',params:{tusort:'pop',brsort:'sta',fosort:'pop',showTfl:'1',layers:'tun'}}
+  ]);
+  const roadMapUrl=(p,view)=>'https://www.vegvesen.no/trafikk/hvaskjer?'+new URLSearchParams({
+    ...view.params,lat:String(p.lat),lng:String(p.lon),zoom:'8'
   });
   function roadKnown(d){
     const item=roadAlerts.get(roadKey(d));
@@ -571,7 +578,7 @@ window.NORD_RETURN = '';
     const message=result?'Opgehaald '+new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(result.at))+'. Ook geplande meldingen kunnen meetellen.':loading?'Meldingen ophalen bij Vegvesen…':'Geen bevestigde gegevens: onbekend is niet nul.';
     html+='<div class="road-alert-meta">'+esc(message)+'<p>Circa 25 km rond '+esc(points.map(p=>p.name).join(' · '))+'. Geen controle van de volledige route of de berijdbaarheid.</p></div>';
     const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
-    html+='<div class="links">'+link('Actuele meldingen · Vegvesen',roadMapUrl(focus))+'</div></section>';
+    html+='<div class="links">'+ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')+'</div></section>';
     return html;
   }
   function updateRoadAlerts(d){
