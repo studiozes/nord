@@ -92,6 +92,11 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .links a{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;min-height:44px;font-size:12px;color:var(--text);max-width:100%}
 .links a svg{width:15px;height:15px;color:var(--muted)}
 .links a:hover{background:var(--bg);text-decoration:none}
+.aurora-section{gap:5px}
+.aurora-context{font-size:11px;color:var(--muted);line-height:1.35;margin:0 0 3px}
+.aurora-widget{max-width:100%;min-width:0;width:100%;overflow-wrap:anywhere}
+.aurora-widget iframe{max-width:100%;display:block;border:0;border-radius:10px}
+.aurora-widget>a{font-size:12px}
 .notice{font-size:12px;color:var(--muted)}
 .notice.important{color:var(--warn)}
 .graph{border-radius:12px;background:var(--bg);padding:12px 12px 8px;overflow:hidden}
@@ -470,6 +475,7 @@ window.NORD_RETURN = '';
           <div class="info-box weather-tile" title="Gemiddelde bewolkingsgraad">${ico('cloudy')}<div class="value">${fmt(w.cloud,'%')}</div><div class="label">Bewolking</div></div>
         </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
       </div>
+      ${d.place==='Alta'?'<section class="details-section aurora-section"><h3>Noorderlicht · Alta</h3><p class="aurora-context">Live voor vanavond, niet voor de geselecteerde reisdatum</p><div data-aurora-widget="alta"></div></section>':''}
       ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
         <div class="metric-row"><span class="label">Van</span><span class="number">${esc(d.from)}</span></div>
@@ -486,6 +492,32 @@ window.NORD_RETURN = '';
       ${solar(d)?.sun_status==='polar_night'?'<p class="snow-note">Poolnacht: geen zonsopkomst, maar schemering is nog mogelijk.</p>':''}
       ${!w?'':aged?'<p class="snow-note">Weerwaarden kunnen verouderd zijn. Controleer voor vertrek opnieuw.</p>':'<p class="snow-note">Weerwaarden gelden voor de bestemming en de volledige dag, niet voor de hele rijroute.</p>'}
     </div>`;
+  }
+  // Proef met de officiële Nordlyskart-widget; de bronlink blijft behouden.
+  // We laden de externe code pas wanneer Alta wordt bekeken.
+  let auroraWidget=null, auroraScriptRequested=false;
+  function mountAltaWidget(){
+    const target=desktopLayout.matches
+      ? $('sideDetail').querySelector('[data-aurora-widget="alta"]')
+      : $('timeline').querySelector('.day-card.is-open .day-details [data-aurora-widget="alta"]');
+    if(!target)return;
+    if(!auroraWidget){
+      auroraWidget=document.createElement('div');
+      auroraWidget.className='aurora-widget';
+      auroraWidget.innerHTML='<a class="nk-widget" href="https://nordlyskart.no/en/northern-lights/alta" data-widget="i-kveld/alta" data-lang="en" data-width="340" data-height="250" data-title="Northern lights in Alta tonight">Nordlyskart</a>';
+    }
+    if(auroraWidget.parentNode!==target)target.appendChild(auroraWidget);
+    if(!auroraScriptRequested){
+      auroraScriptRequested=true;
+      const script=document.createElement('script');
+      script.async=true;
+      script.src='https://nordlyskart.no/widget.js';
+      script.onerror=()=>{
+        const a=auroraWidget.querySelector('a');
+        if(a)a.textContent='Open noorderlichtverwachting Alta';
+      };
+      document.head.appendChild(script);
+    }
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopLayout=window.matchMedia('(min-width:820px)');
@@ -516,6 +548,7 @@ window.NORD_RETURN = '';
       if(button)button.setAttribute('aria-expanded',String(isActive));
     }
     $('sideDetail').innerHTML=detailContent(d);
+    mountAltaWidget();
     $('sideDetail').scrollTop=0;
   }
   window.addEventListener('scroll',()=>{
@@ -554,6 +587,7 @@ window.NORD_RETURN = '';
     }).join('');
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
+    mountAltaWidget();
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
       if(id!==selected){
