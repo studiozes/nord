@@ -1440,9 +1440,24 @@ window.NORD_RETURN = '';
     if(cycle===refreshCycle){busy=false;lastCheckedAt=Date.now();updateReadings();if(pendingRefresh){pendingRefresh=false;refresh();}}
   }
   function changeMode(m){mode=m;safePut('mode',mode);selected=null;render();refresh()}
-  function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
+  // Laat de Safari-adresbalk en de themaknop dezelfde systeem- of gebruikersmodus volgen.
+  const systemDark=matchMedia('(prefers-color-scheme: dark)');
+  const actualTheme=()=>document.documentElement.dataset.theme||(systemDark.matches?'dark':'light');
+  function syncBrowserTheme(){
+    const meta=document.querySelector('meta[name="theme-color"]');
+    if(meta)meta.setAttribute('content',actualTheme()==='dark'?'#101114':'#f5f5f7');
+    $('theme').innerHTML=ico(actualTheme()==='dark'?'sun':'moon');
+    $('theme').setAttribute('title',actualTheme()==='dark'?'Schakel naar licht':'Schakel naar donker');
+  }
+  function changeTheme(){
+    const next=actualTheme()==='dark'?'light':'dark';
+    document.documentElement.dataset.theme=next;
+    safePut('theme',next);
+    syncBrowserTheme();
+  }
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
-  $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
+  $('refresh').innerHTML=ico('refresh');syncBrowserTheme();
+  systemDark.addEventListener('change',()=>{if(!document.documentElement.dataset.theme)syncBrowserTheme()});
   $('refresh').addEventListener('click',()=>{refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
