@@ -606,8 +606,8 @@ window.NORD_RETURN = '';
   }
   async function fetchRoadAlerts(d,force=false){
     const points=roadPoints(d);if(!points.length)return;
-    const key=roadKey(d);
-    if(!force&&roadKnown(d))return;
+    const key=roadKey(d),last=roadAlerts.get(key);
+    if(!force&&(roadKnown(d)||(last?.ok===false&&Date.now()-last.at<2*60000)))return;
     if(roadPending.has(key))return roadPending.get(key);
     const params=new URLSearchParams({
       service:'WFS',version:'1.3.0',request:'GetFeature',typeName:'datex_3_1:SituationSimple',outputFormat:'application/json',
