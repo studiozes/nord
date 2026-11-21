@@ -35,6 +35,18 @@ De vorm en functies blijven bewust hetzelfde. Deze ronde corrigeert details die 
 
 Geen nieuwe accounts, widgets, algoritmische veiligheidsclaims of extra informatietegels toegevoegd. Werking van externe diensten, responsiviteit en visuele weergave op een echt toestel moeten aanvullend live worden getest.
 
+## Controle op betrouwbaarheid (november 2026)
+
+Deze afrondende controle heeft geen extra tegels of menu's toegevoegd, maar bestaande eisen aangescherpt:
+
+- Ontbrekende modelgegevens blijven `—`. Bij actuele Open-Meteo-waarden wordt een ontbrekende bewolkingswaarde niet stilzwijgend `0%`. Ook ontbrekende NOAA-aurora- en Kp-waarden worden niet als `0` geïnterpreteerd. Een echte bronwaarde van nul blijft wel geldig.
+- Het deel *Actueel weer* gebruikt de tijd van het modelresultaat (met de bijbehorende tijdzone) in plaats van alleen het tijdstip van downloaden. Verouderde resultaten worden niet als actueel gepresenteerd. Een bronfout levert een streepje op en laat de bronlink staan.
+- De brandstof- en ECB-gegevens worden alleen in het geselecteerde zichtbare etappepaneel bijgewerkt. Dit voorkomt dat bij wisselen van etappe een prijs van de ene bestemming tijdelijk bij een andere staat.
+- De kleine tijdsaanduidingen bij *Weer*, *Actueel weer* en *Wegmeldingen* zijn rechtstreeks klikbaar naar hun bron; ook ontbrekende bronwaarden houden die link.
+- Wanneer een geselecteerde reisdag nog buiten de weershorizon ligt, geeft de compacte statusbalk dit aan en suggereert Nord niet dat voor die toekomstige datum al een weersverwachting gecontroleerd is.
+
+De opzet met een zelfstandige `index.html`, bronlinks, weer/noorderlicht/wegmeldingen, lokale brandstofprijzen waar verantwoord, EUR-omrekening, licht/donker en de compacte etappe-cockpit blijft ongewijzigd.
+
 ## Broncode en gegevens
 
 Voor deze eerste publicatie is alles (HTML, CSS, JavaScript, route en icoon) bewust samengebracht in één zelfstandig `index.html`. Updates aan dit bestand verschijnen na de eerstvolgende GitHub Pages-publicatie.
