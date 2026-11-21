@@ -551,8 +551,9 @@ window.NORD_RETURN = '';
         ${sourceTile('humidity',humidityText,'Luchtvochtigheid',weatherCurrentUrl(d),'road-now-tile','Actuele relatieve luchtvochtigheid · Open-Meteo')}
         ${sourceTile('compass',bearing,'Wind uit',weatherCurrentUrl(d),'road-now-tile','Actuele windrichting · Open-Meteo')}
       </div>
-      <p class="road-now-note">Modelwaarden van nu, niet voor de reisdatum of het wegdek. Wegmetingen via Vegvesen.</p>
-      <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
+      <details class="cockpit-more"><summary>Wegweer en Yr.no</summary>
+        <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
+      </details>
     </section>`;
   }
 
@@ -601,24 +602,21 @@ window.NORD_RETURN = '';
   const roadGlance=d=>roadKnown(d)?String(roadKnown(d).closed):'?';
   function roadAlertsContent(d){
     const points=roadPoints(d);if(!points.length)return '';
-    const result=roadKnown(d),loading=roadPending.has(roadKey(d));
-    const tiles=[
-      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitingsmeldingen'},
-      {icon:'alert',value:result?String(result.other):'—',label:'Overige meldingen'},
-      {icon:'road',value:String(points.length),label:'Routepunten'}
-    ];
-    let html='<section class="details-section road-alert-section"><h3>Wegmeldingen · '+esc(d.place)+'</h3>';
+    const result=roadKnown(d);
     const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
-    const alertSource=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
-    html+='<div class="road-alert-tiles">'+tiles.map(t=>sourceTile(t.icon,t.value,t.label,alertSource,'road-alert-tile','Open officiële Vegvesen-kaart rond '+focus.name)).join('')+'</div>';
-    if(result?.items?.length)html+='<details class="road-alert-details"><summary>Bekijk meldingen · '+result.items.length+'</summary>'+result.items.slice(0,3).map(item=>
-      '<div class="road-alert-entry"><div class="road-alert-name">'+esc(item.closed?'Afsluitingsmelding':'Overige melding')+' · '+esc(item.road||item.location||'Wegtraject')+'</div><div class="road-alert-description">'+esc((item.description||item.location||'Bekijk de officiële kaart').slice(0,145))+'</div></div>'
-    ).join('')+'</details>';
-    const message=result?'Opgehaald '+new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(result.at))+'. Geplande meldingen kunnen meetellen.':loading?'Vegvesen-meldingen ophalen…':'Geen bevestigde gegevens; onbekend is niet nul.';
-    html+='<div class="road-alert-meta">'+esc(message)+' Circa 25 km rond '+points.length+' controlepunten; dit dekt niet de volledige rijroute. Check de officiële wegstatus.</div>';
-    html+='<details class="road-alert-details"><summary>Gecontroleerde plaatsen</summary>'+esc(points.map(p=>p.name).join(' · '))+'</details>';
-    html+='<div class="links">'+ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')+'</div></section>';
-    return html;
+    const source=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
+    const info='Officiële Vegvesen-kaart; telling binnen circa 25 km rond bekende routepunten, inclusief mogelijk geplande meldingen. De volledige route is niet gecontroleerd.';
+    const tiles=[
+      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitingen'},
+      {icon:'alert',value:result?String(result.other):'—',label:'Meldingen'},
+      {icon:'road',value:String(points.length),label:'Controlepunten'}
+    ];
+    return `<section class="details-section road-alert-section"><h3>Wegmeldingen · ${esc(d.place)}</h3>
+      <div class="road-alert-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,source,'road-alert-tile',info)).join('')}</div>
+      <details class="cockpit-more"><summary>Kaarten · Vegvesen</summary>
+        <div class="links">${ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')}</div>
+      </details>
+    </section>`;
   }
   function updateRoadAlerts(d){
     const active=days().find(x=>x.id===selected);
@@ -750,8 +748,7 @@ window.NORD_RETURN = '';
     const parsed=new Date(v);return Number.isNaN(parsed.valueOf())?'—':new Intl.DateTimeFormat('nl-NL',{timeZone:d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo',hour:'2-digit',minute:'2-digit',hour12:false}).format(parsed);
   };
   function detailContent(d){
-    const w=weather(d),u=urls(d),src=weatherCache[dataKey(d)];
-    const aged=src && Date.now()-src.when>4*3600000;
+    const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
       <div class="detail-heading"><h2>${esc(d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
       <div class="detail-rows">
@@ -760,13 +757,14 @@ window.NORD_RETURN = '';
         ${sourceTile('clock',readableSun(d,'length'),'Daglicht',solarSourceUrl(d))}
       </div>
       <div class="details-section"><h3>Weer</h3>
-        ${w? `<div class="weather-tiles">
-          ${sourceTile('thermometer',fmtDeg(w.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo brongegevens')}
-          ${sourceTile('feels',fmtDeg(w.feel),'Voelt als',weatherDailyUrl(d),'weather-tile','Gemiddelde gevoelstemperatuur · Open-Meteo brongegevens')}
-          ${sourceTile('wind',fmt(w.gust,' km/u'),'Windstoten',weatherDailyUrl(d),'weather-tile','Maximale windstoten van de dag · Open-Meteo brongegevens')}
-          ${sourceTile('snowflake',n(w.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm','Sneeuwval',weatherDailyUrl(d),'weather-tile','Verwachte sneeuwval · Open-Meteo brongegevens')}
-          ${sourceTile('cloudy',fmt(w.cloud,'%'),'Bewolking',weatherDailyUrl(d),'weather-tile','Gemiddelde dagbewolking · Open-Meteo brongegevens')}
-        </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
+        <div class="weather-tiles">
+          ${sourceTile('thermometer',fmtDeg(w?.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo')}
+          ${sourceTile('feels',fmtDeg(w?.feel),'Voelt als',weatherDailyUrl(d),'weather-tile','Gemiddelde gevoelstemperatuur · Open-Meteo')}
+          ${sourceTile('wind',fmt(w?.gust,' km/u'),'Windstoten',weatherDailyUrl(d),'weather-tile','Maximale windstoten · Open-Meteo')}
+          ${sourceTile('snowflake',n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm','Sneeuwval',weatherDailyUrl(d),'weather-tile','Sneeuwval van deze dag · Open-Meteo')}
+          ${sourceTile('cloudy',fmt(w?.cloud,'%'),'Bewolking',weatherDailyUrl(d),'weather-tile','Gemiddelde bewolking van deze dag · Open-Meteo')}
+          ${sourceTile('humidity',fmt(w?.humidity,'%'),'Luchtvochtigheid',weatherDailyUrl(d),'weather-tile','Gemiddelde relatieve luchtvochtigheid op deze datum · Open-Meteo')}
+        </div>
       </div>
       ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
       ${d.country==='no'?`<div class="road-now-dynamic">${roadNowContent(d)}</div>`:''}
@@ -788,8 +786,7 @@ window.NORD_RETURN = '';
         ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
         ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
       </div></div>
-      ${solar(d)?.sun_status==='polar_night'?'<p class="snow-note">Poolnacht: geen zonsopkomst, maar schemering is nog mogelijk.</p>':''}
-      ${!w?'':aged?'<p class="snow-note">Weerwaarden kunnen verouderd zijn. Controleer voor vertrek opnieuw.</p>':'<p class="snow-note">Weerwaarden gelden voor de bestemming en de volledige dag, niet voor de hele rijroute.</p>'}
+
     </div>`;
   }
   // Alleen actuele brondata, geen eigen noorderlichtvoorspellingen of webscraping.
@@ -832,20 +829,27 @@ window.NORD_RETURN = '';
     return null;
   }
   function auroraContent(d){
-    const oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
-    const valueCloud=cloud && Date.now()-cloud.at<65*60000?cloud.value:null;
-    const tiles=[
-      {icon:'moonstar',label:'Auroramodel',title:'NOAA-model voor aurora boven deze locatie over ongeveer 30 minuten, geen zichtgarantie',value:oval===null?'—':Math.round(oval)+'%',url:'https://www.spaceweather.gov/products/aurora-30-minute-forecast'},
-      {icon:'cloudy',label:'Bewolking nu',title:'Actuele bewolking volgens Open-Meteo',value:valueCloud===null?'—':Math.round(valueCloud)+'%',url:weatherCurrentUrl(d)},
-      {icon:'compass',label:'Kp actueel',title:'Actuele planetaire Kp-index van NOAA',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1}),url:'https://www.spaceweather.gov/products/planetary-k-index'}
-    ];
-    const age=auroraTime(auroraState.oval?.['Forecast Time']);
-    const updated=age!==null && oval!==null?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'}).format(new Date(age)):'—';
+    const w=weather(d),oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
+    const currentCloud=cloud&&Date.now()-cloud.at<65*60000?cloud.value:null;
     const locality=AURORA_PLACES[d.place];
-    return `<p class="aurora-context">Actueel voor nu, niet voor ${esc(labelDate(d.date))}${locality?.region?' · regio '+esc(locality.region):''}</p>
-      <div class="aurora-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,t.url,'aurora-tile',t.title)).join('')}</div>
-      <div class="aurora-meta">NOAA-model, geen zichtgarantie · forecast ${updated}. Bewolking en duisternis blijven bepalend.</div>
-      <div class="links">${link('Lokale verwachting · Nordlyskart',locality?.url||'https://nordlyskart.no/en/northern-lights')}</div>`;
+    const plannerUrl=(locality?.url||'https://nordlyskart.no/en/northern-lights')+'/trip-planner';
+    const tiles=[
+      {icon:'moonstar',label:'Vooruitzicht',value:'—',url:plannerUrl,
+        title:'Nordlyskart Trip Planner voor de geselecteerde plaats. De langetermijnbeoordeling is niet automatisch uitleesbaar.'},
+      {icon:'cloudy',label:'Bewolking nacht',value:n(w?.nightCloud)===null?'—':Math.round(w.nightCloud)+'%',
+        url:weatherDailyUrl(d),title:'Modelgemiddelde van 18:00 tot 06:00 lokale tijd op de geselecteerde nacht · Open-Meteo'},
+      {icon:'moon',label:'Maanlicht',value:n(w?.moonlight)===null?'—':Math.round(w.moonlight)+'%',
+        url:weatherDailyUrl(d),title:'Benaderd verlicht deel van de maan uit de Open-Meteo-maanfase; zegt niet of de maan boven de horizon staat'},
+      {icon:'moonstar',label:'Aurora nu',value:oval===null?'—':Math.round(oval)+'%',
+        url:'https://www.spaceweather.gov/products/aurora-30-minute-forecast',
+        title:'NOAA OVATION model voor circa 30 minuten vanaf nu; geen garantie op zichtbaarheid'},
+      {icon:'cloudy',label:'Bewolking nu',value:n(currentCloud)===null?'—':Math.round(currentCloud)+'%',
+        url:weatherCurrentUrl(d),title:'Actuele bewolking op de locatie · Open-Meteo'},
+      {icon:'compass',label:'Kp nu',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1}),
+        url:'https://www.spaceweather.gov/products/planetary-k-index',title:'Actuele planetaire Kp-index · NOAA'}
+    ];
+    return `<div class="aurora-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,t.url,'aurora-tile',t.title)).join('')}</div>
+      <div class="links">${link('Nordlyskart · vanavond',locality?.url||'https://nordlyskart.no/en/northern-lights')}</div>`;
   }
   function updateAuroraDisplay(){
     const d=days().find(day=>day.id===selected);
