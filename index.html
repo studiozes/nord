@@ -211,7 +211,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .route-cta svg{width:16px;height:16px;flex:0 0 16px}
 .route-cta:hover{background:color-mix(in srgb,var(--shade) 80%,var(--accent));text-decoration:none}
 .route-steps summary,.cockpit-more summary{min-height:38px;touch-action:manipulation}
-.source-meta{font-size:10px;font-weight:450;color:var(--muted);letter-spacing:0}
+.source-meta{font-size:10px;font-weight:450;color:var(--muted);letter-spacing:0;white-space:normal;text-align:right}.cockpit-panel--weather h3{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:3px 8px}
 @container (min-width:420px){.stage-utilities{grid-template-columns:minmax(0,1.55fr) minmax(0,.8fr)}}
 @media(min-width:820px){.side-detail{max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);box-shadow:var(--soft-shadow)}}
 @media(max-width:374px){.day-glance strong,.day-glance .glance{font-size:11px}.stage-utilities{gap:5px}}
@@ -849,7 +849,7 @@ window.NORD_RETURN = '';
     if(!item || Date.now()-item.checked>6*3600000 || item.stations<3)return null;
     return {
       value:'NOK '+new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(item.price)+'/l',
-      meta:'Regio 40 km · '+item.stations+' stations · '+fuelDate(item.date),
+      meta:'Regio 40 km · '+item.stations+' stations · meldingen ≤48 uur, laatst '+fuelDate(item.date),
       url:REGIONAL_NO_SOURCE
     };
   }
@@ -869,12 +869,12 @@ window.NORD_RETURN = '';
     if(selectedDay?.id!==d.id)return;
     updateFuel(fuelCountry(d));
   }
-  async function loadRegionalFuel(d){
+  async function loadRegionalFuel(d,force=false){
     if(fuelCountry(d)!=='no')return; // Andere landen bieden hier geen betrouwbare vrije station-feed.
     const key=fuelKey(d),existing=regionalFuel.get(key);
-    if(existing&&Date.now()-existing.checked<6*3600000)return;
+    if(!force&&existing&&Date.now()-existing.checked<6*3600000)return;
     if(regionalFuelPending.has(key))return regionalFuelPending.get(key);
-    if(Date.now()-(regionalFuelAttempts.get(key)||0)<10*60000)return;
+    if(!force&&Date.now()-(regionalFuelAttempts.get(key)||0)<10*60000)return;
     regionalFuelAttempts.set(key,Date.now());
     const job=(async()=>{
       const [stations,prices]=await Promise.all([
@@ -951,10 +951,10 @@ window.NORD_RETURN = '';
     const price=Number(json.value[index]);
     return price>=10&&price<=50?{price,currency:'NOK',date:month.code,type:'Maandgemiddelde · SSB'}:null;
   }
-  async function loadFuel(c){
-    if(!FUEL_URL[c]||fuelPrices.has(c)&&Date.now()-fuelPrices.get(c).checked<12*3600000)return;
+  async function loadFuel(c,force=false){
+    if(!FUEL_URL[c]||(!force&&fuelPrices.has(c)&&Date.now()-fuelPrices.get(c).checked<12*3600000))return;
     if(fuelPending.has(c))return fuelPending.get(c);
-    if(Date.now()-(fuelAttempts.get(c)||0)<10*60000)return;
+    if(!force&&Date.now()-(fuelAttempts.get(c)||0)<10*60000)return;
     fuelAttempts.set(c,Date.now());
     const job=(async()=>{
       let item=null;
@@ -1011,7 +1011,7 @@ window.NORD_RETURN = '';
       </div>
       <div class="cockpit-duo cockpit-duo--conditions">
         <div class="cockpit-panel cockpit-panel--weather">
-      <div class="details-section"><h3>Weer</h3>
+      <div class="details-section"><h3>Weer <small class="source-meta">${esc(weatherMeta(d))}</small></h3>
         <div class="weather-tiles">
           ${sourceTile('thermometer',fmtDeg(w?.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo')}
           ${sourceTile('feels',fmtDeg(w?.feel),'Voelt als',weatherDailyUrl(d),'weather-tile','Gemiddelde gevoelstemperatuur · Open-Meteo')}
@@ -1191,6 +1191,8 @@ window.NORD_RETURN = '';
     }
     $('sideDetail').innerHTML=detailContent(d);
     bindCameraFallbacks();
+    loadFuel(fuelCountry(d)).catch(()=>{});
+    loadRegionalFuel(d).catch(()=>{});
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('sideDetail').scrollTop=0;
@@ -1203,6 +1205,70 @@ window.NORD_RETURN = '';
     render();
     if(desktopLayout.matches)syncDesktopSelection();
   });
+
+  let lastCheckedAt=0;
+  const updatedTime=at=>new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(at));
+  function updateStatus(){
+    const el=$('update');if(!el)return;
+    el.textContent=busy?'Vernieuwen…':
+      lastError?'Niet alle bronnen beschikbaar':
+      lastCheckedAt?'Gecontroleerd '+updatedTime(lastCheckedAt):
+      mode==='preview'?'Weer voor de komende dagen':'Reisplanning 2027';
+  }
+  function weatherMeta(d){
+    const item=weatherCache[dataKey(d)];
+    if(!item?.when)return 'nog geen voorspelling';
+    const old=Date.now()-item.when>3*3600000;
+    const when=new Intl.DateTimeFormat('nl-NL',old?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}:
+      {hour:'2-digit',minute:'2-digit'}).format(new Date(item.when));
+    return (old?'eerder opgehaald':'bijgewerkt')+' '+when;
+  }
+  const weatherTileValues=w=>[
+    fmtDeg(w?.temp),
+    fmtDeg(w?.feel),
+    fmt(w?.gust,' km/u'),
+    n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm',
+    fmt(w?.cloud,'%'),
+    fmt(w?.humidity,'%')
+  ];
+  const solarTileValues=d=>[
+    readableSun(d,'rise'),readableSun(d,'set'),readableSun(d,'length')
+  ];
+  function writeValues(root,selector,values){
+    if(!root)return;
+    root.querySelectorAll(selector).forEach((el,i)=>{
+      if(i<values.length&&el.textContent!==String(values[i]))el.textContent=values[i];
+    });
+  }
+  // Update alleen meetwaarden; <details>, camera's, bronlinks en scroll blijven bestaan.
+  function updateReadings(){
+    updateStatus();
+    const arr=days();
+    for(const d of arr){
+      const card=Array.from($('timeline').querySelectorAll('.day-card')).find(el=>el.dataset.id===d.id);
+      if(!card)continue;
+      const w=weather(d),temperature=card.querySelector('.day-weather');
+      if(temperature){
+        const wanted=ico(w?.icon||'cloudy'),svg=temperature.querySelector('svg');
+        if(svg&&svg.outerHTML!==wanted)svg.outerHTML=wanted;
+        writeValues(temperature,'.reading',[fmtDeg(w?.temp)]);
+        writeValues(temperature,'.feel',['Voelt '+fmtDeg(w?.feel)]);
+      }
+      writeValues(card,'.day-glance strong',[fmt(w?.gust),fmt(w?.snow),readableSun(d,'length')]);
+    }
+    const d=arr.find(x=>x.id===selected);
+    if(!d)return;
+    const roots=[$('sideDetail'),$('timeline').querySelector('.day-card.is-open .day-details')];
+    for(const root of roots){
+      if(!root)continue;
+      writeValues(root,'.cockpit-panel--weather .weather-tile .value',weatherTileValues(weather(d)));
+      writeValues(root,'.cockpit-panel--light .source-tile .value',solarTileValues(d));
+      const meta=root.querySelector('.cockpit-panel--weather .source-meta');
+      if(meta)meta.textContent=weatherMeta(d);
+    }
+    updateAuroraDisplay();
+  }
+
   function render(){
     const arr=days();
     const desktop=window.matchMedia('(min-width:820px)').matches;
@@ -1211,7 +1277,7 @@ window.NORD_RETURN = '';
     $('mode-preview').setAttribute('aria-pressed',String(mode==='preview'));
     $('mode-trip').setAttribute('aria-pressed',String(mode==='trip'));
     $('range').textContent=mode==='preview'?'Actueel weer op onze routeplaatsen':'21 januari – 3 februari 2027';
-    $('update').textContent=busy?'Vernieuwen…':lastError?'Niet alle gegevens beschikbaar':mode==='preview'?'Weer voor de komende dagen':'Reisplanning 2027';
+    updateStatus();
     const cards=arr.map(d=>{
       const w=weather(d),s=solar(d),open=d.id===selected,hasWarning=false;
       const sub=mode==='preview'?'Testetappe · '+(d.from===d.place?'Lokale ritten':d.from+' → '+d.place):d.from===d.place?'Lokale ritten':`${d.from} → ${d.place}`;
@@ -1289,18 +1355,18 @@ window.NORD_RETURN = '';
       nightCloud:night.length>=9?Math.round(night.reduce((a,b)=>a+b,0)/night.length):null,
       moonlight
     }};
-    safePut('weather',weatherCache);render();
+    safePut('weather',weatherCache);updateReadings();
   }
   async function getSun(d){
     const key=dataKey(d);if(sunCache[key])return;
     const out=await getJSON('https://api.sunrise-sunset.org/v2?'+new URLSearchParams({lat:String(d.lat),lng:String(d.lon),date:d.date}),12000);
     if(!['normal','polar_night','midnight_sun'].includes(out?.sun_status))throw Error('Onbekende zonstatus');
     sunCache[key]={when:Date.now(),value:{sun_status:out.sun_status,sunrise:out.sunrise,sunset:out.sunset,day_length:out.day_length}};
-    safePut('sun',sunCache);render();
+    safePut('sun',sunCache);updateReadings();
   }
   let refreshCycle=0, pendingRefresh=false;
   async function refresh(force=false){
-    if(busy){pendingRefresh=true;return;}busy=true;lastError=false;render();
+    if(busy){pendingRefresh=true;return;}busy=true;lastError=false;updateStatus();
     const arr=days(),cycle=++refreshCycle;
     const uniqueSun=arr.filter((d,i,a)=>!sunCache[dataKey(d)] && a.findIndex(x=>dataKey(x)===dataKey(d))===i);
     const today=dateAtHome();
@@ -1309,13 +1375,13 @@ window.NORD_RETURN = '';
       mapConcurrent(uniqueWeather,3,d=>getWeather(d,force)),
       mapConcurrent(uniqueSun,3,d=>getSun(d))
     ]);
-    if(cycle===refreshCycle){busy=false;render();if(pendingRefresh){pendingRefresh=false;refresh();}}
+    if(cycle===refreshCycle){busy=false;lastCheckedAt=Date.now();updateReadings();if(pendingRefresh){pendingRefresh=false;refresh();}}
   }
   function changeMode(m){mode=m;safePut('mode',mode);selected=null;render();refresh()}
   function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
-  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d)fetchRoadAlerts(d,true).catch(()=>{});});
+  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
