@@ -11,6 +11,18 @@ Open de website zodra GitHub Pages is ingeschakeld. Bovenaan kun je kiezen:
 
 Kies een dag voor zonsopkomst, zonsondergang, daglichtduur, weergegevens en directe externe links. Dark mode volgt standaard de systeeminstelling en is handmatig te wisselen.
 
+## Afwerking van de cockpit (november 2026)
+
+Nord houdt bewust de bestaande compacte opzet: een tijdlijn links, een per etappe gekozen cockpit rechts (op mobiel onder de dag), geen extra tekstblokken tussen informatietegels en klikbare waarden en streepjes naar de bron. De lichte/donkere modus blijft behouden.
+
+- **Etappe eerst.** Vertrek, bestemming, indicatieve rijafstand, uitklapbare tussenstops, benzine 95 en één knop **Open route** naar Apple Kaarten. De links naar tankstations, verkeersinformatie, veerboten en overnachtingen blijven onder **Direct openen**.
+- **Rustige hiërarchie.** Zachte paneelachtergronden, consistenter grotere labels, duidelijkere cijfers en subtiele markering van de gekozen dag. Geen grafieken, kaarten of animaties toegevoegd.
+- **Reisdag automatisch.** In `Reis 2027` wordt bij het openen de huidige etappe gekozen als de huidige datum precies op een reisdag valt. De gebruiker kan altijd handmatig een andere etappe kiezen. In de teststand blijven de komende dagen bruikbaar.
+- **Gegevens met peildatum.** De weersectie toont wanneer de voorspelling is opgehaald; oude gegevens krijgen een andere aanduiding. Benzineprijzen behouden het onderscheid tussen recente lokale meldingen, landelijke week-/maandgemiddelden en ontbrekende informatie. Bij ontbrekende weerwaarden blijft de klikbare `—` behouden.
+- **Gericht vernieuwen.** Nieuwe weer- en zontijden werken afzonderlijke waarden bij, zonder het hele overzicht opnieuw op te bouwen. Bij het verversen blijven uitklapbare informatiepanelen open, worden beschikbare brandstofbronnen opnieuw gecontroleerd en wordt het beeld van de wegcamera's opnieuw opgevraagd. Bronproblemen of ontbrekende data worden niet als 0 gepresenteerd.
+
+Controleer bij iedere wijziging zowel de light/dark-weergave als kleine en brede schermen. Live weergave en bereikbaarheid van externe API's zijn afzonderlijke controles en zijn niet gegarandeerd door een JavaScript-syntaxcontrole.
+
 ## Broncode en gegevens
 
 Voor deze eerste publicatie is alles (HTML, CSS, JavaScript, route en icoon) bewust samengebracht in één zelfstandig `index.html`. Updates aan dit bestand verschijnen na de eerstvolgende GitHub Pages-publicatie.
