@@ -852,7 +852,7 @@ window.NORD_RETURN = '';
       ferry:d.ferry==='bognes'?'https://www.torghatten.no/en/our-routes/18-703':d.ferry==='bodo-moskenes'?'https://www.torghatten.no/en/our-routes/18-782':'https://www.stenaline.nl/routes/kiel-goteborg',
       aurora,
       fuel:`https://www.google.com/maps/search/?api=1&${new URLSearchParams({query:`gas station ${place}`})}`,
-      stay:`https://www.booking.com/searchresults.html?${new URLSearchParams({ss:place,checkin:d.date,checkout:addDays(d.date,1),group_adults:'4',no_rooms:'1'})}`
+      // Accommodaties via staySearch(d), met twee personen en aparte bronlinks.
     };
   }
   function link(text,href){return `<a target="_blank" rel="noopener noreferrer" href="${esc(href)}">${esc(text)}${ico('link')}</a>`}
