@@ -46,7 +46,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .day-date .month{font-size:11px}
 .day-summary{min-width:0;flex:1}
 .day-title{font-size:14px;font-weight:620;line-height:1.24;letter-spacing:-.12px;overflow-wrap:anywhere}
-.day-route{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.32}
+.day-route{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.32;overflow-wrap:anywhere}
 .day-weather{width:68px;flex:0 0 68px;text-align:right;display:grid;grid-template-columns:23px 1fr;align-items:center;gap:3px}
 .day-weather svg{height:22px;width:22px;color:#8aa5bc}
 .day-weather .reading{font-size:18px;font-weight:580;letter-spacing:-.4px;font-variant-numeric:tabular-nums;line-height:1.1}
@@ -67,16 +67,16 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .detail-heading small{color:var(--muted);font-size:11px}
 .detail-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .weather-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:62px;padding:5px 3px}
-.weather-tile svg{width:17px;height:17px;margin:0 0 2px}
+.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:72px;padding:7px 5px;gap:2px}
+.weather-tile svg{width:17px;height:17px;margin:0}
 .weather-tile .value{font-size:16px;line-height:1.15}
-.weather-tile .label{font-size:11px;line-height:1.2}
-@container (min-width:390px){.weather-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}}
+.weather-tile .label{font-size:11px;line-height:1.25}
+@container (min-width:720px){.weather-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}}
 @container (max-width:310px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .info-box{border-radius:11px;background:var(--bg);padding:5px 4px;text-align:center;min-width:0}
 .info-box svg{width:16px;height:16px;margin:0 auto 2px;display:block;color:var(--muted)}
 .info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:15px;white-space:nowrap}
-.info-box .label{font-size:11px;color:var(--muted);margin-top:1px;line-height:1.2}
+.info-box .label{font-size:11px;color:var(--muted);margin-top:1px;line-height:1.25;max-width:100%;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance}
 .details-section{display:grid;gap:5px;min-width:0}
 .details-section h3{font-size:12px;font-weight:620;margin:0;color:var(--muted);letter-spacing:.01em}
 .metric-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--hair);padding:8px 0;font-size:13px}
@@ -140,7 +140,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .roadcam-card{display:block;background:var(--bg);border-radius:11px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent;padding:4px}
 .roadcam-card:hover{border-color:var(--hair);background:var(--shade);text-decoration:none}
 .roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:contain;background:var(--bg);border-radius:7px}
-.roadcam-caption{font-size:11px;font-weight:550;line-height:1.25;padding:5px 6px;min-height:29px}
+.roadcam-caption{font-size:11px;font-weight:550;line-height:1.25;padding:5px 6px;min-height:29px;overflow-wrap:anywhere}
 .roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:8px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
 .roadcam-card.is-unavailable img{display:none}
 .roadcam-card.is-unavailable .roadcam-fallback{display:grid}
@@ -751,6 +751,18 @@ window.NORD_RETURN = '';
     const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
       <div class="detail-heading"><h2>${esc(d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
+      <div class="details-section"><h3>Etappe</h3>
+        <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
+          ${staticStageTile('pin',d.from,'Van')}
+          ${staticStageTile('flag',d.place,'Naar')}
+          ${mode==='trip'?sourceTile('compass',Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile','Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
+        </div>
+      </div>
+      ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Geplande steps · ${d.steps.length}</summary>
+        <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
+        ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
+        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
+      </details>`:''}
       <div class="detail-rows">
         ${sourceTile('sunrise',readableSun(d,'rise'),'Zonsopkomst',solarSourceUrl(d))}
         ${sourceTile('sunset',readableSun(d,'set'),'Zonsondergang',solarSourceUrl(d))}
@@ -770,18 +782,6 @@ window.NORD_RETURN = '';
       ${d.country==='no'?`<div class="road-now-dynamic">${roadNowContent(d)}</div>`:''}
       ${roadPoints(d).length?`<div class="road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
       ${d.country==='no'?roadcamContent(d):''}
-      <div class="details-section"><h3>Etappe</h3>
-        <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
-          ${staticStageTile('pin',d.from,'Van')}
-          ${staticStageTile('flag',d.place,'Naar')}
-          ${mode==='trip'?sourceTile('compass',Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile','Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
-        </div>
-      </div>
-      ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Geplande steps · ${d.steps.length}</summary>
-        <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
-        ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
-        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
-      </details>`:''}
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
         ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
