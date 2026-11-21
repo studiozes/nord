@@ -603,7 +603,13 @@ window.NORD_RETURN = '';
       }).catch(()=>{auroraState.cloud.set(id,{at:Date.now(),value:null});}));
     }
     updateAuroraDisplay();
-    auroraState.pending=Promise.all(jobs).then(updateAuroraDisplay).finally(()=>{auroraState.pending=null;});
+    auroraState.pending=Promise.all(jobs).then(updateAuroraDisplay).finally(()=>{
+      auroraState.pending=null;
+      const current=days().find(day=>day.id===selected);
+      if(AURORA_PLACES[current?.place] && !auroraState.cloud.has(locationId(current))){
+        Promise.resolve().then(()=>fetchAurora(false).catch(()=>{}));
+      }
+    });
     return auroraState.pending;
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
