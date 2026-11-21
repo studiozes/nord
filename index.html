@@ -545,7 +545,7 @@ window.NORD_RETURN = '';
     script.src='https://nordlyskart.no/widget.js';
     script.addEventListener('load',()=>script.remove(),{once:true});
     script.addEventListener('error',()=>script.remove(),{once:true});
-    document.head.appendChild(script);
+    widget.appendChild(script);
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopLayout=window.matchMedia('(min-width:820px)');
