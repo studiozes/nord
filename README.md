@@ -17,6 +17,8 @@ Voor deze eerste publicatie is alles (HTML, CSS, JavaScript, route en icoon) bew
 
 Weer: [Open-Meteo](https://open-meteo.com/). Zontijden: [Sunrise-Sunset.org](https://sunrise-sunset.org/).
 
+Noorderlicht: geen externe widget. Het detailpaneel haalt actuele [NOAA SWPC OVATION](https://www.spaceweather.gov/products/aurora-30-minute-forecast)-modeldata en de [NOAA Kp-index](https://www.spaceweather.gov/products/planetary-k-index) op. Bewolking komt via Open-Meteo. De drie waarden verschijnen in Nord's eigen compacte tegels en zijn alleen een momentopname, geen berekende zichtkans voor de reisdatum. Noordelijke gemeenten hebben een directe link naar de eigen [Nordlyskart](https://nordlyskart.no/en/northern-lights)-pagina voor een uitgebreider lokaal advies. De huidige NOAA- en bewolkingsgegevens worden op nieuw openen en met de verversknop rechtstreeks opgehaald, niet centraal beheerd of periodiek opgeslagen. Als een externe bron onbereikbaar is, toont Nord een streepje in plaats van verzonnen cijfers.
+
 **Huidige routegegevens:** 14 reisdagen van 21 januari t/m 3 februari 2027, inclusief beide Stena-nachtboten, Lofoten, Senja, de optionele Noordkaap en de terugweg via Zweden. Binnen elke reisdag staan de geplande tussenstops. De route komt uit de eerder afgestemde reisplanning en is nog niet rechtstreeks gesynchroniseerd met Polarsteps. Geplande kilometers zijn niet ingevuld zolang ze niet zijn geverifieerd.
 
 **Nog niet gerealiseerd:** Polarsteps-synchronisatie, automatische controles van wegen/veerboten en volledige toetsing op fysieke iPhones. Weg- en veerbootstatussen worden dus niet als veilig bevestigd. Gegevens kunnen offline verouderd zijn.
