@@ -107,6 +107,15 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .road-now-tile .value{font-size:16px;line-height:1.2}
 .road-now-tile .label{font-size:11px;line-height:1.25}
 .road-now-note{font-size:11px;line-height:1.45;color:var(--muted)}
+.road-alert-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.road-alert-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:78px;padding:7px 3px}
+.road-alert-tile svg{width:17px;height:17px;margin:0 0 2px}
+.road-alert-tile .value{font-size:16px;line-height:1.2}
+.road-alert-tile .label{font-size:11px;line-height:1.2;text-align:center}
+.road-alert-entry{border-top:1px solid var(--hair);padding:8px 0;font-size:12px;line-height:1.35}
+.road-alert-entry .road-alert-name{font-weight:590}
+.road-alert-entry .road-alert-description{color:var(--muted);font-size:11px;margin-top:2px}
+.road-alert-meta{color:var(--muted);font-size:11px;line-height:1.45}
 .roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
 .roadcam-card:hover{border-color:var(--hair);text-decoration:none}
@@ -412,6 +421,8 @@ window.NORD_RETURN = '';
     sunset:'<path d="M2 18h20M5 21h14M6 15a6 6 0 0 1 12 0M12 7V2m-3 3 3-3 3 3"/>',
     clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
     road:'<circle cx="5" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><path d="M8 5h8a4 4 0 0 1 0 8H8a3 3 0 0 0 0 6h8"/>',
+    alert:'<path d="m12 3 10 18H2L12 3z"/><path d="M12 9v5m0 3h.01"/>',
+    roadblock:'<rect x="3" y="8" width="18" height="10" rx="1"/><path d="m7 8 5 10m0-10 5 10M6 21v-3m12 3v-3"/>',
     ship:'<path d="m3 14 9-4 9 4-3 6H6zm4-2V5h10v7M10 5V2h4v3M2 22q2-2 5 0 3-2 5 0 3-2 5 0 3-2 5 0"/>',
     compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-2 6-6 2 2-6z"/>',
     moonstar:'<path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z M20 3v6m-3-3h6"/>',
@@ -507,6 +518,109 @@ window.NORD_RETURN = '';
       <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
     </section>`;
   }
+
+  // Officiële, openbare WFS: meldingen rond bekende routepunten, niet de hele rijroute.
+  const ROAD_CHECK_POINTS=Object.freeze({
+    '2027-01-23':[{name:'Mosjøen',lat:65.83753,lon:13.18921}],
+    '2027-01-24':[{name:'Saltfjellet',lat:66.552425,lon:15.322464},{name:'Bodø',lat:67.2884,lon:14.4058}],
+    '2027-01-26':[{name:'Narvik',lat:68.435556,lon:17.437222},{name:'Finnsnes',lat:69.2424,lon:17.9657}],
+    '2027-01-28':[{name:'Kvænangsfjellet',lat:69.9001,lon:21.5566}],
+    '2027-01-29':[{name:'Sennalandet',lat:70.26854,lon:24.09215},{name:'Nordkapptunnelen',lat:70.9251,lon:25.6971}],
+    '2027-01-30':[{name:'Sennalandet',lat:70.26854,lon:24.09215},{name:'Nordkapptunnelen',lat:70.9251,lon:25.6971}]
+  });
+  const ROAD_RADIUS_KM=25,roadAlerts=new Map(),roadPending=new Map();
+  const roadPlan=d=>ROUTE.find(r=>r.from===d.from&&r.place===d.place)||d;
+  const roadKey=d=>roadPlan(d).date;
+  function roadPoints(d){
+    const plan=roadPlan(d),points=[];
+    const origin=ROUTE.find(r=>r.place===plan.from&&r.country==='no');
+    if(origin)points.push({name:origin.place,lat:origin.lat,lon:origin.lon});
+    if(plan.country==='no')points.push({name:plan.place,lat:plan.lat,lon:plan.lon});
+    points.push(...(ROAD_CHECK_POINTS[plan.date]||[]));
+    return points.filter((p,i,all)=>all.findIndex(q=>Math.abs(q.lat-p.lat)<.015&&Math.abs(q.lon-p.lon)<.015)===i).slice(0,6);
+  }
+  function roadPolygon(p){
+    const ring=[];
+    for(let i=0;i<=12;i++){
+      const a=2*Math.PI*i/12;
+      ring.push((p.lat+ROAD_RADIUS_KM/111.2*Math.cos(a)).toFixed(5)+' '+(p.lon+ROAD_RADIUS_KM/(111.2*Math.cos(p.lat*Math.PI/180))*Math.sin(a)).toFixed(5));
+    }
+    return 'Intersects(geometry, POLYGON(('+ring.join(',')+')))';
+  }
+  const roadMapUrl=p=>'https://www.vegvesen.no/trafikk/hvaskjer?'+new URLSearchParams({
+    lat:String(p.lat),lng:String(p.lon),zoom:'8',layers:'fo',fosort:'pop',tusort:'pop',brsort:'pop'
+  });
+  function roadKnown(d){
+    const item=roadAlerts.get(roadKey(d));
+    return item?.ok&&Date.now()-item.at<10*60000?item:null;
+  }
+  const roadGlance=d=>roadKnown(d)?String(roadKnown(d).closed):'?';
+  function roadAlertsContent(d){
+    const points=roadPoints(d);if(!points.length)return '';
+    const result=roadKnown(d),loading=roadPending.has(roadKey(d));
+    const tiles=[
+      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitingsmeldingen'},
+      {icon:'alert',value:result?String(result.other):'—',label:'Overige meldingen'},
+      {icon:'road',value:String(points.length),label:'Routepunten'}
+    ];
+    let html='<section class="details-section road-alert-section"><h3>Wegmeldingen · '+esc(d.place)+'</h3>';
+    html+='<div class="road-alert-tiles">'+tiles.map(t=>'<div class="info-box road-alert-tile">'+ico(t.icon)+'<div class="value">'+esc(t.value)+'</div><div class="label">'+esc(t.label)+'</div></div>').join('')+'</div>';
+    if(result?.items?.length)html+='<div>'+result.items.slice(0,3).map(item=>
+      '<div class="road-alert-entry"><div class="road-alert-name">'+esc(item.closed?'Afsluitingsmelding':'Overige melding')+' · '+esc(item.road||item.location||'Wegtraject')+'</div><div class="road-alert-description">'+esc((item.description||item.location||'Bekijk de officiële kaart').slice(0,145))+'</div></div>'
+    ).join('')+'</div>';
+    const message=result?'Opgehaald '+new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(result.at))+'. Ook geplande meldingen kunnen meetellen.':loading?'Meldingen ophalen bij Vegvesen…':'Geen bevestigde gegevens: onbekend is niet nul.';
+    html+='<div class="road-alert-meta">'+esc(message)+'<p>Circa 25 km rond '+esc(points.map(p=>p.name).join(' · '))+'. Geen controle van de volledige route of de berijdbaarheid.</p></div>';
+    const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
+    html+='<div class="links">'+link('Actuele meldingen · Vegvesen',roadMapUrl(focus))+'</div></section>';
+    return html;
+  }
+  function updateRoadAlerts(d){
+    const active=days().find(x=>x.id===selected);
+    if(!active||roadKey(active)!==roadKey(d))return;
+    const target=desktopLayout.matches?$('sideDetail').querySelector('.road-alerts-dynamic'):$('timeline').querySelector('.day-card.is-open .road-alerts-dynamic');
+    if(target)target.innerHTML=roadAlertsContent(active);
+    const glance=$('timeline').querySelector('.day-card.is-open .day-glance .glance:last-child strong');
+    if(glance)glance.textContent=roadGlance(active);
+  }
+  function roadDate(s){
+    if(typeof s!=='string')return null;
+    const time=Date.parse(s.replace(/\[.*?\]/g,'').replace(/([+-]\d{2})(\d{2})$/,'$1:$2'));
+    return Number.isFinite(time)?time:null;
+  }
+  function interpretRoadFeatures(json){
+    if(json?.type!=='FeatureCollection'||!Array.isArray(json.features)||json.features.length>=400)throw Error('WFS niet volledig');
+    const total=Number(json.totalFeatures??json.numberMatched??json.numberOfFeatures);
+    if(Number.isFinite(total)&&total>json.features.length)throw Error('WFS afgekapt');
+    const incidents=new Map(),now=Date.now();
+    for(const feature of json.features){
+      const p=feature?.properties;if(!p)continue;
+      const id=String(p.situationId||p.recordId||feature.id||'');if(!id)continue;
+      const end=roadDate(p.endTime);if(end!==null&&end<now)continue;
+      const description=String(p.description||''),kind=String(p.secondaryTypes||'')+' '+String(p.situationType||'');
+      const closed=/\b(stengt|stenging|stengning|vinterstengt|nattestengt|avstengt|closed|closure|roadclosure|roadclosed|fullclosure)\b/i.test(description+' '+kind)&&!/\b(ikke stengt|kan bli stengt|ikke lenger stengt)\b/i.test(description);
+      const item={closed,road:String(p.roadNumber||''),location:String(p.locationDescription||''),description};
+      if(!incidents.has(id)||(!incidents.get(id).closed&&closed))incidents.set(id,item);
+    }
+    const items=[...incidents.values()].sort((a,b)=>Number(b.closed)-Number(a.closed));
+    return {closed:items.filter(x=>x.closed).length,other:items.filter(x=>!x.closed).length,items:items.slice(0,6)};
+  }
+  async function fetchRoadAlerts(d,force=false){
+    const points=roadPoints(d);if(!points.length)return;
+    const key=roadKey(d);
+    if(!force&&roadKnown(d))return;
+    if(roadPending.has(key))return roadPending.get(key);
+    const params=new URLSearchParams({
+      service:'WFS',version:'1.3.0',request:'GetFeature',typeName:'datex_3_1:SituationSimple',outputFormat:'application/json',
+      srsname:'EPSG:4326',maxFeatures:'400',cql_filter:points.map(roadPolygon).join(' OR ')
+    });
+    const pending=getJSON('https://ogckart-sn1.atlas.vegvesen.no/datex_3_1/ows?'+params,12000)
+      .then(interpretRoadFeatures).then(data=>roadAlerts.set(key,{...data,ok:true,at:Date.now()}))
+      .catch(()=>roadAlerts.set(key,{ok:false,at:Date.now()}))
+      .finally(()=>{roadPending.delete(key);updateRoadAlerts(d)});
+    roadPending.set(key,pending);
+    updateRoadAlerts(d);
+    return pending;
+  }
   function roadcamContent(d){
     const cams=ROUTE_CAMERAS[d.place]||[];
     const token=Math.max(roadcamStamp,Math.floor(Date.now()/60000)*60000);
@@ -578,6 +692,7 @@ window.NORD_RETURN = '';
       </div>
       ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
       ${d.country==='no'?`<div class="road-now-dynamic">${roadNowContent(d)}</div>`:''}
+      ${roadPoints(d).length?`<div class="road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
       ${d.country==='no'?roadcamContent(d):''}
       ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
@@ -735,6 +850,7 @@ window.NORD_RETURN = '';
     $('sideDetail').innerHTML=detailContent(d);
     bindCameraFallbacks();
     fetchAurora().catch(()=>{});
+    const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('sideDetail').scrollTop=0;
   }
   window.addEventListener('scroll',()=>{
@@ -767,7 +883,7 @@ window.NORD_RETURN = '';
           <span class="glance">${ico('wind')}<strong>${fmt(w?.gust)}</strong></span>
           <span class="glance">${ico('snow')}<strong>${fmt(w?.snow)}</strong></span>
           <span class="glance">${ico('sunrise')}<strong>${readableSun(d,'length')}</strong></span>
-          <span class="glance">${ico('road')}<strong>?</strong></span>
+          <span class="glance">${ico('road')}<strong>${roadGlance(d)}</strong></span>
         </div></button>
         <div class="day-details" id="detail-${esc(d.id)}" ${open?'':'hidden'}>${open?detailContent(d):''}</div></article>`;
     }).join('');
@@ -775,6 +891,7 @@ window.NORD_RETURN = '';
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
     bindCameraFallbacks();
     fetchAurora().catch(()=>{});
+    const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
       if(id!==selected){
@@ -831,7 +948,7 @@ window.NORD_RETURN = '';
   function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
-  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});});
+  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d)fetchRoadAlerts(d,true).catch(()=>{});});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
