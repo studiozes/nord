@@ -797,19 +797,103 @@ window.NORD_RETURN = '';
     const str=new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(x.price);
     return {value:(x.currency==='NOK'?'NOK ':'€ ')+str+'/l',meta:x.type+' · '+fuelDate(x.date)};
   }
+
+  // Een regionale dagindicatie is alleen geldig als minstens drie afzonderlijke
+  // stations binnen 40 km hun benzine-95-prijs de afgelopen 48 uur hebben gemeld.
+  // De export zelf wordt vaker ververst; dat zegt niets over de leeftijd van de prijzen.
+  const REGIONAL_NO_SOURCE='https://drivstoffpriser.github.io/Drivstoffpriser-App/data/index.html';
+  const REGIONAL_NO_STATIONS='https://drivstoffpriser.github.io/Drivstoffpriser-App/data/stations.json';
+  const REGIONAL_NO_PRICES='https://drivstoffpriser.github.io/Drivstoffpriser-App/data/prices.json';
+  const regionalFuel=new Map();
+  const regionalFuelPending=new Map();
+  const regionalFuelAttempts=new Map();
+  const fuelKey=d=>fuelCountry(d)+':'+Number(d.lat).toFixed(3)+':'+Number(d.lon).toFixed(3);
+  const distanceKm=(a,b,c,d)=>{
+    const rad=Math.PI/180,dp=(c-a)*rad,dl=(d-b)*rad;
+    const h=Math.sin(dp/2)**2+Math.cos(a*rad)*Math.cos(c*rad)*Math.sin(dl/2)**2;
+    return 12742*Math.asin(Math.min(1,Math.sqrt(h)));
+  };
+  function regionalFuelText(d){
+    const item=regionalFuel.get(fuelKey(d));
+    if(!item || Date.now()-item.checked>6*3600000 || item.stations<3)return null;
+    return {
+      value:'NOK '+new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(item.price)+'/l',
+      meta:'Regio 40 km · '+item.stations+' stations · '+fuelDate(item.date),
+      url:REGIONAL_NO_SOURCE
+    };
+  }
+  function fuelDisplay(d){
+    const local=regionalFuelText(d);
+    if(local)return local;
+    const country=fuelCountry(d),national=fuelText(country);
+    return {
+      ...national,
+      meta:national.value==='—'&&country==='no'?'Regio: geen recente prijzen · open bron':
+        national.value==='—'?national.meta:'Landelijk · '+national.meta,
+      url:national.value==='—'&&country==='no'?REGIONAL_NO_SOURCE:fuelUrl(country)
+    };
+  }
+  function updateRegionalFuel(d){
+    const selectedDay=days().find(x=>x.id===selected);
+    if(selectedDay?.id!==d.id)return;
+    updateFuel(fuelCountry(d));
+  }
+  async function loadRegionalFuel(d){
+    if(fuelCountry(d)!=='no')return; // Andere landen bieden hier geen betrouwbare vrije station-feed.
+    const key=fuelKey(d),existing=regionalFuel.get(key);
+    if(existing&&Date.now()-existing.checked<6*3600000)return;
+    if(regionalFuelPending.has(key))return regionalFuelPending.get(key);
+    if(Date.now()-(regionalFuelAttempts.get(key)||0)<10*60000)return;
+    regionalFuelAttempts.set(key,Date.now());
+    const job=(async()=>{
+      const [stations,prices]=await Promise.all([
+        getJSON(REGIONAL_NO_STATIONS,12000),
+        getJSON(REGIONAL_NO_PRICES,12000)
+      ]);
+      if(!Array.isArray(stations?.stations)||!Array.isArray(prices?.prices))return;
+      const freshExport=Date.parse(prices.exportedAt);
+      if(!Number.isFinite(freshExport)||Date.now()-freshExport>48*3600000||freshExport>Date.now()+3600000)return;
+      const byId=new Map(stations.stations.filter(x=>x?.id).map(x=>[x.id,x]));
+      const unique=new Map(),now=Date.now();
+      for(const p of prices.prices){
+        if(p?.fuelType!=='petrol95'||!p.stationId)continue;
+        const price=Number(p.price),station=byId.get(p.stationId);
+        const at=Date.parse(String(p.updatedAt||'').replace(/Z?$/,'Z'));
+        if(!station||!Number.isFinite(price)||price<10||price>50||!Number.isFinite(at))continue;
+        if(at>now+3600000||now-at>48*3600000)continue;
+        const lat=Number(station.latitude),lon=Number(station.longitude);
+        if(!Number.isFinite(lat)||!Number.isFinite(lon)||distanceKm(d.lat,d.lon,lat,lon)>40)continue;
+        const prev=unique.get(p.stationId);
+        if(!prev||at>prev.at)unique.set(p.stationId,{price,at});
+      }
+      if(unique.size<3)return;
+      const valid=[...unique.values()],sum=valid.reduce((n,p)=>n+p.price,0);
+      const mostRecent=Math.max(...valid.map(p=>p.at));
+      regionalFuel.set(key,{checked:now,price:sum/valid.length,stations:valid.length,
+        date:new Date(mostRecent).toISOString().slice(0,10)});
+    })().catch(()=>{}).finally(()=>{
+      regionalFuelPending.delete(key);
+      updateRegionalFuel(d);
+    });
+    regionalFuelPending.set(key,job);
+    return job;
+  }
+
   function fuelStrip(d){
-    const c=fuelCountry(d),x=fuelText(c);
-    return `<a class="fuel-strip" data-fuel="${esc(c)}" href="${esc(fuelUrl(c))}" target="_blank"
-        rel="noopener noreferrer" title="Indicatie voor Euro 95 in het bestemmingsland, niet de pompprijs op deze etappe">
+    const c=fuelCountry(d),x=fuelDisplay(d);
+    return `<a class="fuel-strip" data-fuel="${esc(c)}" href="${esc(x.url)}" target="_blank"
+        rel="noopener noreferrer" title="Actuele regionale benzine-95-prijs bij voldoende recente stations; anders expliciet landelijke indicatie">
       <span class="fuel-name">${ico('fuel')}Benzine 95</span>
       <span class="fuel-number">${esc(x.value)}</span>
       <small class="fuel-meta">${esc(x.meta)}</small>
     </a>`;
   }
   function updateFuel(c){
-    const x=fuelText(c);
+    const selectedDay=days().find(d=>d.id===selected);
+    const x=selectedDay&&fuelCountry(selectedDay)===c?fuelDisplay(selectedDay):null;
+    if(!x)return;
     document.querySelectorAll('.fuel-strip[data-fuel="'+c+'"]').forEach(el=>{
-      el.href=fuelUrl(c);
+      el.href=x.url;
       const n=el.querySelector('.fuel-number'),m=el.querySelector('.fuel-meta');
       if(n)n.textContent=x.value;
       if(m)m.textContent=x.meta;
@@ -1112,7 +1196,10 @@ window.NORD_RETURN = '';
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
     bindCameraFallbacks();
     const fuelDay=arr.find(d=>d.id===selected);
-    if(fuelDay)loadFuel(fuelCountry(fuelDay)).catch(()=>{});
+    if(fuelDay){
+      loadFuel(fuelCountry(fuelDay)).catch(()=>{});
+      loadRegionalFuel(fuelDay).catch(()=>{});
+    }
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
