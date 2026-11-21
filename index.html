@@ -157,6 +157,13 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .side-detail{display:none}
 @media(min-width:820px){.app-shell{padding-top:16px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:sticky;top:16px;max-height:68vh;max-height:68dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:245px}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
 @media(max-width:374px){.app-shell{padding-left:10px;padding-right:10px}.day-button{padding-left:10px;padding-right:10px}.day-main{gap:7px}.day-date{width:38px;flex-basis:38px}.day-weather{width:58px;flex-basis:58px}.day-weather .reading{font-size:16px}.day-glance{margin-left:45px}.glance{font-size:10px;gap:2px}.glance svg{width:13px;height:13px;flex-basis:13px}}
+.fuel-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:8px 9px;border-radius:9px;background:var(--bg);border:1px solid transparent;color:var(--text);text-decoration:none;min-width:0}
+.fuel-strip:hover{background:var(--shade);border-color:var(--hair);text-decoration:none}
+.fuel-name{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:570}
+.fuel-name svg{height:16px;width:16px;flex:0 0 16px;color:var(--muted)}
+.fuel-number{font-size:15px;font-weight:650;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fuel-meta{grid-column:1/-1;color:var(--muted);font-size:10px;line-height:1.3}
+
 /* Compact gegroepeerde cockpit: de geselecteerde etappe blijft bovenaan. */
 .cockpit-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
 .cockpit-panel{display:grid;align-content:start;gap:6px;min-width:0;padding:9px;border:1px solid var(--hair);border-radius:13px}
@@ -769,6 +776,99 @@ window.NORD_RETURN = '';
     if(typeof v!=='string')return '—';
     const parsed=new Date(v);return Number.isNaN(parsed.valueOf())?'—':new Intl.DateTimeFormat('nl-NL',{timeZone:d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo',hour:'2-digit',minute:'2-digit',hour12:false}).format(parsed);
   };
+
+  // Benzine 95: betrouwbare referentie per bestemmingsland, niet per individueel tankstation.
+  const FUEL_URL={
+    no:'https://drivstoffappen.no/drivstoffpriser',
+    se:'https://www.fuel-prices.eu/live/sweden/',
+    dk:'https://www.fuel-prices.eu/live/denmark/',
+    de:'https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en',
+    nl:'https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en'
+  };
+  const fuelPrices=new Map(),fuelPending=new Map(),fuelAttempts=new Map();
+  const fuelCountry=d=>String(d.country||'').toLowerCase();
+  const fuelUrl=c=>c==='no'&&fuelPrices.get(c)
+    ?'https://www.ssb.no/en/statbank/table/09654':FUEL_URL[c]||FUEL_URL.nl;
+  const fuelDate=v=>/^\d{4}M\d{2}$/.test(v)?v.slice(5,7)+'-'+v.slice(0,4):
+    /^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(8,10)+'-'+v.slice(5,7):'';
+  function fuelText(c){
+    const x=fuelPrices.get(c);
+    if(!x)return {value:'—',meta:'Landelijk · bron openen'};
+    const str=new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(x.price);
+    return {value:(x.currency==='NOK'?'NOK ':'€ ')+str+'/l',meta:x.type+' · '+fuelDate(x.date)};
+  }
+  function fuelStrip(d){
+    const c=fuelCountry(d),x=fuelText(c);
+    return `<a class="fuel-strip" data-fuel="${esc(c)}" href="${esc(fuelUrl(c))}" target="_blank"
+        rel="noopener noreferrer" title="Indicatie voor Euro 95 in het bestemmingsland, niet de pompprijs op deze etappe">
+      <span class="fuel-name">${ico('fuel')}Benzine 95</span>
+      <span class="fuel-number">${esc(x.value)}</span>
+      <small class="fuel-meta">${esc(x.meta)}</small>
+    </a>`;
+  }
+  function updateFuel(c){
+    const x=fuelText(c);
+    document.querySelectorAll('.fuel-strip[data-fuel="'+c+'"]').forEach(el=>{
+      el.href=fuelUrl(c);
+      const n=el.querySelector('.fuel-number'),m=el.querySelector('.fuel-meta');
+      if(n)n.textContent=x.value;
+      if(m)m.textContent=x.meta;
+      el.setAttribute('aria-label','Benzine 95 '+x.value+'. '+x.meta+'. Open bron.');
+    });
+  }
+  function ssb95(json){
+    // JSON-stat2, zoek 95-octaan en nieuwste maand; geen getal tonen als dit niet kan.
+    if(!Array.isArray(json?.id)||!Array.isArray(json?.size)||!Array.isArray(json?.value))return null;
+    const axes=json.id.map((id,pos)=>{
+      const cat=json.dimension?.[id]?.category||{};
+      return {pos,values:Object.entries(cat.index||{}).map(([code,i])=>
+        ({code,i:Number(i),label:String(cat.label?.[code]||code)}))};
+    });
+    const product=axes.map(a=>({...a,hit:a.values.find(v=>/95/.test(v.label)&&!/(diesel|98)/i.test(v.label))})).find(a=>a.hit);
+    const time=axes.map(a=>({...a,months:a.values.filter(v=>/^\d{4}M(?:0[1-9]|1[0-2])$/.test(v.code))})).find(a=>a.months.length);
+    if(!product||!time)return null;
+    const month=time.months.sort((a,b)=>b.code.localeCompare(a.code))[0];
+    let index=0,stride=1;
+    for(let i=json.size.length-1;i>=0;i--){
+      index+=(i===product.pos?product.hit.i:i===time.pos?month.i:0)*stride;
+      stride*=json.size[i];
+    }
+    const price=Number(json.value[index]);
+    return price>=10&&price<=50?{price,currency:'NOK',date:month.code,type:'Maandgemiddelde · SSB'}:null;
+  }
+  async function loadFuel(c){
+    if(!FUEL_URL[c]||fuelPrices.has(c)&&Date.now()-fuelPrices.get(c).checked<12*3600000)return;
+    if(fuelPending.has(c))return fuelPending.get(c);
+    if(Date.now()-(fuelAttempts.get(c)||0)<10*60000)return;
+    fuelAttempts.set(c,Date.now());
+    const job=(async()=>{
+      let item=null;
+      if(c==='no'){
+        item=ssb95(await getJSON('https://data.ssb.no/api/pxwebapi/v2/tables/09654/data?lang=en',12000));
+      }else if(c==='dk'){
+        const json=await getJSON('https://www.fuel-prices.eu/live/api.php?action=summary',12000);
+        const d=json?.data?.countries?.find(x=>x.country_code==='DK'&&x.live);
+        const price=Number(d?.fuels?.sp95?.avg),at=Number(d?.last_fetched_ts)*1000;
+        if(price>=0.5&&price<=4&&Number(d?.fuels?.sp95?.stations)>30&&
+          Number.isFinite(at)&&Math.abs(Date.now()-at)<72*3600000)
+          item={price,currency:'EUR',date:new Date(at).toISOString().slice(0,10),type:'Actueel pompprijsgemiddelde'};
+      }else{
+        const json=await getJSON('https://www.fuel-prices.eu/lang/api/country-history.php?cc='+c.toUpperCase(),12000);
+        if(Array.isArray(json?.labels)&&Array.isArray(json?.e95)){
+          for(let i=Math.min(json.labels.length,json.e95.length)-1;i>=0;i--){
+            const price=Number(json.e95[i]),date=json.labels[i],age=Date.now()-Date.parse(date+'T12:00:00Z');
+            if(price>=0.5&&price<=4&&/^\d{4}-\d{2}-\d{2}$/.test(date)&&age>=0&&age<28*86400000){
+              item={price,currency:'EUR',date,type:'Weekgemiddelde · EU'};break;
+            }
+          }
+        }
+      }
+      if(item)fuelPrices.set(c,{...item,checked:Date.now()});
+    })().catch(()=>{}).finally(()=>{fuelPending.delete(c);updateFuel(c)});
+    fuelPending.set(c,job);
+    return job;
+  }
+
   function detailContent(d){
     const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
@@ -786,6 +886,7 @@ window.NORD_RETURN = '';
         ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
         ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
       </details>`:''}
+        ${fuelStrip(d)}
       </div>
       <div class="cockpit-duo cockpit-duo--conditions">
         <div class="cockpit-panel cockpit-panel--weather">
@@ -1010,6 +1111,8 @@ window.NORD_RETURN = '';
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
     bindCameraFallbacks();
+    const fuelDay=arr.find(d=>d.id===selected);
+    if(fuelDay)loadFuel(fuelCountry(fuelDay)).catch(()=>{});
     fetchAurora().catch(()=>{});
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
