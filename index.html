@@ -429,10 +429,23 @@ window.NORD_RETURN = '';
   const solar=d=>sunCache[dataKey(d)]?.value || null;
   const fresh=d=>{const item=weatherCache[dataKey(d)];return item && Date.now()-item.when<60*60*1000};
   const codeIcon=c=>c==null?'cloudy':c===0?'sun':c<=3?'part':[45,48].includes(c)?'cloudy':[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c)?'rain':[71,73,75,77,85,86].includes(c)?'snow':'cloudy';
+  // Lokale bronnen bij de geplande overnachtingsplaatsen.
+  // Reine en Mefjordvær gebruiken de bevestigde gemeentepagina (Moskenes / Senja).
+  const AURORA_PLACES=Object.freeze({
+    'Tynset':{key:'tynset',url:'https://nordlyskart.no/en/northern-lights/tynset'},
+    'Mo i Rana':{key:'rana',url:'https://nordlyskart.no/en/northern-lights/rana',region:'Rana'},
+    'Reine':{key:'moskenes',url:'https://nordlyskart.no/en/northern-lights/moskenes',region:'Moskenes'},
+    'Svolvær':{key:'svolvaer',url:'https://nordlyskart.no/en/northern-lights/svolvaer'},
+    'Mefjordvær':{key:'senja',url:'https://nordlyskart.no/en/northern-lights/senja',region:'Senja'},
+    'Tromsø':{key:'tromso',url:'https://nordlyskart.no/en/northern-lights/tromso'},
+    'Alta':{key:'alta',url:'https://nordlyskart.no/en/northern-lights/alta'},
+    'Honningsvåg':{key:'honningsvag',url:'https://nordlyskart.no/en/northern-lights/honningsvag'},
+    'Luleå':{key:'se-lulea',url:'https://nordlyskart.no/en/northern-lights/sweden/lulea'},
+    'Gävle':{key:'se-gavle',url:'https://nordlyskart.no/en/northern-lights/sweden/gavle'}
+  });
   function urls(d){
     const coord=`${d.lat},${d.lon}`;const place=`${d.place}, ${placeCountry(d)}`;
-    const north={ 'Trondheim':'trondheim','Mo i Rana':'rana','Lødingen':'lodingen','Andenes':'andoy','Alta':'alta','Honningsvåg':'nordkapp','Noordkaap':'nordkapp','Frederikstad':'fredrikstad' };
-    const aurora=north[d.place]?`https://nordlyskart.no/en/northern-lights/${north[d.place]}`:'https://nordlyskart.no/en/northern-lights';
+    const aurora=AURORA_PLACES[d.place]?.url || 'https://nordlyskart.no/en/northern-lights';
     return {
       maps:`https://maps.apple.com/?${new URLSearchParams({saddr:`${d.from}, ${countryName(d.fromCountry||d.country)}`,daddr:place,dirflg:'d'})}`,
       wind:`https://www.windy.com/?${coord},8`,
@@ -475,7 +488,7 @@ window.NORD_RETURN = '';
           <div class="info-box weather-tile" title="Gemiddelde bewolkingsgraad">${ico('cloudy')}<div class="value">${fmt(w.cloud,'%')}</div><div class="label">Bewolking</div></div>
         </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
       </div>
-      ${d.place==='Alta'?'<section class="details-section aurora-section"><h3>Noorderlicht · Alta</h3><p class="aurora-context">Live voor vanavond, niet voor de geselecteerde reisdatum</p><div data-aurora-widget="alta"></div></section>':''}
+      ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section"><h3>Noorderlicht · ${esc(d.place)}</h3><p class="aurora-context">Live voor vanavond, niet voor ${esc(labelDate(d.date))}${AURORA_PLACES[d.place].region?' · regio '+esc(AURORA_PLACES[d.place].region):''}</p><div data-aurora-widget="${esc(AURORA_PLACES[d.place].key)}"></div></section>`:''}
       ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
         <div class="metric-row"><span class="label">Van</span><span class="number">${esc(d.from)}</span></div>
@@ -487,37 +500,52 @@ window.NORD_RETURN = '';
       </div>
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
-        ${link('Windkaart',u.wind)} ${d.country==='no'?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
+        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
       </div></div>
       ${solar(d)?.sun_status==='polar_night'?'<p class="snow-note">Poolnacht: geen zonsopkomst, maar schemering is nog mogelijk.</p>':''}
       ${!w?'':aged?'<p class="snow-note">Weerwaarden kunnen verouderd zijn. Controleer voor vertrek opnieuw.</p>':'<p class="snow-note">Weerwaarden gelden voor de bestemming en de volledige dag, niet voor de hele rijroute.</p>'}
     </div>`;
   }
-  // Proef met de officiële Nordlyskart-widget; de bronlink blijft behouden.
-  // We laden de externe code pas wanneer Alta wordt bekeken.
-  let auroraWidget=null, auroraScriptRequested=false;
-  function mountAltaWidget(){
+  // Officiële Nordlyskart-widget per overnachtingsplaats.
+  // Geen ongedocumenteerde data-API of scraping; de bronlink blijft zichtbaar.
+  // Een widget wordt maar eenmaal per plaats geïnitialiseerd en daarna hergebruikt.
+  const auroraWidgets=new Map();
+  function mountAuroraWidget(){
+    const d=days().find(day=>day.id===selected);
+    const place=AURORA_PLACES[d?.place];
+    if(!place)return;
+    const selector='[data-aurora-widget="'+place.key+'"]';
     const target=desktopLayout.matches
-      ? $('sideDetail').querySelector('[data-aurora-widget="alta"]')
-      : $('timeline').querySelector('.day-card.is-open .day-details [data-aurora-widget="alta"]');
+      ? $('sideDetail').querySelector(selector)
+      : $('timeline').querySelector('.day-card.is-open .day-details '+selector);
     if(!target)return;
-    if(!auroraWidget){
-      auroraWidget=document.createElement('div');
-      auroraWidget.className='aurora-widget';
-      auroraWidget.innerHTML='<a class="nk-widget" href="https://nordlyskart.no/en/northern-lights/alta" data-widget="i-kveld/alta" data-lang="en" data-width="340" data-height="250" data-title="Northern lights in Alta tonight">Nordlyskart</a>';
+    let widget=auroraWidgets.get(place.key);
+    if(widget){
+      if(widget.parentNode!==target)target.appendChild(widget);
+      return;
     }
-    if(auroraWidget.parentNode!==target)target.appendChild(auroraWidget);
-    if(!auroraScriptRequested){
-      auroraScriptRequested=true;
-      const script=document.createElement('script');
-      script.async=true;
-      script.src='https://nordlyskart.no/widget.js';
-      script.onerror=()=>{
-        const a=auroraWidget.querySelector('a');
-        if(a)a.textContent='Open noorderlichtverwachting Alta';
-      };
-      document.head.appendChild(script);
-    }
+    widget=document.createElement('div');
+    widget.className='aurora-widget';
+    const source=document.createElement('a');
+    source.className='nk-widget';
+    source.href=place.url;
+    source.textContent='Nordlyskart';
+    source.dataset.widget='i-kveld/'+place.key;
+    source.dataset.lang='en';
+    source.dataset.width='340';
+    source.dataset.height='250';
+    source.dataset.title='Northern lights in '+d.place+' tonight';
+    widget.appendChild(source);
+    target.appendChild(widget);
+    auroraWidgets.set(place.key,widget);
+    // De officiële embed verwerkt nieuwe widgets bij het laden.
+    // Bij blokkering door de browser blijft de bronlink klikbaar.
+    const script=document.createElement('script');
+    script.async=true;
+    script.src='https://nordlyskart.no/widget.js';
+    script.addEventListener('load',()=>script.remove(),{once:true});
+    script.addEventListener('error',()=>script.remove(),{once:true});
+    document.head.appendChild(script);
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopLayout=window.matchMedia('(min-width:820px)');
@@ -548,7 +576,7 @@ window.NORD_RETURN = '';
       if(button)button.setAttribute('aria-expanded',String(isActive));
     }
     $('sideDetail').innerHTML=detailContent(d);
-    mountAltaWidget();
+    mountAuroraWidget();
     $('sideDetail').scrollTop=0;
   }
   window.addEventListener('scroll',()=>{
@@ -587,7 +615,7 @@ window.NORD_RETURN = '';
     }).join('');
     $('timeline').innerHTML=cards+(mode==='trip'&&RETURN?`<div class="return-card">${ico('road')}<span>${esc(RETURN)}</span></div>`:'');
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
-    mountAltaWidget();
+    mountAuroraWidget();
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
       if(id!==selected){
