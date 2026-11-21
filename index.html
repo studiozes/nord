@@ -60,39 +60,51 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .glance.warn strong,.glance.warn svg{color:var(--warn)}
 .glance.alert strong,.glance.alert svg{color:var(--alert)}
 .day-details{padding:0 14px 15px}
-.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:15px;display:grid;gap:16px}
+.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:10px;display:grid;gap:10px}
 .step-list{list-style:none;margin:0 0 2px 0;padding:0 0 0 15px;border-left:1px solid var(--hair)}.step-list li{position:relative;padding:4px 0 4px 6px;font-size:12px;line-height:1.4}.step-list li::before{content:'';position:absolute;left:-19px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
 .detail-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .detail-heading h2{font-size:17px;letter-spacing:-.3px;font-weight:620;margin:0}
 .detail-heading small{color:var(--muted);font-size:11px}
 .detail-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .weather-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:74px;padding:7px 4px}
+.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:62px;padding:5px 3px}
 .weather-tile svg{width:17px;height:17px;margin:0 0 2px}
 .weather-tile .value{font-size:16px;line-height:1.15}
 .weather-tile .label{font-size:11px;line-height:1.2}
 @container (min-width:450px){.weather-tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @container (max-width:310px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.info-box{border-radius:12px;background:var(--bg);padding:8px 5px;text-align:center;min-width:0}
-.info-box svg{width:17px;height:17px;margin:0 auto 2px;display:block;color:var(--muted)}
-.info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:16px;white-space:nowrap}
-.info-box .label{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.25}
-.details-section{display:grid;gap:7px}
+.info-box{border-radius:11px;background:var(--bg);padding:5px 4px;text-align:center;min-width:0}
+.info-box svg{width:16px;height:16px;margin:0 auto 2px;display:block;color:var(--muted)}
+.info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:15px;white-space:nowrap}
+.info-box .label{font-size:11px;color:var(--muted);margin-top:1px;line-height:1.2}
+.details-section{display:grid;gap:5px;min-width:0}
 .details-section h3{font-size:12px;font-weight:620;margin:0;color:var(--muted);letter-spacing:.01em}
 .metric-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--hair);padding:8px 0;font-size:13px}
 .metric-row:first-of-type{border-top:0}
 .metric-row .number{font-variant-numeric:tabular-nums;font-weight:550;text-align:right}
 .metric-row .label{color:var(--muted)}
 .snow-note{color:var(--muted);font-size:11px;line-height:1.45}
-.links{display:flex;flex-wrap:wrap;gap:7px}
-.links a{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--hair);border-radius:10px;min-height:44px;font-size:12px;color:var(--text);max-width:100%}
+.links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.links a{display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:4px;padding:5px 6px;border:1px solid var(--hair);border-radius:9px;min-height:44px;font-size:11px;line-height:1.25;color:var(--text);min-width:0;overflow-wrap:anywhere}
 .links a svg{width:15px;height:15px;color:var(--muted)}
 .detail-inner a svg{display:inline-block;width:14px;height:14px;max-width:14px;max-height:14px;flex:0 0 14px;vertical-align:-2px}
 .links a:hover{background:var(--bg);text-decoration:none}
+@container (min-width:450px){.links{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.source-tile{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:62px;color:var(--text);text-decoration:none;transition:background .14s ease,border-color .14s ease;border:1px solid transparent}
+.source-tile:hover{background:var(--shade);border-color:var(--hair);text-decoration:none}
+.source-tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.source-tile .value{max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.source-tile svg{width:16px;height:16px;max-width:16px;max-height:16px;flex:0 0 16px;margin:0 auto 2px}
+.stage-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.stage-tile .value{font-size:13px}
+.route-steps{font-size:12px}
+.route-steps summary{cursor:pointer;min-height:34px;display:flex;align-items:center;color:var(--muted)}
+.road-alert-details{font-size:11px;color:var(--muted)}
+.road-alert-details summary{cursor:pointer;padding:3px 0}
 .aurora-section{gap:7px}
 .aurora-context{font-size:11px;color:var(--muted);line-height:1.35;margin:0 0 3px}
 .aurora-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.aurora-tile{min-width:0;padding:9px 4px;min-height:75px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.aurora-tile{min-width:0;padding:5px 3px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .aurora-tile svg{width:18px;height:18px;margin:0 0 3px}
 .aurora-tile .value{font-size:17px;line-height:1.3}
 .aurora-tile .label{font-size:11px;line-height:1.25;text-align:center}
@@ -100,13 +112,13 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .aurora-meta a{font-size:11px}
 @media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
 .road-now-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.road-now-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:74px;padding:7px 3px}
+.road-now-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:62px;padding:5px 3px}
 .road-now-tile svg{width:17px;height:17px;margin:0 0 2px}
 .road-now-tile .value{font-size:16px;line-height:1.2}
 .road-now-tile .label{font-size:11px;line-height:1.25}
 .road-now-note{font-size:11px;line-height:1.45;color:var(--muted)}
 .road-alert-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.road-alert-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:78px;padding:7px 3px}
+.road-alert-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:62px;padding:5px 3px}
 .road-alert-tile svg{width:17px;height:17px;margin:0 0 2px}
 .road-alert-tile .value{font-size:16px;line-height:1.2}
 .road-alert-tile .label{font-size:11px;line-height:1.2;text-align:center}
@@ -117,13 +129,13 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
 .roadcam-card:hover{border-color:var(--hair);text-decoration:none}
-.roadcam-card img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--hair)}
-.roadcam-caption{font-size:11px;font-weight:550;line-height:1.3;padding:7px 8px;min-height:32px}
-.roadcam-fallback{display:none;aspect-ratio:4/3;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
+.roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:contain;background:var(--hair)}
+.roadcam-caption{font-size:11px;font-weight:550;line-height:1.25;padding:5px 6px;min-height:29px}
+.roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:10px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
 .roadcam-card.is-unavailable img{display:none}
 .roadcam-card.is-unavailable .roadcam-fallback{display:grid}
 .roadcam-meta{color:var(--muted);font-size:11px;line-height:1.45}
-@container (max-width:310px){.roadcam-grid{grid-template-columns:1fr}}
+@container (min-width:450px){.roadcam-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .notice{font-size:12px;color:var(--muted)}
 .notice.important{color:var(--warn)}
 .graph{border-radius:12px;background:var(--bg);padding:12px 12px 8px;overflow:hidden}
@@ -523,11 +535,11 @@ window.NORD_RETURN = '';
     return `<section class="details-section road-now-section">
       <h3>Actueel weer · ${esc(d.place)}</h3>
       <div class="road-now-tiles">
-        <div class="info-box road-now-tile" title="Modelwaarde voor neerslag in de afgelopen 15 minuten">${ico('rain')}<div class="value">${esc(rainText)}</div><div class="label">Neerslag nu</div></div>
-        <div class="info-box road-now-tile" title="Actuele relatieve luchtvochtigheid volgens Open-Meteo">${ico('humidity')}<div class="value">${esc(humidityText)}</div><div class="label">Luchtvochtigheid</div></div>
-        <div class="info-box road-now-tile" title="Windrichting volgens Open-Meteo; wind komt uit deze richting">${ico('compass')}<div class="value">${esc(bearing)}</div><div class="label">Wind uit</div></div>
+        ${sourceTile('rain',rainText,'Neerslag nu',weatherCurrentUrl(d),'road-now-tile','Modelwaarde voor neerslag · Open-Meteo')}
+        ${sourceTile('humidity',humidityText,'Luchtvochtigheid',weatherCurrentUrl(d),'road-now-tile','Actuele relatieve luchtvochtigheid · Open-Meteo')}
+        ${sourceTile('compass',bearing,'Wind uit',weatherCurrentUrl(d),'road-now-tile','Actuele windrichting · Open-Meteo')}
       </div>
-      <p class="road-now-note">Actuele modelwaarden van Open-Meteo op de bestemming, geen metingen langs de weg en niet voor de geselecteerde reisdatum. Voor echte wegdektemperaturen gebruik je de meetstations van Vegvesen.</p>
+      <p class="road-now-note">Modelwaarden van nu, niet voor de reisdatum of het wegdek. Wegmetingen via Vegvesen.</p>
       <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
     </section>`;
   }
@@ -584,13 +596,14 @@ window.NORD_RETURN = '';
       {icon:'road',value:String(points.length),label:'Routepunten'}
     ];
     let html='<section class="details-section road-alert-section"><h3>Wegmeldingen · '+esc(d.place)+'</h3>';
-    html+='<div class="road-alert-tiles">'+tiles.map(t=>'<div class="info-box road-alert-tile">'+ico(t.icon)+'<div class="value">'+esc(t.value)+'</div><div class="label">'+esc(t.label)+'</div></div>').join('')+'</div>';
+    const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
+    const alertSource=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
+    html+='<div class="road-alert-tiles">'+tiles.map(t=>sourceTile(t.icon,t.value,t.label,alertSource,'road-alert-tile','Open officiële Vegvesen-kaart rond '+focus.name)).join('')+'</div>';
     if(result?.items?.length)html+='<div>'+result.items.slice(0,3).map(item=>
       '<div class="road-alert-entry"><div class="road-alert-name">'+esc(item.closed?'Afsluitingsmelding':'Overige melding')+' · '+esc(item.road||item.location||'Wegtraject')+'</div><div class="road-alert-description">'+esc((item.description||item.location||'Bekijk de officiële kaart').slice(0,145))+'</div></div>'
     ).join('')+'</div>';
     const message=result?'Opgehaald '+new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(result.at))+'. Ook geplande meldingen kunnen meetellen.':loading?'Meldingen ophalen bij Vegvesen…':'Geen bevestigde gegevens: onbekend is niet nul.';
     html+='<div class="road-alert-meta">'+esc(message)+'<p>Circa 25 km rond '+esc(points.map(p=>p.name).join(' · '))+'. Geen controle van de volledige route of de berijdbaarheid.</p></div>';
-    const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
     html+='<div class="links">'+ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')+'</div></section>';
     return html;
   }
@@ -679,6 +692,29 @@ window.NORD_RETURN = '';
     };
   }
   function link(text,href){return `<a target="_blank" rel="noopener noreferrer" href="${esc(href)}">${esc(text)}${ico('link')}</a>`}
+  // Iedere informatietegel is zelf een link naar de bron van de waarde.
+  // Geen extra server of eigen databeheer; ontbrekende gegevens blijven '—'.
+  const LOCAL_TZ=d=>d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo';
+  const weatherDailyUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
+    latitude:String(d.lat),longitude:String(d.lon),
+    daily:'temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,snowfall_sum,cloud_cover_mean',
+    timezone:LOCAL_TZ(d),forecast_days:'16'
+  });
+  const weatherCurrentUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
+    latitude:String(d.lat),longitude:String(d.lon),
+    current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m',
+    timezone:LOCAL_TZ(d)
+  });
+  const solarSourceUrl=d=>'https://api.sunrise-sunset.org/v2?'+new URLSearchParams({
+    lat:String(d.lat),lng:String(d.lon),date:d.date
+  });
+  function sourceTile(icon,value,label,url,extraClass='',description=''){
+    const textValue=String(value??'—');
+    return `<a class="info-box source-tile ${esc(extraClass)}" href="${esc(url)}" target="_blank" rel="noopener noreferrer"
+      title="${esc(description||'Open bron: '+label)}"
+      aria-label="${esc(label+': '+textValue+'. Open bron in nieuw tabblad.')}">
+      ${ico(icon)}<div class="value">${esc(textValue)}</div><div class="label">${esc(label)}</div></a>`;
+  }
   const readableSun=(d,kind)=>{
     const s=solar(d); if(!s)return '—';
     if(s.sun_status==='polar_night')return kind==='length'?'0u 00':'Geen';
@@ -697,17 +733,17 @@ window.NORD_RETURN = '';
     return `<div class="detail-inner">
       <div class="detail-heading"><h2>${esc(d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
       <div class="detail-rows">
-        <div class="info-box">${ico('sunrise')}<div class="value">${readableSun(d,'rise')}</div><div class="label">Zonsopkomst</div></div>
-        <div class="info-box">${ico('sunset')}<div class="value">${readableSun(d,'set')}</div><div class="label">Zonsondergang</div></div>
-        <div class="info-box">${ico('clock')}<div class="value">${readableSun(d,'length')}</div><div class="label">Daglicht</div></div>
+        ${sourceTile('sunrise',readableSun(d,'rise'),'Zonsopkomst',solarSourceUrl(d))}
+        ${sourceTile('sunset',readableSun(d,'set'),'Zonsondergang',solarSourceUrl(d))}
+        ${sourceTile('clock',readableSun(d,'length'),'Daglicht',solarSourceUrl(d))}
       </div>
       <div class="details-section"><h3>Weer</h3>
         ${w? `<div class="weather-tiles">
-          <div class="info-box weather-tile" title="Gemiddelde dagtemperatuur">${ico('thermometer')}<div class="value">${fmtDeg(w.temp)}</div><div class="label">Temperatuur</div></div>
-          <div class="info-box weather-tile" title="Gemiddelde gevoelstemperatuur">${ico('feels')}<div class="value">${fmtDeg(w.feel)}</div><div class="label">Voelt als</div></div>
-          <div class="info-box weather-tile" title="Maximale windstoten van de dag">${ico('wind')}<div class="value">${fmt(w.gust,' km/u')}</div><div class="label">Windstoten</div></div>
-          <div class="info-box weather-tile" title="Verwachte sneeuwval gedurende de dag">${ico('snowflake')}<div class="value">${n(w.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm'}</div><div class="label">Sneeuwval</div></div>
-          <div class="info-box weather-tile" title="Gemiddelde bewolkingsgraad">${ico('cloudy')}<div class="value">${fmt(w.cloud,'%')}</div><div class="label">Bewolking</div></div>
+          ${sourceTile('thermometer',fmtDeg(w.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo brongegevens')}
+          ${sourceTile('feels',fmtDeg(w.feel),'Voelt als',weatherDailyUrl(d),'weather-tile','Gemiddelde gevoelstemperatuur · Open-Meteo brongegevens')}
+          ${sourceTile('wind',fmt(w.gust,' km/u'),'Windstoten',weatherDailyUrl(d),'weather-tile','Maximale windstoten van de dag · Open-Meteo brongegevens')}
+          ${sourceTile('snowflake',n(w.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm','Sneeuwval',weatherDailyUrl(d),'weather-tile','Verwachte sneeuwval · Open-Meteo brongegevens')}
+          ${sourceTile('cloudy',fmt(w.cloud,'%'),'Bewolking',weatherDailyUrl(d),'weather-tile','Gemiddelde dagbewolking · Open-Meteo brongegevens')}
         </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
       </div>
       ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
@@ -776,18 +812,17 @@ window.NORD_RETURN = '';
     const oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
     const valueCloud=cloud && Date.now()-cloud.at<65*60000?cloud.value:null;
     const tiles=[
-      {icon:'moonstar',label:'Kans op aurora',title:'NOAA-modelwaarde voor aurora boven de locatie over ongeveer 30 minuten; geen zichtgarantie',value:oval===null?'—':Math.round(oval)+'%'},
-      {icon:'cloudy',label:'Bewolking nu',value:valueCloud===null?'—':Math.round(valueCloud)+'%'},
-      {icon:'compass',label:'Kp actueel',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1})}
+      {icon:'moonstar',label:'Auroramodel',title:'NOAA-model voor aurora boven deze locatie over ongeveer 30 minuten, geen zichtgarantie',value:oval===null?'—':Math.round(oval)+'%',url:'https://www.spaceweather.gov/products/aurora-30-minute-forecast'},
+      {icon:'cloudy',label:'Bewolking nu',title:'Actuele bewolking volgens Open-Meteo',value:valueCloud===null?'—':Math.round(valueCloud)+'%',url:weatherCurrentUrl(d)},
+      {icon:'compass',label:'Kp actueel',title:'Actuele planetaire Kp-index van NOAA',value:kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1}),url:'https://www.spaceweather.gov/products/planetary-k-index'}
     ];
     const age=auroraTime(auroraState.oval?.['Forecast Time']);
     const updated=age!==null && oval!==null?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',timeZone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'}).format(new Date(age)):'—';
     const locality=AURORA_PLACES[d.place];
     return `<p class="aurora-context">Actueel voor nu, niet voor ${esc(labelDate(d.date))}${locality?.region?' · regio '+esc(locality.region):''}</p>
-      <div class="aurora-tiles">${tiles.map(t=>`<div class="info-box aurora-tile" title="${esc(t.title||t.label)}">${ico(t.icon)}<div class="value">${esc(t.value)}</div><div class="label">${esc(t.label)}</div></div>`).join('')}</div>
-      <div class="aurora-meta">Kans: NOAA-model voor aurora boven de locatie over circa 30 minuten, geen garantie dat je het ziet. Bewolking en duisternis zijn ook bepalend. Forecast ${updated}.<br>
-      ${link('Lokale verwachting · Nordlyskart',locality?.url||'https://nordlyskart.no/en/northern-lights')}
-      · ${link('NOAA bron','https://www.spaceweather.gov/products/aurora-30-minute-forecast')}</div>`;
+      <div class="aurora-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,t.url,'aurora-tile',t.title)).join('')}</div>
+      <div class="aurora-meta">NOAA-model, geen zichtgarantie · forecast ${updated}. Bewolking en duisternis blijven bepalend.</div>
+      <div class="links">${link('Lokale verwachting · Nordlyskart',locality?.url||'https://nordlyskart.no/en/northern-lights')}</div>`;
   }
   function updateAuroraDisplay(){
     const d=days().find(day=>day.id===selected);
