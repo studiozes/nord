@@ -17,7 +17,9 @@ Voor deze eerste publicatie is alles (HTML, CSS, JavaScript, route en icoon) bew
 
 Weer: [Open-Meteo](https://open-meteo.com/). Zontijden: [Sunrise-Sunset.org](https://sunrise-sunset.org/).
 
-**Nog niet gerealiseerd:** Polarsteps-synchronisatie, definitieve terugreis, automatische controles van wegen/veerboten en volledige toetsing op fysieke iPhones. Weg- en veerbootstatussen worden dus niet als veilig bevestigd. Reisafstanden en routeplanning zijn voorlopig. Gegevens kunnen offline verouderd zijn.
+**Huidige routegegevens:** 14 reisdagen van 21 januari t/m 3 februari 2027, inclusief beide Stena-nachtboten, Lofoten, Senja, de optionele Noordkaap en de terugweg via Zweden. Binnen elke reisdag staan de geplande tussenstops. De route komt uit de eerder afgestemde reisplanning en is nog niet rechtstreeks gesynchroniseerd met Polarsteps. Geplande kilometers zijn niet ingevuld zolang ze niet zijn geverifieerd.
+
+**Nog niet gerealiseerd:** Polarsteps-synchronisatie, automatische controles van wegen/veerboten en volledige toetsing op fysieke iPhones. Weg- en veerbootstatussen worden dus niet als veilig bevestigd. Gegevens kunnen offline verouderd zijn.
 
 Gebruik geen persoonlijke toegangstokens, reserveringsgegevens of geheime Polarsteps-links in deze openbare repository.
 
