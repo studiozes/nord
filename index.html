@@ -536,6 +536,7 @@ window.NORD_RETURN = '';
     roadblock:'<rect x="3" y="8" width="18" height="10" rx="1"/><path d="m7 8 5 10m0-10 5 10M6 21v-3m12 3v-3"/>',
     ship:'<path d="m3 14 9-4 9 4-3 6H6zm4-2V5h10v7M10 5V2h4v3M2 22q2-2 5 0 3-2 5 0 3-2 5 0 3-2 5 0"/>',
     compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-2 6-6 2 2-6z"/>',
+    eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
     moonstar:'<path d="M20.5 14A9 9 0 0 1 10 3.5 9 9 0 1 0 20.5 14Z M20 3v6m-3-3h6"/>',
     fuel:'<rect x="4" y="3" width="11" height="18" rx="2"/><path d="M7 6h5v5H7zM15 13h2v4a2 2 0 0 0 4 0V9l-4-4M2 21h15"/>',
     bed:'<path d="M3 19V9h18v10M3 16h18M5 9V6h14v3"/>',
@@ -626,7 +627,7 @@ window.NORD_RETURN = '';
         ${sourceTile('rain',rainText,'Neerslag nu',weatherCurrentUrl(d),'road-now-tile','Modelwaarde voor neerslag · Open-Meteo')}
         ${sourceTile('humidity',humidityText,'Luchtvochtigheid',weatherCurrentUrl(d),'road-now-tile','Actuele relatieve luchtvochtigheid · Open-Meteo')}
         ${sourceTile('compass',bearing,'Wind uit',weatherCurrentUrl(d),'road-now-tile','Actuele windrichting op 10 meter · Open-Meteo')}
-        ${sourceTile('compass',visibilityText,'Zicht',weatherCurrentUrl(d),'road-now-tile','Modelinschatting zicht op deze locatie, geen daadwerkelijke meting langs de weg · Open-Meteo')}
+        ${sourceTile('eye',visibilityText,'Zicht',weatherCurrentUrl(d),'road-now-tile','Modelinschatting zicht op deze locatie, geen daadwerkelijke meting langs de weg · Open-Meteo')}
       </div>
       <details class="cockpit-more"><summary>Wegweer en Yr.no</summary>
         <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
