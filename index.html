@@ -101,6 +101,12 @@ h1{font-size:24px;line-height:1.2;letter-spacing:-.6px;font-weight:650;margin:0}
 .aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
 .aurora-meta a{font-size:11px}
 @media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
+.road-now-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.road-now-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:74px;padding:7px 3px}
+.road-now-tile svg{width:17px;height:17px;margin:0 0 2px}
+.road-now-tile .value{font-size:16px;line-height:1.2}
+.road-now-tile .label{font-size:11px;line-height:1.25}
+.road-now-note{font-size:11px;line-height:1.45;color:var(--muted)}
 .roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .roadcam-card{display:block;background:var(--bg);border-radius:12px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent}
 .roadcam-card:hover{border-color:var(--hair);text-decoration:none}
@@ -401,6 +407,7 @@ window.NORD_RETURN = '';
     thermometer:'<path d="M9 14.8V5a3 3 0 0 1 6 0v9.8a5 5 0 1 1-6 0Z"/><path d="M12 10v8"/>',
     feels:'<path d="M7.5 14V5a2.5 2.5 0 0 1 5 0v9a4.5 4.5 0 1 1-5 0Z"/><path d="M10 10v7M16 7h5M16 11h4M16 15h3"/>',
     snowflake:'<path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9 5l3-3 3 3m-6 14 3 3 3-3M4.5 11 3.3 7l4.4-1M16.3 18l4.4-1-1.2-4M7.7 18l-4.4-1 1.2-4M19.5 11l1.2-4-4.4-1"/>',
+    humidity:'<path d="M12 3C9 7 5 10.2 5 14a7 7 0 0 0 14 0c0-3.8-4-7-7-11z"/><path d="M9 15h.01M15 12h.01M9 18l6-9"/>',
     sunrise:'<path d="M2 18h20M5 21h14M6 15a6 6 0 0 1 12 0M12 2v5M3 7l3 3m15-3-3 3"/>',
     sunset:'<path d="M2 18h20M5 21h14M6 15a6 6 0 0 1 12 0M12 7V2m-3 3 3-3 3 3"/>',
     clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
@@ -472,6 +479,34 @@ window.NORD_RETURN = '';
   const camMap=d=>'https://www.vegvesen.no/trafikk/hvaskjer?'+new URLSearchParams({
     lat:String(d.lat),lng:String(d.lon),zoom:'9',layers:'ctv'
   });
+
+  // Extra actuele modelwaarden. Dit zijn geen metingen aan het wegdek.
+  const directionLabel=degrees=>{
+    const x=n(degrees);
+    if(x===null||x<0||x>360)return '—';
+    return ['N','NO','O','ZO','Z','ZW','W','NW'][Math.round(x/45)%8];
+  };
+  function roadNowContent(d){
+    const point=auroraState.cloud.get(locationId(d));
+    const fresh=point && Date.now()-point.at<20*60000;
+    const rain=fresh?n(point.precip):null;
+    const humidity=fresh?n(point.humidity):null;
+    const bearing=fresh?directionLabel(point.direction):'—';
+    const rainText=rain===null||rain<0?'—':rain.toLocaleString('nl-NL',{maximumFractionDigits:1})+' mm';
+    const humidityText=humidity===null||humidity<0||humidity>100?'—':Math.round(humidity)+'%';
+    const sourceWeather='https://vegvar.atlas.vegvesen.no/';
+    const sourceYr='https://www.yr.no/en';
+    return `<section class="details-section road-now-section">
+      <h3>Actueel weer · ${esc(d.place)}</h3>
+      <div class="road-now-tiles">
+        <div class="info-box road-now-tile" title="Modelwaarde voor neerslag in de afgelopen 15 minuten">${ico('rain')}<div class="value">${esc(rainText)}</div><div class="label">Neerslag nu</div></div>
+        <div class="info-box road-now-tile" title="Actuele relatieve luchtvochtigheid volgens Open-Meteo">${ico('humidity')}<div class="value">${esc(humidityText)}</div><div class="label">Luchtvochtigheid</div></div>
+        <div class="info-box road-now-tile" title="Windrichting volgens Open-Meteo; wind komt uit deze richting">${ico('compass')}<div class="value">${esc(bearing)}</div><div class="label">Wind uit</div></div>
+      </div>
+      <p class="road-now-note">Actuele modelwaarden van Open-Meteo op de bestemming, geen metingen langs de weg en niet voor de geselecteerde reisdatum. Voor echte wegdektemperaturen gebruik je de meetstations van Vegvesen.</p>
+      <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
+    </section>`;
+  }
   function roadcamContent(d){
     const cams=ROUTE_CAMERAS[d.place]||[];
     const token=Math.max(roadcamStamp,Math.floor(Date.now()/60000)*60000);
@@ -542,6 +577,7 @@ window.NORD_RETURN = '';
         </div>` : '<p class="notice">Weersverwachting nog niet beschikbaar.</p>'}
       </div>
       ${AURORA_PLACES[d.place]?`<section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht · ${esc(d.place)}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section>`:''}
+      ${d.country==='no'?`<div class="road-now-dynamic">${roadNowContent(d)}</div>`:''}
       ${d.country==='no'?roadcamContent(d):''}
       ${Array.isArray(d.steps)&&d.steps.length?`<div class="details-section"><h3>Geplande steps</h3><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></div>`:''}
       <div class="details-section"><h3>Etappe</h3>
@@ -623,6 +659,10 @@ window.NORD_RETURN = '';
       ? $('sideDetail').querySelector('.aurora-dynamic')
       : $('timeline').querySelector('.day-card.is-open .aurora-dynamic');
     if(target)target.innerHTML=auroraContent(d);
+    const nowTarget=desktopLayout.matches
+      ? $('sideDetail').querySelector('.road-now-dynamic')
+      : $('timeline').querySelector('.day-card.is-open .road-now-dynamic');
+    if(nowTarget)nowTarget.innerHTML=roadNowContent(d);
   }
   async function fetchAurora(force=false){
     if(auroraState.pending)return auroraState.pending;
@@ -645,10 +685,13 @@ window.NORD_RETURN = '';
     }
     const current=auroraState.cloud.get(id);
     if(force || !current || now-current.at>15*60000){
-      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
+      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
       jobs.push(getJSON('https://api.open-meteo.com/v1/forecast?'+q,10000).then(result=>{
         const cloud=Number(result?.current?.cloud_cover);
-        auroraState.cloud.set(id,{at:Date.now(),value:Number.isFinite(cloud)&&cloud>=0&&cloud<=100?cloud:null});
+        const v=key=>result?.current?.[key];
+        const num=key=>v(key)===null||v(key)===undefined||!Number.isFinite(Number(v(key)))?null:Number(v(key));
+        auroraState.cloud.set(id,{at:Date.now(),value:Number.isFinite(cloud)&&cloud>=0&&cloud<=100?cloud:null,
+          precip:num('precipitation'),humidity:num('relative_humidity_2m'),direction:num('wind_direction_10m')});
       }).catch(()=>{auroraState.cloud.set(id,{at:Date.now(),value:null});}));
     }
     updateAuroraDisplay();
