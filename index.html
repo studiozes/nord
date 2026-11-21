@@ -677,11 +677,22 @@ window.NORD_RETURN = '';
       </details>
     </section>`;
   }
+
+  // Geopende bronpanelen blijven open wanneer hun inhoud wordt vernieuwd.
+  function updateDynamicPanel(target,html){
+    if(!target)return;
+    const open=Array.from(target.querySelectorAll('details'),el=>el.open);
+    target.innerHTML=html;
+    target.querySelectorAll('details').forEach((el,i)=>{
+      if(i<open.length)el.open=open[i];
+    });
+  }
+
   function updateRoadAlerts(d){
     const active=days().find(x=>x.id===selected);
     if(!active||roadKey(active)!==roadKey(d))return;
     const target=desktopLayout.matches?$('sideDetail').querySelector('.road-alerts-dynamic'):$('timeline').querySelector('.day-card.is-open .road-alerts-dynamic');
-    if(target)target.innerHTML=roadAlertsContent(active);
+    updateDynamicPanel(target,roadAlertsContent(active));
     const glance=$('timeline').querySelector('.day-card.is-open .day-glance .glance:last-child strong');
     if(glance)glance.textContent=roadGlance(active);
   }
@@ -752,6 +763,20 @@ window.NORD_RETURN = '';
       if(img.complete && img.naturalWidth===0)fallback();
     });
   }
+
+  function refreshCameraImages(){
+    roadcamStamp=Date.now();
+    document.querySelectorAll('.roadcam-card img').forEach(img=>{
+      try{
+        const url=new URL(img.src);
+        url.searchParams.set('v',String(roadcamStamp));
+        img.closest('.roadcam-card')?.classList.remove('is-unavailable');
+        img.src=url.toString();
+      }catch{/* The official source link stays available. */}
+    });
+    bindCameraFallbacks();
+  }
+
   function urls(d){
     const coord=`${d.lat},${d.lon}`;const place=`${d.place}, ${placeCountry(d)}`;
     const aurora=AURORA_PLACES[d.place]?.url || 'https://nordlyskart.no/en/northern-lights';
@@ -1115,11 +1140,11 @@ window.NORD_RETURN = '';
     const target=desktopLayout.matches
       ? $('sideDetail').querySelector('.aurora-dynamic')
       : $('timeline').querySelector('.day-card.is-open .aurora-dynamic');
-    if(target)target.innerHTML=auroraContent(d);
+    updateDynamicPanel(target,auroraContent(d));
     const nowTarget=desktopLayout.matches
       ? $('sideDetail').querySelector('.road-now-dynamic')
       : $('timeline').querySelector('.day-card.is-open .road-now-dynamic');
-    if(nowTarget)nowTarget.innerHTML=roadNowContent(d);
+    updateDynamicPanel(nowTarget,roadNowContent(d));
   }
   async function fetchAurora(force=false){
     if(auroraState.pending)return auroraState.pending;
@@ -1217,7 +1242,7 @@ window.NORD_RETURN = '';
   }
   function weatherMeta(d){
     const item=weatherCache[dataKey(d)];
-    if(!item?.when)return 'nog geen voorspelling';
+    if(!Number.isFinite(Number(item?.when))||Number(item.when)<=0)return 'nog geen voorspelling';
     const old=Date.now()-item.when>3*3600000;
     const when=new Intl.DateTimeFormat('nl-NL',old?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}:
       {hour:'2-digit',minute:'2-digit'}).format(new Date(item.when));
@@ -1381,7 +1406,7 @@ window.NORD_RETURN = '';
   function changeTheme(){let current=document.documentElement.dataset.theme;if(!current)current=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';const next=current==='dark'?'light':'dark';document.documentElement.dataset.theme=next;safePut('theme',next);$('theme').innerHTML=ico(next==='dark'?'sun':'moon')}
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');$('theme').innerHTML=ico(theme==='dark'?'sun':'moon');
-  $('refresh').addEventListener('click',()=>{roadcamStamp=Date.now();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});}});
+  $('refresh').addEventListener('click',()=>{refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
