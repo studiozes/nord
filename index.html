@@ -920,7 +920,7 @@ window.NORD_RETURN = '';
       <div class="cockpit-panel cockpit-panel--actions">
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
-        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
+        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)} ${link('Overnachten',u.stay)}
       </div></div>
       </div>
 
