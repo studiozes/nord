@@ -27,6 +27,12 @@ Wegcamera's: bij Noorse reisbestemmingen verwijst de cockpit naar de officiële 
 
 Gebruik geen persoonlijke toegangstokens, reserveringsgegevens of geheime Polarsteps-links in deze openbare repository.
 
+## Actuele omstandigheden en wegweer
+
+Bij Noorse bestemmingen toont Nord naast de bestaande dagvoorspelling drie **actuele Open-Meteo-modelwaarden**: neerslag, luchtvochtigheid en windrichting. De gegevens worden tegelijk met de bestaande actuele bewolkingswaarde aangevraagd, zonder extra API of server. De handmatige verversknop vraagt deze waarden opnieuw op. Deze modelwaarden zijn **geen daadwerkelijke metingen op de weg** en gelden voor het huidige moment, niet voor de toekomstige reisdatum.
+
+De extra bronlinks openen [Vegvær van Statens vegvesen](https://vegvar.atlas.vegvesen.no/) voor echte meetstationgegevens (waaronder wegdektemperatuur), en [Yr.no](https://www.yr.no/en) voor een aanvullende weersverwachting. De website toont geen wegdektemperatuur als de waarde niet rechtstreeks van een bevestigd meetstation ontvangen is. Het officiële Vegvesen DATEX-meetdata-endpoint vereist registratie; Nord gebruikt dit endpoint niet. Dit houdt de oplossing eenvoudig. Camera's en wegstatus blijven aparte bronnen en een camerabeeld bevestigt nooit dat de weg veilig is.
+
 ## GitHub Pages activeren
 
 1. Open [Settings → Pages](https://github.com/studiozes/nord/settings/pages).
