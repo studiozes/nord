@@ -496,7 +496,7 @@ window.NORD_RETURN = '';
   function dataKey(d){return `${locationId(d)}@${d.date}`}
   const weather=d=>weatherCache[dataKey(d)]?.value || null;
   const solar=d=>sunCache[dataKey(d)]?.value || null;
-  const fresh=d=>{const item=weatherCache[dataKey(d)];return item && Date.now()-item.when<60*60*1000};
+  const fresh=d=>{const item=weatherCache[dataKey(d)];return item && Date.now()-item.when<60*60*1000 && item.value && Object.hasOwn(item.value,'humidity') && Object.hasOwn(item.value,'nightCloud') && Object.hasOwn(item.value,'moonlight')};
   const codeIcon=c=>c==null?'cloudy':c===0?'sun':c<=3?'part':[45,48].includes(c)?'cloudy':[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c)?'rain':[71,73,75,77,85,86].includes(c)?'snow':'cloudy';
   // Lokale bronnen bij de geplande overnachtingsplaatsen.
   // Reine en Mefjordvær gebruiken de bevestigde gemeentepagina (Moskenes / Senja).
@@ -673,15 +673,17 @@ window.NORD_RETURN = '';
     return `<div class="details-section roadcam-section"><h3>Wegcamera's · ${esc(d.place)}</h3>
       ${cams.length?`<div class="roadcam-grid">${cams.map(cam=>{
         const image='https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id)+'?v='+token;
-        const target=cam.page||'https://kamera.atlas.vegvesen.no/api/images/'+encodeURIComponent(cam.id);
-        return `<a class="roadcam-card" href="${esc(target)}" target="_blank" rel="noopener noreferrer" title="Open bron: ${esc(cam.name)}">
-          <img loading="lazy" src="${esc(image)}" alt="Wegcamera ${esc(cam.name)}">
-          <span class="roadcam-fallback">Geen camerabeeld · open bron</span>
-          <span class="roadcam-caption">${esc(cam.name)}</span>
+        const cameraNumber=String(cam.id).split('_')[0];
+        // De originele Vegvesen-pagina bevat de opname en aanvullende context.
+        const target=cam.page||'https://www.vegvesen.no/trafikk/vaerveikamera/'+encodeURIComponent(cameraNumber)+'?'+new URLSearchParams({
+          lat:String(d.lat),lng:String(d.lon),zoom:'11'
+        });
+        return `<a class="roadcam-card" href="${esc(target)}" target="_blank" rel="noopener noreferrer" aria-label="Open wegcamera ${esc(cam.name)} bij Statens vegvesen" title="${esc(cam.name)} · Vegvesen (controleer tijdstempel)">
+          <img loading="lazy" src="${esc(image)}" alt="${esc(cam.name)} · Vegvesen">
+          <span class="roadcam-fallback">—</span>
         </a>`;
       }).join('')}</div>`:''}
-      <div class="links">${link('Meer camera’s in de omgeving',camMap(d))}</div>
-      <div class="roadcam-meta">Bron: Statens vegvesen. Controleer altijd de datum en tijd in het camerabeeld. Een camera kan een oude foto tonen of uitvallen; controleer wegafsluitingen apart.</div>
+      <div class="links">${link('Alle wegcamera’s',camMap(d))}</div>
     </div>`;
   }
   function bindCameraFallbacks(){
@@ -730,6 +732,11 @@ window.NORD_RETURN = '';
       aria-label="${esc(label+': '+textValue+'. Open bron in nieuw tabblad.')}">
       ${ico(icon)}<div class="value">${esc(textValue)}</div><div class="label">${esc(label)}</div></a>`;
   }
+  function staticStageTile(icon,value,label){
+    return `<div class="info-box stage-tile stage-tile--static" aria-label="${esc(label+': '+value)}">
+      ${ico(icon)}<div class="value">${esc(value)}</div><div class="label">${esc(label)}</div>
+    </div>`;
+  }
   const readableSun=(d,kind)=>{
     const s=solar(d); if(!s)return '—';
     if(s.sun_status==='polar_night')return kind==='length'?'0u 00':'Geen';
@@ -767,17 +774,16 @@ window.NORD_RETURN = '';
       ${d.country==='no'?roadcamContent(d):''}
       <div class="details-section"><h3>Etappe</h3>
         <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
-          ${sourceTile('road',d.from,'Van',u.maps,'stage-tile','Bekijk de geplande route in Apple Kaarten')}
-          ${sourceTile('arrow',d.place,'Naar',u.maps,'stage-tile','Bekijk de geplande route in Apple Kaarten')}
-          ${mode==='trip'?sourceTile('compass',Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile','Indicatieve OSRM-rijafstand, controleer de actuele route in Apple Kaarten'):''}
+          ${staticStageTile('pin',d.from,'Van')}
+          ${staticStageTile('flag',d.place,'Naar')}
+          ${mode==='trip'?sourceTile('compass',Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile','Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
         </div>
-        ${mode==='trip' && d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
-        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
-        ${mode==='trip'?'<p class="snow-note">Rijafstand is indicatief, exclusief vaartrajecten en optionele omwegen.</p>':''}
-        ${d.ferry?'<p class="snow-note">Controleer de veerboot bij de vervoerder.</p>':''}
-        <p class="snow-note">Wegstatus onbekend: controleer voor vertrek altijd de officiële bron.</p>
       </div>
-      ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Geplande steps · ${d.steps.length}</summary><ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol></details>`:''}
+      ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Geplande steps · ${d.steps.length}</summary>
+        <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
+        ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
+        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
+      </details>`:''}
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Route in Kaarten',u.maps)} ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
         ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Overnachten',u.stay)}
