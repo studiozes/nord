@@ -727,7 +727,8 @@ window.NORD_RETURN = '';
   const locationId=d=>`${d.lat.toFixed(2)},${d.lon.toFixed(2)}`;
   const weatherCache=safeGet('weather',{});
   const sunCache=safeGet('sun',{});
-  let mode=safeGet('mode','preview')==='trip'?'trip':'preview';
+  // De echte reis is de standaardweergave; komende dagen blijft een optionele teststand.
+  let mode=safeGet('mode','trip')==='preview'?'preview':'trip';
   let selected=null;
   let busy=false, lastError=false;
 
@@ -1586,7 +1587,7 @@ window.NORD_RETURN = '';
       +' title="Gemiddelde dagtemperatuur op de geplande bestemming · Open-Meteo">'
       +'<span class="nord-weather-icon">'+ico(forecastIconName(w))+'</span>'
       +'<strong data-overview-value="temp">'+esc(fmtDeg(w?.temp))+'</strong>'
-      +'<span class="nord-temp-caption">'+esc(forecastCondition(w))+'</span></a></div>'
+      +'<span class="nord-temp-caption">'+esc(w?'Gem. dag · '+forecastCondition(w):'Nog geen dagverwachting')+'</span></a></div>'
       +'<div class="nord-overview-grid">'+stats+'</div>'
       +'<div class="nord-overview-foot"><span class="nord-weather-meta">'+esc(weatherMeta(d))+'</span>'
       +'<span>Alle waarden openen hun bron</span></div></section>';
@@ -2016,7 +2017,8 @@ window.NORD_RETURN = '';
   const routeWeatherFailures=new Map();
   async function loadRouteWeatherPoint(d,p,force=false){
     const key=routeWeatherKey(d,p),now=Date.now(),current=routeWeatherCache[key];
-    if(!force&&current&&Number.isFinite(Number(current.when))&&now-current.when<60*60000)return;
+    if(!force&&current&&Number.isFinite(Number(current.when))&&now-current.when<60*60000
+      &&Object.hasOwn(current.values||{},'cloud'))return;
     if(routeWeatherPending.has(key))return routeWeatherPending.get(key);
     if(!force&&now-(routeWeatherAttempts.get(key)||0)<10*60000)return;
     routeWeatherAttempts.set(key,now);
