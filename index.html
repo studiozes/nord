@@ -538,6 +538,9 @@ body{-webkit-overflow-scrolling:touch}
   html{scroll-behavior:auto}
 }
 
+
+@media(min-width:820px){.side-detail{scroll-margin-top:12px}}
+
 </style>
   
   
@@ -1065,7 +1068,7 @@ window.NORD_RETURN = '';
     };
     const rowValue=(label,value)=>
       '<span class="route-weather-measure"><small>'+esc(label)+'</small>'
-      +'<span class="route-weather-value">'+esc(value)+'</span></span>';
+      +'<span class="route-weather-value'+(value==='—'?' is-empty':'')+'">'+esc(value)+'</span></span>';
     const rows=points.map(p=>{
       const v=routeWeatherValues(d,p),url=routeWeatherUrl(d,p),time=String(p.hour).padStart(2,'0')+':00';
       const temperature=metric(v?.temp,'°'),gust=metric(v?.gust,' km/u'),
@@ -1080,7 +1083,7 @@ window.NORD_RETURN = '';
         +' title="'+esc(title)+'" aria-label="'+esc(access)+'">'
         +'<span class="route-weather-row-top"><span class="route-weather-place">'+esc(p.name)
         +'<small>'+esc(time)+' · model'+(p.pass?' · bergpas':'')+'</small></span>'
-        +'<strong class="route-weather-value route-weather-temperature">'+esc(temperature)+'</strong></span>'
+        +'<strong class="route-weather-value route-weather-temperature'+(temperature==='—'?' is-empty':'')+'">'+esc(temperature)+'</strong></span>'
         +'<span class="route-weather-measures">'
         +rowValue('Wind',gust)+rowValue('Sneeuw',snow)
         +rowValue('Zicht',visibility)+rowValue('Wolken',cloud)
@@ -1115,7 +1118,11 @@ window.NORD_RETURN = '';
         const next=after[i];
         const oldVals=el.querySelectorAll('.route-weather-value');
         const newVals=next.querySelectorAll('.route-weather-value');
-        oldVals.forEach((v,j)=>{if(newVals[j]&&v.textContent!==newVals[j].textContent)v.textContent=newVals[j].textContent;});
+        oldVals.forEach((v,j)=>{
+          if(!newVals[j])return;
+          if(v.textContent!==newVals[j].textContent)v.textContent=newVals[j].textContent;
+          v.classList.toggle('is-empty',newVals[j].classList.contains('is-empty'));
+        });
         for(const attr of ['aria-label','title']){
           if(el.getAttribute(attr)!==next.getAttribute(attr))el.setAttribute(attr,next.getAttribute(attr));
         }
@@ -1735,7 +1742,7 @@ window.NORD_RETURN = '';
       +' title="Gemiddelde dagtemperatuur op de geplande bestemming · Open-Meteo">'
       +'<span class="nord-weather-icon">'+(forecastIconName(w)?ico(forecastIconName(w)):'')+'</span>'
       +'<strong class="'+(n(w?.temp)===null?'is-empty':'')+'" data-overview-value="temp">'+esc(fmtDeg(w?.temp))+'</strong>'
-      +'<span class="nord-temp-caption">'+esc(w?'Gem. dag · '+forecastCondition(w):'Nog geen dagverwachting')+'</span></a></div>'
+      +'<span class="nord-temp-caption">'+esc(w?.icon?forecastCondition(w):'—')+'</span></a></div>'
       +'<div class="nord-overview-grid">'+stats+'</div>'
       +'<div class="nord-overview-foot"><span class="nord-weather-meta">'+esc(weatherMeta(d))+'</span>'
       +'<span>Alle waarden openen hun bron</span></div></section>';
@@ -2111,13 +2118,17 @@ window.NORD_RETURN = '';
           next?.focus({preventScroll:true});
         }
       }
-      // De geselecteerde dag gaat op smalle schermen naar boven.
-      // Op brede schermen blijft de gekozen dag in beeld zonder grote sprong.
+      // Op mobiel opent de geselecteerde etappe in de tijdlijn.
+      // Op desktop gaat de pagina naar het begin van de cockpit, niet naar een
+      // late rij links waardoor het belangrijke overzicht buiten beeld valt.
       const card=[...$('timeline').querySelectorAll('.day-card')].find(el=>el.dataset.id===id);
-      if(card)requestAnimationFrame(()=>card.scrollIntoView({
-        block:desktopLayout.matches?'nearest':'start',
-        behavior:reduceMotion.matches?'auto':'smooth'
-      }));
+      requestAnimationFrame(()=>{
+        const target=desktopLayout.matches?$('sideDetail'):card;
+        target?.scrollIntoView({
+          block:'start',
+          behavior:reduceMotion.matches?'auto':'smooth'
+        });
+      });
     }));
   }
   async function getJSON(url,timeout=10000){
