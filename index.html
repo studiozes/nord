@@ -791,7 +791,7 @@ window.NORD_RETURN = '';
     const points=routeWeatherPoints(d);
     if(!points.length)return '';
     const available=weatherDayAvailable(d.date);
-    const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)]).filter(Boolean);
+    const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)]).filter(x=>x&&Number.isFinite(Number(x.when))&&Number(x.when)>0&&x.values);
     const latest=known.length?Math.min(...known.map(e=>e.when)):null;
     const stamp=navigator.onLine===false?'offline · opgeslagen gegevens':
       !available?'buiten voorspellingsperiode':
@@ -1637,6 +1637,7 @@ window.NORD_RETURN = '';
       fetchAurora().catch(()=>{});
     }
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
+    loadRouteWeather(d).catch(()=>{});
     $('sideDetail').scrollTop=0;
   }
   window.addEventListener('scroll',()=>{
@@ -1764,7 +1765,7 @@ window.NORD_RETURN = '';
     }
     if(navigator.onLine!==false){
       fetchAurora().catch(()=>{});
-      const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
+      const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay){fetchRoadAlerts(selectedRoadDay).catch(()=>{});loadRouteWeather(selectedRoadDay).catch(()=>{});}
     }
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
@@ -1787,6 +1788,68 @@ window.NORD_RETURN = '';
     const ac=new AbortController(),t=setTimeout(()=>ac.abort(),timeout);
     try{const res=await fetch(url,{signal:ac.signal,cache:'no-store'});if(!res.ok)throw Error('HTTP '+res.status);return await res.json()}finally{clearTimeout(t)}
   }
+
+  // Haal alleen uurweer voor de geopende etappe op; maximaal twee bronnen tegelijk.
+  // Modellen zijn geen metingen van het wegdek of een veilige-routebeoordeling.
+  const routeWeatherFailures=new Map();
+  async function loadRouteWeatherPoint(d,p,force=false){
+    const key=routeWeatherKey(d,p),now=Date.now(),current=routeWeatherCache[key];
+    if(!force&&current&&Number.isFinite(Number(current.when))&&now-current.when<60*60000)return;
+    if(routeWeatherPending.has(key))return routeWeatherPending.get(key);
+    if(!force&&now-(routeWeatherAttempts.get(key)||0)<10*60000)return;
+    routeWeatherAttempts.set(key,now);
+    const job=(async()=>{
+      try{
+        const result=await getJSON(routeWeatherUrl(d,p),12000);
+        const hourly=result?.hourly;
+        if(!Array.isArray(hourly?.time))throw Error('Geen uurreeks');
+        const target=d.date+'T'+String(p.hour).padStart(2,'0')+':00';
+        const i=hourly.time.indexOf(target);
+        if(i<0)throw Error('Geen uur voor gekozen kijkmoment');
+        const value=field=>Array.isArray(hourly[field])?n(hourly[field][i]):null;
+        const raw={
+          temp:value('temperature_2m'),
+          gust:value('wind_gusts_10m'),
+          snow:value('snowfall'),
+          visibility:value('visibility')
+        };
+        // Bronfouten, lege waarden en onrealistische waarden zijn nooit nul.
+        const values={
+          temp:raw.temp!==null&&raw.temp>=-80&&raw.temp<=60?raw.temp:null,
+          gust:raw.gust!==null&&raw.gust>=0&&raw.gust<=300?raw.gust:null,
+          snow:raw.snow!==null&&raw.snow>=0&&raw.snow<=100?raw.snow:null,
+          visibility:raw.visibility!==null&&raw.visibility>=0&&raw.visibility<=100000?raw.visibility:null
+        };
+        routeWeatherCache[key]={when:Date.now(),values};
+        routeWeatherFailures.delete(key);
+        const keys=Object.keys(routeWeatherCache);
+        if(keys.length>100){
+          keys.sort((a,b)=>Number(routeWeatherCache[b]?.when||0)-Number(routeWeatherCache[a]?.when||0));
+          keys.slice(100).forEach(k=>delete routeWeatherCache[k]);
+        }
+        safePut('routeWeather',routeWeatherCache);
+      }catch{
+        routeWeatherFailures.set(key,Date.now());
+      }finally{
+        refreshRouteWeatherPanel(d);
+      }
+    })().finally(()=>routeWeatherPending.delete(key));
+    routeWeatherPending.set(key,job);
+    return job;
+  }
+  async function loadRouteWeather(d,force=false){
+    if(!d||d.routeChanged||navigator.onLine===false||!weatherDayAvailable(d.date))return;
+    const all=routeWeatherPoints(d);
+    let cursor=0;
+    const jobs=Array.from({length:Math.min(2,all.length)},async()=>{
+      while(cursor<all.length){
+        const p=all[cursor++];
+        await loadRouteWeatherPoint(d,p,force);
+      }
+    });
+    await Promise.all(jobs);
+  }
+
   async function mapConcurrent(items,limit,handler){let i=0;const jobs=Array.from({length:Math.min(limit,items.length)},async()=>{while(i<items.length){const item=items[i++];try{await handler(item)}catch{lastError=true}}});await Promise.all(jobs)}
   async function getWeather(d,force=false){
     const key=dataKey(d);if(!force && fresh(d))return;
@@ -1859,7 +1922,7 @@ window.NORD_RETURN = '';
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');syncBrowserTheme();
   systemDark.addEventListener('change',()=>{if(!document.documentElement.dataset.theme)syncBrowserTheme()});
-  $('refresh').addEventListener('click',()=>{if(navigator.onLine===false){updateStatus();return;}refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});fetchFx(true).catch(()=>{});}});
+  $('refresh').addEventListener('click',()=>{if(navigator.onLine===false){updateStatus();return;}refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadRouteWeather(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});fetchFx(true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
 
   // Eén handler voor de zichtbare mobiele of desktopeditor.
@@ -1885,7 +1948,7 @@ window.NORD_RETURN = '';
   if('serviceWorker' in navigator&&location.protocol==='https:'){
     navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
   }
-  window.addEventListener('offline',()=>updateStatus());
+  window.addEventListener('offline',()=>{updateStatus();const d=days().find(x=>x.id===selected);if(d)refreshRouteWeatherPanel(d);});
   window.addEventListener('online',()=>{
     updateStatus();refresh();
     const d=days().find(x=>x.id===selected);
@@ -1895,6 +1958,8 @@ window.NORD_RETURN = '';
       fetchFx().catch(()=>{});
       fetchAurora().catch(()=>{});
       fetchRoadAlerts(d).catch(()=>{});
+      loadRouteWeather(d).catch(()=>{});
+      refreshRouteWeatherPanel(d);
     }
   });
   render();
