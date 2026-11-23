@@ -252,6 +252,25 @@ summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
 
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
+
+/* Alleen bij etappe: optionele werkelijke overnachting */
+.actual-stay-edit{border-top:1px solid var(--hair);padding-top:7px;margin-top:7px}
+.actual-stay-edit>summary{display:flex;align-items:center;gap:7px;min-height:38px;font-size:12px;font-weight:580;color:var(--accent);cursor:pointer;list-style:none}
+.actual-stay-edit>summary::-webkit-details-marker{display:none}
+.actual-stay-edit>summary svg{width:16px;height:16px;flex:0 0 16px}
+.actual-stay-edit>summary span{overflow-wrap:anywhere}
+.actual-stay-form{display:grid;gap:9px;padding:7px 0}
+.actual-stay-inputs{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:7px}
+.actual-stay-inputs label{display:grid;gap:4px;min-width:0;color:var(--muted);font-size:11px}
+.actual-stay-inputs input,.actual-stay-inputs select{min-height:43px;width:100%;min-width:0;padding:8px;border:1px solid var(--hair);border-radius:8px;background:var(--panel);color:var(--text);font-size:13px}
+.actual-stay-inputs :is(input,select):focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.actual-stay-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.actual-stay-actions button{min-height:39px;border:0;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:580;background:var(--shade);color:var(--accent)}
+.actual-stay-actions .actual-stay-reset{background:transparent;color:var(--muted)}
+.actual-stay-form>small,.actual-route-note{color:var(--muted);font-size:11px;line-height:1.4}
+.actual-route-note{margin:6px 0}
+@media(max-width:374px){.actual-stay-inputs{grid-template-columns:1fr}}
+
 </style>
   
   
@@ -896,6 +915,23 @@ window.NORD_RETURN = '';
 
   // Zoek altijd voor twee gasten en één nacht bij de eindbestemming.
   // Geen verplichte beddenfilter of harde prijsgrens: een kleine cabin met één bed kan passend zijn.
+
+  function stayEditor(d){
+    if(mode!=='trip'||d.ferry==='stena'||d.place==='Schijndel')return '';
+    const saved=d.actualStop,selectedCountry=saved?.country||d.country;
+    const options=STOP_COUNTRIES.map(c=>'<option value="'+c+'"'+(c===selectedCountry?' selected':'')+'>'+esc(countryName(c))+'</option>').join('');
+    const title=saved?'Werkelijk: '+saved.place:'Werkelijke overnachting vastleggen';
+    return '<details class="actual-stay-edit"><summary>'+ico('pin')+'<span>'+esc(title)+'</span></summary>'
+      +'<form class="actual-stay-form" data-stay-date="'+esc(d.date)+'">'
+      +'<div class="actual-stay-inputs"><label>Overnachtingsplaats'
+      +'<input name="overnightPlace" type="text" maxlength="85" required autocomplete="off"'
+      +' placeholder="'+esc(d.place)+'" value="'+esc(saved?.place||'')+'"></label>'
+      +'<label>Land<select name="overnightCountry">'+options+'</select></label></div>'
+      +'<div class="actual-stay-actions"><button type="submit">Opslaan</button>'
+      +(saved?'<button class="actual-stay-reset" type="button" data-reset-date="'+esc(d.date)+'">Planning herstellen</button>':'')
+      +'</div><small>Alleen op dit apparaat opgeslagen. De oorspronkelijke planning, datums en veerboten blijven ongewijzigd.</small>'
+      +'</form></details>';
+  }
   function staySearch(d){
     const location=(d.overnightPlace||d.place)+', '+countryName(d.overnightCountry||d.country);
     const checkin=d.date,checkout=addDays(checkin,1);
@@ -1244,15 +1280,17 @@ window.NORD_RETURN = '';
   function detailContent(d){
     const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
-      <div class="detail-heading"><h2>${esc(d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
+      <div class="detail-heading"><h2>${esc(d.overnightPlace||d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
       <div class="cockpit-panel cockpit-panel--stage">
       <div class="details-section"><h3>Etappe</h3>
         <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
           ${staticStageTile('pin',d.from,'Van')}
-          ${staticStageTile('flag',d.place,'Naar')}
-          ${mode==='trip'?sourceTile('compass',Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile','Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
+          ${staticStageTile('flag',d.overnightPlace||d.place,'Naar')}
+          ${mode==='trip'?sourceTile('compass',!d.routeChanged&&Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile',d.routeChanged?'Aangepaste route: afstand zelf controleren in Apple Kaarten.':'Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
         </div>
       </div>
+      ${stayEditor(d)}
+      ${d.routeChanged?`<p class="actual-route-note">Aangepaste route: controleer afstand en officiële wegstatus zelf.${d.destinationChanged?' Weer en daglicht blijven voor de geplande bestemming '+esc(d.place)+'.':''} Vaste datums en veerboten blijven staan.</p>`:''}
       ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Tussenstops · ${d.steps.length}</summary>
         <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
         ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
@@ -1269,7 +1307,7 @@ window.NORD_RETURN = '';
       ${stayContent(d)}
       <div class="cockpit-duo cockpit-duo--conditions">
         <div class="cockpit-panel cockpit-panel--weather">
-      <div class="details-section"><h3>Weer <a class="source-meta" href="${esc(weatherDailyUrl(d))}" target="_blank" rel="noopener noreferrer" title="Open de daggegevens bij Open-Meteo">${esc(weatherMeta(d))}</a></h3>
+      <div class="details-section"><h3>Weer${d.destinationChanged?' · gepland '+esc(d.place):''} <a class="source-meta" href="${esc(weatherDailyUrl(d))}" target="_blank" rel="noopener noreferrer" title="Open de daggegevens bij Open-Meteo">${esc(weatherMeta(d))}</a></h3>
         <div class="weather-tiles">
           ${sourceTile('thermometer',fmtDeg(w?.temp),'Temperatuur',weatherDailyUrl(d),'weather-tile','Gemiddelde dagtemperatuur · Open-Meteo')}
           ${sourceTile('feels',fmtDeg(w?.feel),'Voelt als',weatherDailyUrl(d),'weather-tile','Gemiddelde gevoelstemperatuur · Open-Meteo')}
@@ -1283,7 +1321,7 @@ window.NORD_RETURN = '';
       </div>
         </div>
         <div class="cockpit-panel cockpit-panel--light">
-          <div class="details-section"><h3>Daglicht</h3>
+          <div class="details-section"><h3>Daglicht${d.destinationChanged?' · gepland '+esc(d.place):''}</h3>
       <div class="detail-rows">
         ${sourceTile('sunrise',readableSun(d,'rise'),'Zonsopkomst',solarSourceUrl(d))}
         ${sourceTile('sunset',readableSun(d,'set'),'Zonsondergang',solarSourceUrl(d))}
@@ -1292,16 +1330,16 @@ window.NORD_RETURN = '';
           </div>
         </div>
       </div>
-      ${roadPoints(d).length || d.country==='no'?`<div class="cockpit-duo cockpit-duo--roads">
+      ${roadPoints(d).length || (d.country==='no'&&!d.destinationChanged)?`<div class="cockpit-duo cockpit-duo--roads">
         ${roadPoints(d).length?`<div class="cockpit-panel road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
-        ${d.country==='no'?`<div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>`:''}
+        ${d.country==='no'&&!d.destinationChanged?`<div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>`:''}
       </div>`:''}
-      ${AURORA_PLACES[d.place]?`<div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>`:''}
-      ${d.country==='no'?roadcamContent(d):''}
+      ${AURORA_PLACES[d.place]&&!d.destinationChanged?`<div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>`:''}
+      ${d.country==='no'&&!d.routeChanged?roadcamContent(d):''}
       <div class="cockpit-panel cockpit-panel--actions">
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
-        ${link('Windkaart',u.wind)} ${AURORA_PLACES[d.place]?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)}
+        ${link(d.destinationChanged?'Windkaart (gepland)':'Windkaart',u.wind)} ${AURORA_PLACES[d.place]&&!d.destinationChanged?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)}
       </div></div>
       </div>
 
@@ -1384,7 +1422,7 @@ window.NORD_RETURN = '';
   async function fetchAurora(force=false){
     if(auroraState.pending)return auroraState.pending;
     const d=days().find(day=>day.id===selected);
-    if(!AURORA_PLACES[d?.place])return;
+    if(!AURORA_PLACES[d?.place]||d.destinationChanged)return;
     const now=Date.now(),id=locationId(d),jobs=[];
     if(force || now-auroraState.ovalAt>10*60000){
       auroraState.ovalAt=now;
@@ -1540,14 +1578,14 @@ window.NORD_RETURN = '';
     for(const d of arr){
       const card=Array.from($('timeline').querySelectorAll('.day-card')).find(el=>el.dataset.id===d.id);
       if(!card)continue;
-      const w=weather(d),temperature=card.querySelector('.day-weather');
+      const w=d.destinationChanged?null:weather(d),temperature=card.querySelector('.day-weather');
       if(temperature){
         const wanted=ico(w?.icon||'cloudy'),svg=temperature.querySelector('svg');
         if(svg&&svg.outerHTML!==wanted)svg.outerHTML=wanted;
         writeValues(temperature,'.reading',[fmtDeg(w?.temp)]);
         writeValues(temperature,'.feel',['Voelt '+fmtDeg(w?.feel)]);
       }
-      writeValues(card,'.day-glance strong',[fmt(w?.gust),fmt(w?.snow),readableSun(d,'length')]);
+      writeValues(card,'.day-glance strong',[fmt(w?.gust),fmt(w?.snow),d.destinationChanged?'—':readableSun(d,'length')]);
     }
     const d=arr.find(x=>x.id===selected);
     if(!d)return;
@@ -1572,18 +1610,19 @@ window.NORD_RETURN = '';
     $('range').textContent=mode==='preview'?'Actueel weer op onze routeplaatsen':'21 januari – 3 februari 2027';
     updateStatus();
     const cards=arr.map(d=>{
-      const w=weather(d),s=solar(d),open=d.id===selected,hasWarning=false;
-      const sub=mode==='preview'?'Testetappe · '+(d.from===d.place?'Lokale ritten':d.from+' → '+d.place):d.from===d.place?'Lokale ritten':`${d.from} → ${d.place}`;
+      const w=d.destinationChanged?null:weather(d),open=d.id===selected;
+      const to=d.overnightPlace||d.place;
+      const sub=(mode==='preview'?'Testetappe · ':'')+(d.from===to?'Lokale ritten':d.from+' → '+to)+(d.destinationChanged?' · gepland '+d.place:'');
       return `<article class="day-card${open?' is-open':''}" data-id="${esc(d.id)}">
         <button type="button" class="day-button" data-select="${esc(d.id)}" aria-expanded="${open}" aria-controls="${desktop?'sideDetail':'detail-'+esc(d.id)}">
         <div class="day-main"><span class="day-date"><span class="num">${esc(labelDate(d.date,{day:'numeric'}))}</span><span class="month">${esc(labelDate(d.date,{weekday:'short',month:'short'}))}</span></span>
-        <span class="day-summary"><span class="day-title">${esc(d.place)}${d.optional?' · optie':''}</span><span class="day-route" style="display:block">${esc(sub)}</span></span>
+        <span class="day-summary"><span class="day-title">${esc(d.overnightPlace||d.place)}${d.optional?' · optie':''}</span><span class="day-route" style="display:block">${esc(sub)}</span></span>
         <span class="day-weather">${ico(w?.icon||'cloudy')}<span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">Voelt ${fmtDeg(w?.feel)}</span></span>
         ${ico('arrow','chevron')}
         </div><div class="day-glance">
           <span class="glance">${ico('wind')}<strong>${fmt(w?.gust)}</strong></span>
           <span class="glance">${ico('snow')}<strong>${fmt(w?.snow)}</strong></span>
-          <span class="glance">${ico('sunrise')}<strong>${readableSun(d,'length')}</strong></span>
+          <span class="glance">${ico('sunrise')}<strong>${d.destinationChanged?'—':readableSun(d,'length')}</strong></span>
           <span class="glance">${ico('road')}<strong>${roadGlance(d)}</strong></span>
         </div></button>
         <div class="day-details" id="detail-${esc(d.id)}" ${open?'':'hidden'}>${open?detailContent(d):''}</div></article>`;
@@ -1693,6 +1732,23 @@ window.NORD_RETURN = '';
   systemDark.addEventListener('change',()=>{if(!document.documentElement.dataset.theme)syncBrowserTheme()});
   $('refresh').addEventListener('click',()=>{refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});fetchFx(true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
+
+  // Eén handler voor de zichtbare mobiele of desktopeditor.
+  document.addEventListener('submit',event=>{
+    const form=event.target.closest('form[data-stay-date]');
+    if(!form)return;
+    event.preventDefault();
+    const date=form.getAttribute('data-stay-date');
+    const place=form.elements.namedItem('overnightPlace')?.value;
+    const country=form.elements.namedItem('overnightCountry')?.value;
+    if(storeStop(date,place,country))render();
+  });
+  document.addEventListener('click',event=>{
+    const btn=event.target.closest('button[data-reset-date]');
+    if(!btn)return;
+    clearStop(btn.getAttribute('data-reset-date'));
+    render();
+  });
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
   render();refresh();
