@@ -77,6 +77,24 @@ De dagwaarden worden binnen de bestaande weershorizon van 16 dagen opgehaald, vi
 
 Bij prijsbedragen in kronen is `NOK/SEK/DKK` de hoofdwaarde. De kleine euro-indicatie is apart aanklikbaar, laat de ECB-peildatum zien en verandert niet de oorspronkelijke prijs. Een ontbrekende koers geeft `≈ € —/l`, zonder schatting. De EUR-omrekening hoort bij de getoonde benzineprijs en is niet per definitie de koers op de dag waarop die benzineprijs werd gemeten.
 
+## Weer onderweg: voorbereid per etappe (november 2026)
+
+Op basis van de nu bekende 14 Nord-etappes (de oorspronkelijke Polarsteps-link was niet rechtstreeks uitleesbaar) zijn **35 vaste kijkmomenten** voorbereid. Elke etappe bevat 2 tot 4 relevante locaties: vertrek, een bekend controlepunt en/of de eindbestemming. Voorbeelden zijn Mosjøen, Saltfjellet, Bodø, Narvik, Kvænangsfjellet en Sennalandet. De coördinaten zijn afkomstig uit de bestaande Nord-route en de reeds vastgelegde controlepunten; onbekende tussentrajecten zijn niet ingevuld met verzonnen plaatsen.
+
+De rij **Weer onderweg** staat meteen onder Weer en Daglicht. Je hoeft onderweg **geen locatie, uur, model of filter** te kiezen. Elk van de 35 momenten is vooraf gekoppeld aan een indicatief lokaal uur, met de labeltekst **model**. Deze uren zijn alleen consistente steekproefmomenten van de weersverwachting: het zijn **geen verwachte passeer- of aankomsttijden** en niet gebaseerd op een bevestigde veerbootdienstregeling.
+
+Per punt toont Nord:
+- temperatuur in °C;
+- windstoten in km/u;
+- sneeuwval in het getoonde uur (cm, niet de volledige dag);
+- modelmatig zicht (meters of kilometers), geen sensor langs de rijbaan.
+
+Elke rij is volledig aanklikbaar naar de locatiegebonden [Open-Meteo Forecast API](https://open-meteo.com/en/docs). Bij relevante bergpassen staan bovendien directe links naar de officiële Vegvesen-kaart. De bronwaarden worden alleen opgehaald wanneer de betreffende etappe is geopend, maximaal twee parallelle verzoeken, binnen de beschikbare **16-daagse voorspellingsperiode**. Resultaten worden één uur lokaal gecachet; een handmatige verversing vraagt opnieuw gegevens op. Bij niet-beschikbare waarden blijft een klikbaar streepje zichtbaar. Echte nulwaarden zijn geldig. Een bronfout wordt zichtbaar als **bron tijdelijk niet bereikbaar**. Tijdens het laden worden de bestaande rijen waar mogelijk op hun plaats bijgewerkt, met behoud van focus en scroll.
+
+Als een overnachting of vertrekplaats afwijkt van het oorspronkelijke plan, toont Nord **geen automatische routeweerwaarden** alsof de vooraf gekozen locaties nog bij de gewijzigde route horen. Het dagweer op de geplande eindbestemming blijft afzonderlijk beschikbaar en correct gelabeld. Vaste veerbootdata veranderen nooit vanzelf. Bij offline gebruik kan eerder opgehaalde uurinformatie verschijnen met een offline-aanduiding, maar Nord claimt geen actuele weg- of weersituatie.
+
+Dit is de **voorbereide eerste versie**. Bij de laatste routecontrole met de volledige Polarsteps-planning kunnen precieze stops, volgorde, kijkuren en veerbootmomenten worden aangescherpt, zonder de dagelijkse interface uit te breiden.
+
 ## Werkelijke overnachting en offline gebruik (november 2026)
 
 De originele 14-daagse reisroute wordt niet overschreven. In **Reis 2027** verschijnt bij alle gewone overnachtingsdagen een compacte, uitklapbare keuze **Werkelijke overnachting vastleggen**. Vul plaats en land in en kies **Opslaan**. Daarna:
