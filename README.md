@@ -25,6 +25,23 @@ De volledige interface gebruikt een neutrale selectie in plaats van de oude blau
 
 De voorbereiding gebruikt nog de 14 huidige etappes en 35 vooraf gekozen routepunten. De exacte Polarsteps-planning kan later de kijkuren en stops verfijnen zonder dat Nord een configuratiedashboard wordt.
 
+## Vaste onderdelen op iedere etappe (november 2026)
+
+Alle 14 etappes, inclusief Kiel, Göteborg, Luleå en Schijndel, hebben nu **dezelfde hoofdindeling en dezelfde informatiegroepen**. Niet de relevantie van een plek, maar alleen de beschikbare brongegevens bepalen of een getal zichtbaar is. Dit geldt ook in de teststand `Komende dagen`.
+
+De volgende onderdelen en kolommen worden **altijd** getoond:
+- **One Glance:** bestemming en vaste kernwaarden voor weer, nachtelijke bewolking, maanlicht, aurora, Kp, daglicht en wegmeldingen.
+- **Weer onderweg:** dezelfde meetkolommen voor temperatuur, windstoten, sneeuwval per uur, zicht en bewolking. Zijn de werkelijke route of kijkpunten onbekend, dan komt er een rij met streepjes en een link naar de route in Apple Kaarten, in plaats van een verdwenen blok.
+- **Noorderlicht:** steeds zes waarden: Vooruitzicht, Bewolking nacht, Maanlicht, Aurora nu, Bewolking nu en Kp nu. De aanwezigheid van het onderdeel is niet meer afhankelijk van een vooraf geselecteerde Noorse plaats. Voor bestemmingen zonder specifieke Nordlyskart-pagina wordt naar hun algemene noorderlichtinformatie verwezen, niet naar een verzonnen locatiegebonden planner.
+- **Weer en daglicht:** dezelfde acht dagelijkse weervelden en drie astronomische velden, rechtstreeks uit de beschikbare bronnen.
+- **Wegmeldingen en actueel weer:** steeds drie wegmeldingswaarden en vier actuele weervelden. Alleen voor bekende Noorse controlepunten gebruikt Nord een automatische Vegvesen-telling. Voor Kiel en andere etappes zonder dergelijke dekking blijft de telling **—**; officiële verkeersinformatie voor het betreffende land blijft aanklikbaar.
+- **Etappe:** vertrek, bestemming en indicatieve rijafstand hebben in beide standen dezelfde drie kolommen. Bij een onbekende of gewijzigde afstand wordt **—** getoond.
+- **Wegcamera's:** ook deze uitklapper blijft zichtbaar. Waar geen betrouwbare camerakoppeling aanwezig is, wordt **—** getoond met een link naar de officiële verkeersbron.
+
+Actuele NOAA-aurora/Kp en Open-Meteo-huidige waarden worden alleen als **nu** getoond bij een geselecteerde datum die overeenkomt met vandaag. Weerdata voor toekomstige reisdagen, berekende nachtelijke bewolking en zontijden volgen hun eigen geldige voorspellingsperiode. Zonder geldige waarde verschijnt consequent **—**, ook wanneer de bron überhaupt geen dekking voor de regio heeft. Een echte nul blijft nul. Met een aangepaste werkelijke overnachtingsplaats worden de oorspronkelijke route- of plaatsgebonden livegegevens niet ten onrechte aan de nieuwe bestemming toegeschreven.
+
+Reisafhankelijke acties zoals een specifieke veerbootlink, accommodatiezoeker of de daadwerkelijke tussenstops mogen inhoudelijk verschillen: dat zijn géén ontbrekende weer- of auroravelden. De visuele bronopmaak, witruimte, volgorde, kolommen en rustige selectie blijven uniform.
+
 ## Consistente weergave en scrollen (november 2026)
 
 Een afwerkingsronde voor Nord One Glance, zonder nieuwe functies of extra instellingen:
