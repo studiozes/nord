@@ -1,5 +1,26 @@
 # Nord
 
+## Launch-afwerking: Nord Release Candidate (23 november 2026)
+
+Deze versie kiest voor een **doordacht, stabiel productontwerp**, niet voor extra functies. De site gebruikt nog steeds een enkele HTML-pagina, native systeemfonts en controleerbare bronnen, zonder frameworks of toegangssleutels.
+
+### Release-afwerking
+
+- **Typografische hiërarchie:** grotere, beter leesbare labels, minder ultrakleine tekst en een consistente verhouding tussen plaatsnaam, temperatuur, kerncijfers en aanvullende gegevens. De broninformatie blijft toegankelijk.
+- **Werkelijk responsieve kerncijfers:** One Glance gebruikt twee kolommen in een smal informatiepaneel en vier kolommen zodra het paneel zelf voldoende breed is (vanaf 560 CSS-pixels). Ook de overige weer-, route- en noorderlichtvelden schalen op basis van hun beschikbare ruimte. Op smalle schermen blijven alle velden in dezelfde volgorde aanwezig.
+- **Etappelijst:** de vier vaste waarden zijn expliciet gelabeld als Wind, Sneeuw, Nacht en Wegen, met eenheden waar van toepassing. Ontbrekende gegevens blijven streepjes; zonder data worden de eenheden niet als meetwaarden gepresenteerd. Een geldig nulpunt blijft nul.
+- **Uniforme componenten:** één centrale productlaag voor paneelhoeken, marges, typografie, bronlinks, aanraakdoelen, focusstaten en de verschillende kaarten. Overlappende historische CSS-afwerkingsblokken zijn vervangen; de belangrijke basis- en functionaliteitsstijlen blijven bestaan.
+- **Bediening en toegankelijkheid:** segmentkeuze heeft een correcte beginstatus; het thema heeft een actuele, begrijpelijke toegankelijke knopnaam; de weergave ondersteunt toetsenbordfocus, verminderde beweging en browserzoom. De verticale pagina scrolt zonder tweede scrollcontainer.
+- **Geen visuele ruis:** geen blauwe selectiestreep, geen decoratieve schaduwen rond elke waarde en geen overbodige instructie onder het kernoverzicht. De bron is vanuit de waarde zelf te openen.
+
+### Releasecontrole
+
+In code beoordeeld: 14 reisetappes plus 14 testetappes, een aangepaste route in beide standen, dezelfde noorderlicht- en verkeersvelden voor alle bestemmingen, de bekende 35 routepunten, ontbrekende getallen versus echte nulwaarden, balans van gegenereerde HTML-elementen, geldige JavaScript en CSS, en het ontbreken van geneste scrollgebieden.
+
+Dit zijn **technische regressietests**, geen Pixel-/Lighthouse-/VoiceOver-/Safari-certificering. Controleer vóór een publieke lancering visueel op een smalle iPhone, een grotere iPhone, iPad en Mac, zowel licht als donker; gebruik ook tekstvergroting, een lang route-overzicht, een ontbrekende bronwaarde, een afwijkende overnachting, een eventuele wegcamera en offline modus. GitHub Pages en het subdomein kunnen een korte tijd of een oude browsercache achterlopen op de hoofdbranch.
+
+De nieuwe UI probeert Apple-ontwerpprincipes zoals duidelijke hiërarchie, aanpasbare indeling en begrijpelijke bediening te volgen, zonder te claimen een officiële Apple-app te zijn.
+
 Persoonlijke reiscockpit voor een winterroadtrip door Scandinavië. Een lichte, responsive website voor iPhone, iPad en desktop.
 
 ## Nord One Glance: ontwerpstandaard (november 2026)
