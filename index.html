@@ -761,7 +761,7 @@ window.NORD_RETURN = '';
     '2027-02-02':[['Gävle',9],['Göteborg',18]],
     '2027-02-03':[['Kiel',9],['Schijndel',18]]
   });
-  const ROUTE_WEATHER_FIELDS='temperature_2m,wind_gusts_10m,snowfall,visibility';
+  const ROUTE_WEATHER_FIELDS='temperature_2m,wind_gusts_10m,snowfall,visibility,cloud_cover';
   const routeWeatherCache=safeGet('routeWeather',{})||{};
   const routeWeatherAttempts=new Map(),routeWeatherPending=new Map();
   const weatherDayAvailable=day=>{
@@ -897,7 +897,7 @@ window.NORD_RETURN = '';
     const item=roadAlerts.get(roadKey(d));
     return item?.ok&&Date.now()-item.at<10*60000?item:null;
   }
-  const roadGlance=d=>d.routeChanged?'—':roadKnown(d)?String(roadKnown(d).closed):'?';
+  const roadGlance=d=>d.routeChanged?'—':roadKnown(d)?String(roadKnown(d).closed):'—';
   function roadAlertsContent(d){
     const points=roadPoints(d);if(!points.length)return '';
     const result=roadKnown(d);
@@ -1505,30 +1505,8 @@ window.NORD_RETURN = '';
     const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
       ${overviewContent(d)}
-      <div class="cockpit-panel cockpit-panel--stage">
-      <div class="details-section"><h3>Etappe</h3>
-        <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
-          ${staticStageTile('pin',d.from,'Van')}
-          ${staticStageTile('flag',d.overnightPlace||d.place,'Naar')}
-          ${mode==='trip'?sourceTile('compass',!d.routeChanged&&Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile',d.routeChanged?'Aangepaste route: afstand zelf controleren in Apple Kaarten.':'Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
-        </div>
-      </div>
-      ${stayEditor(d)}
-      ${d.routeChanged?`<p class="actual-route-note">Aangepaste route: controleer afstand en officiële wegstatus zelf.${d.destinationChanged?' Weer en daglicht blijven voor de geplande bestemming '+esc(d.place)+'.':''} Vaste datums en veerboten blijven staan.</p>`:''}
-      ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Tussenstops · ${d.steps.length}</summary>
-        <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
-        ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
-        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
-      </details>`:''}
-        <div class="stage-utilities">
-          ${fuelStrip(d)}
-          <a class="route-cta" href="${esc(u.maps)}" target="_blank" rel="noopener noreferrer"
-             title="Open deze etappe in Apple Kaarten" aria-label="Open de route van ${esc(d.from)} naar ${esc(d.place)} in Apple Kaarten">
-             ${ico('compass')}<span>Open route</span>${ico('link')}
-          </a>
-        </div>
-      </div>
-      ${stayContent(d)}
+      <div class="cockpit-panel cockpit-panel--route-weather"><div class="route-weather-dynamic">${routeWeatherContent(d)}</div></div>
+      ${AURORA_PLACES[d.place]&&!d.destinationChanged?`<div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>`:''}
       <div class="cockpit-duo cockpit-duo--conditions">
         <div class="cockpit-panel cockpit-panel--weather">
       <div class="details-section"><h3>Weer${d.destinationChanged?' · gepland '+esc(d.place):''} <a class="source-meta" href="${esc(weatherDailyUrl(d))}" target="_blank" rel="noopener noreferrer" title="Open de daggegevens bij Open-Meteo">${esc(weatherMeta(d))}</a></h3>
@@ -1554,12 +1532,34 @@ window.NORD_RETURN = '';
           </div>
         </div>
       </div>
-      <div class="cockpit-panel cockpit-panel--route-weather"><div class="route-weather-dynamic">${routeWeatherContent(d)}</div></div>
       ${roadPoints(d).length || (d.country==='no'&&!d.destinationChanged)?`<div class="cockpit-duo cockpit-duo--roads">
         ${roadPoints(d).length?`<div class="cockpit-panel road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
         ${d.country==='no'&&!d.destinationChanged?`<div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>`:''}
       </div>`:''}
-      ${AURORA_PLACES[d.place]&&!d.destinationChanged?`<div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>`:''}
+      <div class="cockpit-panel cockpit-panel--stage">
+      <div class="details-section"><h3>Etappe</h3>
+        <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
+          ${staticStageTile('pin',d.from,'Van')}
+          ${staticStageTile('flag',d.overnightPlace||d.place,'Naar')}
+          ${mode==='trip'?sourceTile('compass',!d.routeChanged&&Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile',d.routeChanged?'Aangepaste route: afstand zelf controleren in Apple Kaarten.':'Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
+        </div>
+      </div>
+      ${stayEditor(d)}
+      ${d.routeChanged?`<p class="actual-route-note">Aangepaste route: controleer afstand en officiële wegstatus zelf.${d.destinationChanged?' Weer en daglicht blijven voor de geplande bestemming '+esc(d.place)+'.':''} Vaste datums en veerboten blijven staan.</p>`:''}
+      ${Array.isArray(d.steps)&&d.steps.length?`<details class="route-steps"><summary>Tussenstops · ${d.steps.length}</summary>
+        <ol class="step-list">${d.steps.map(step=>`<li>${esc(step)}</li>`).join('')}</ol>
+        ${d.roadEstimateNote?`<p class="snow-note">${esc(d.roadEstimateNote)}</p>`:''}
+        ${d.note?`<p class="snow-note">${esc(d.note)}</p>`:''}
+      </details>`:''}
+        <div class="stage-utilities">
+          ${fuelStrip(d)}
+          <a class="route-cta" href="${esc(u.maps)}" target="_blank" rel="noopener noreferrer"
+             title="Open deze etappe in Apple Kaarten" aria-label="Open de route van ${esc(d.from)} naar ${esc(d.place)} in Apple Kaarten">
+             ${ico('compass')}<span>Open route</span>${ico('link')}
+          </a>
+        </div>
+      </div>
+      ${stayContent(d)}
       ${d.country==='no'&&!d.routeChanged?roadcamContent(d):''}
       <div class="cockpit-panel cockpit-panel--actions">
       <div class="details-section"><h3>Direct openen</h3><div class="links">
@@ -1648,7 +1648,7 @@ window.NORD_RETURN = '';
   async function fetchAurora(force=false){
     if(auroraState.pending)return auroraState.pending;
     const d=days().find(day=>day.id===selected);
-    if(!AURORA_PLACES[d?.place]||d.destinationChanged)return;
+    if(!AURORA_PLACES[d?.place]||d.destinationChanged||d.date!==dateAtHome())return;
     const now=Date.now(),id=locationId(d),jobs=[];
     if(force || now-auroraState.ovalAt>10*60000){
       auroraState.ovalAt=now;
@@ -1815,7 +1815,7 @@ window.NORD_RETURN = '';
         writeValues(temperature,'.reading',[fmtDeg(w?.temp)]);
         writeValues(temperature,'.feel',['Voelt '+fmtDeg(w?.feel)]);
       }
-      writeValues(card,'.day-glance strong',[fmt(w?.gust),fmt(w?.snow),d.destinationChanged?'—':readableSun(d,'length')]);
+      writeValues(card,'.day-glance strong',[fmt(w?.gust),fmt(w?.snow),fmt(w?.nightCloud,'%')]);
     }
     const d=arr.find(x=>x.id===selected);
     if(!d)return;
@@ -1851,10 +1851,10 @@ window.NORD_RETURN = '';
         <span class="day-weather">${ico(w?.icon||'cloudy')}<span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">Voelt ${fmtDeg(w?.feel)}</span></span>
         ${ico('arrow','chevron')}
         </div><div class="day-glance">
-          <span class="glance">${ico('wind')}<strong>${fmt(w?.gust)}</strong></span>
-          <span class="glance">${ico('snow')}<strong>${fmt(w?.snow)}</strong></span>
-          <span class="glance">${ico('sunrise')}<strong>${d.destinationChanged?'—':readableSun(d,'length')}</strong></span>
-          <span class="glance">${ico('road')}<strong>${roadGlance(d)}</strong></span>
+          <span class="glance" title="Windstoten · km/u" aria-label="Windstoten, kilometer per uur">${ico('wind')}<strong>${fmt(w?.gust)}</strong></span>
+          <span class="glance" title="Sneeuwval · cm per dag" aria-label="Sneeuwval, centimeter per dag">${ico('snow')}<strong>${fmt(w?.snow)}</strong></span>
+          <span class="glance" title="Bewolking nacht · percentage" aria-label="Bewolking gedurende de nacht, percentage">${ico('moonstar')}<strong>${fmt(w?.nightCloud,'%')}</strong></span>
+          <span class="glance" title="Afsluitmeldingen rond controlepunten · geen volledige routecontrole" aria-label="Afsluitmeldingen bij controlepunten">${ico('road')}<strong>${roadGlance(d)}</strong></span>
         </div></button>
         <div class="day-details" id="detail-${esc(d.id)}" ${open?'':'hidden'}>${open?detailContent(d):''}</div></article>`;
     }).join('');
@@ -1915,14 +1915,15 @@ window.NORD_RETURN = '';
           temp:value('temperature_2m'),
           gust:value('wind_gusts_10m'),
           snow:value('snowfall'),
-          visibility:value('visibility')
+          visibility:value('visibility'),cloud:value('cloud_cover')
         };
         // Bronfouten, lege waarden en onrealistische waarden zijn nooit nul.
         const values={
           temp:raw.temp!==null&&raw.temp>=-80&&raw.temp<=60?raw.temp:null,
           gust:raw.gust!==null&&raw.gust>=0&&raw.gust<=300?raw.gust:null,
           snow:raw.snow!==null&&raw.snow>=0&&raw.snow<=100?raw.snow:null,
-          visibility:raw.visibility!==null&&raw.visibility>=0&&raw.visibility<=100000?raw.visibility:null
+          visibility:raw.visibility!==null&&raw.visibility>=0&&raw.visibility<=100000?raw.visibility:null,
+          cloud:raw.cloud!==null&&raw.cloud>=0&&raw.cloud<=100?raw.cloud:null
         };
         routeWeatherCache[key]={when:Date.now(),values};
         routeWeatherFailures.delete(key);
