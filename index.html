@@ -586,6 +586,12 @@ summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+
+/* Hide unused units when the corresponding reading is unknown. */
+.glance-reading [hidden]{display:none}
+.glance strong.is-empty{color:var(--muted);font-weight:450}
+@media (min-width:820px){.day-glance{gap:5px}}
+
 </style>
   
   
@@ -1825,8 +1831,7 @@ window.NORD_RETURN = '';
       +'<strong class="'+(n(w?.temp)===null?'is-empty':'')+'" data-overview-value="temp">'+esc(fmtDeg(w?.temp))+'</strong>'
       +'<span class="nord-temp-caption">'+esc(w?.icon?forecastCondition(w):'—')+'</span></a></div>'
       +'<div class="nord-overview-grid">'+stats+'</div>'
-      +'<div class="nord-overview-foot"><span class="nord-weather-meta">'+esc(weatherMeta(d))+'</span>'
-      +'<span>Alle waarden openen hun bron</span></div></section>';
+      +'<div class="nord-overview-foot"><span class="nord-weather-meta">'+esc(weatherMeta(d))+'</span></div></section>';
   }
   function refreshOverview(d){
     const root=desktopLayout.matches?$('sideDetail'):$('timeline').querySelector('.day-card.is-open .day-details');
@@ -2115,6 +2120,8 @@ window.NORD_RETURN = '';
       const value=String(values[i]);
       if(el.textContent!==value)el.textContent=value;
       el.classList.toggle('is-empty',value==='—');
+      const unit=el.closest('.glance-reading')?.querySelector('small');
+      if(unit)unit.hidden=value==='—';
       // De gesproken waarde volgt altijd de zichtbare bronwaarde, ook bij live updates.
       const tile=el.closest('a.source-tile');
       const label=tile?.querySelector('.label')?.textContent?.trim();
@@ -2173,10 +2180,10 @@ window.NORD_RETURN = '';
         ${ico('arrow','chevron')}
         </div><div class="day-glance">
           <span class="glance" title="Maximale windstoten op de bestemming">
-            <span class="glance-label">Wind</span><span class="glance-reading"><strong>${fmt(w?.gust)}</strong><small>km/u</small></span>
+            <span class="glance-label">Wind</span><span class="glance-reading"><strong class="${n(w?.gust)===null?'is-empty':''}">${fmt(w?.gust)}</strong><small ${n(w?.gust)===null?'hidden':''}>km/u</small></span>
           </span>
           <span class="glance" title="Sneeuwval over de hele dag">
-            <span class="glance-label">Sneeuw</span><span class="glance-reading"><strong>${fmt(w?.snow)}</strong><small>cm</small></span>
+            <span class="glance-label">Sneeuw</span><span class="glance-reading"><strong class="${n(w?.snow)===null?'is-empty':''}">${fmt(w?.snow)}</strong><small ${n(w?.snow)===null?'hidden':''}>cm</small></span>
           </span>
           <span class="glance" title="Bewolking tijdens de nacht">
             <span class="glance-label">Nacht</span><span class="glance-reading"><strong>${fmt(w?.nightCloud,'%')}</strong></span>
