@@ -2,9 +2,32 @@
 
 Persoonlijke reiscockpit voor een winterroadtrip door Scandinavië. Een lichte, responsive website voor iPhone, iPad en desktop.
 
+## Nord One Glance: ontwerpstandaard (november 2026)
+
+Nord is een persoonlijke **onepager** op GitHub Pages, niet een generiek dashboard met meer en meer tegels. De visuele richting is geïnspireerd door de rust en hiërarchie van Apple Weer, maar het blijft een zelfstandige webapp met eigen bronkoppelingen. Er is geen Apple-affiliatie en de interface is niet letterlijk een native Apple-app. Licht en donker volgen standaard het systeem.
+
+### Schermhiërarchie
+
+1. **Reisdag in één oogopslag:** bestemming en geplande route, gemiddelde dagtemperatuur, windstoten, sneeuwval, nachtelijke bewolking, maanverlichting, actuele aurora boven de locatie, actuele Kp, daglicht en wegmeldingen rond controlepunten. Alle waarden en ook het streepje bij ontbrekende data zijn aanklikbaar naar hun eigen bron.
+2. **Weer onderweg:** vooraf vastgelegde routepunten in rustige rijen, met temperatuur, windstoten, sneeuwval per uur, modelzicht en bewolking. De kijkuren zijn steekproefmomenten, geen aankomst- of passeertijden.
+3. **Noorderlicht en weer in detail:** de zes bestaande noorderlichtbronnen plus het volledige dagelijkse weeroverzicht, daglicht en de aanvullende actuele weggegevens.
+4. **Praktisch reizen:** route, tanken, overnachtingen, wegcamera's en externe bronnen. De aangepaste werkelijke overnachtingsplaats en de originele route blijven beschikbaar.
+
+De volledige interface gebruikt een neutrale selectie in plaats van de oude blauwe linker rand, vrijwel geen decoratieve schaduwen, weinig kaders, consistente systeemtypografie en duidelijke getallen. Accentkleur is gereserveerd voor echte links en focus. Geen nieuwe account, kaartlaag, AI-advies, instellingen of eigen oncontroleerbare voorspellingen. De uitgebreide gegevens worden niet verwijderd, alleen beter geordend. Op grotere schermen blijft de lijst links en het detail rechts; op mobiel staat het detail in de geopende reisdag. **Reis 2027** is de standaard voor een nieuwe browser; **Komende dagen** blijft de teststand.
+
+### Bronbetekenis en betrouwbaarheid
+
+- Dagtemperatuur is het **daggemiddelde** in de modelverwachting, geen actuele thermometermeting. De uurweerwaarden zijn modelgegevens voor de vooraf gekozen locaties en kijkuren.
+- **Aurora nu** is NOAA OVATION boven de plaats, **geen berekende zichtkans**. **Kp nu** is de actuele planetaire index. Beide waarden worden voor een toekomstige of eerdere geselecteerde dag als streepje weergegeven. De automatische actuele NOAA-verzoeken lopen alleen wanneer de geselecteerde datum vandaag is. Nachtbewolking en maanverlichting zijn juist datumgebonden.
+- **Wegmeldingen** zijn alleen actuele meldingen binnen de gebruikte controlepunten, geen beoordeling dat de hele route veilig/open is. Het overzicht toont voor toekomstig geselecteerde dagen geen actuele teller als voorspelling voor die dag. Officiële Vegvesen-links blijven beschikbaar.
+- Ontbrekende, niet-ondersteunde, verouderde of niet-geautoriseerde bronwaarden worden niet geschat of als nul getoond. Het overzicht wordt waar mogelijk zonder scroll- en focusverlies bijgewerkt.
+- De code blijft vanilla HTML/CSS/JavaScript plus een kleine service worker. Er worden geen extra fonts, frameworks, servers of API-sleutels toegevoegd.
+
+De voorbereiding gebruikt nog de 14 huidige etappes en 35 vooraf gekozen routepunten. De exacte Polarsteps-planning kan later de kijkuren en stops verfijnen zonder dat Nord een configuratiedashboard wordt.
+
 ## Testen
 
-Open de website zodra GitHub Pages is ingeschakeld. Bovenaan kun je kiezen:
+Open de bestaande Nord op GitHub Pages. De reisstand opent standaard in een nieuwe browser. Met de subtiele periodekeuze bovenaan kun je ook de teststand openen:
 
 - **Komende dagen:** actuele weersverwachtingen voor een reeks plaatsen uit de reis, maar met datums van de komende dagen. Dit is de teststand.
 - **Reis 2027:** de voorlopige reisplanning vanaf 21 januari 2027. Voorspellingen verschijnen alleen als de betreffende datum binnen de beschikbare weershorizon valt.
@@ -15,7 +38,7 @@ Kies een dag voor zonsopkomst, zonsondergang, daglichtduur, weergegevens en dire
 
 Nord houdt bewust de bestaande compacte opzet: een tijdlijn links, een per etappe gekozen cockpit rechts (op mobiel onder de dag), geen extra tekstblokken tussen informatietegels en klikbare waarden en streepjes naar de bron. De lichte/donkere modus blijft behouden.
 
-- **Etappe eerst.** Vertrek, bestemming, indicatieve rijafstand, uitklapbare tussenstops, benzine 95 en één knop **Open route** naar Apple Kaarten. De links naar tankstations, verkeersinformatie, veerboten en overnachtingen blijven onder **Direct openen**.
+- **Kerncijfers eerst.** Het huidige ontwerp opent met weer en noorderlicht in één overzicht. De vroegere etappe-eerst-indeling is bij de latere One Glance-ronde vervangen. Vertrek, bestemming, indicatieve rijafstand, uitklapbare tussenstops, benzine 95 en één knop **Open route** naar Apple Kaarten staan nog steeds verderop bij Etappe. De links naar tankstations, verkeersinformatie, veerboten en overnachtingen blijven onder **Direct openen**.
 - **Rustige hiërarchie.** Zachte paneelachtergronden, consistenter grotere labels, duidelijkere cijfers en subtiele markering van de gekozen dag. Geen grafieken, kaarten of animaties toegevoegd.
 - **Reisdag automatisch.** In `Reis 2027` wordt bij het openen de huidige etappe gekozen als de huidige datum precies op een reisdag valt. De gebruiker kan altijd handmatig een andere etappe kiezen. In de teststand blijven de komende dagen bruikbaar.
 - **Gegevens met peildatum.** De weersectie toont wanneer de voorspelling is opgehaald; oude gegevens krijgen een andere aanduiding. Benzineprijzen behouden het onderscheid tussen recente lokale meldingen, landelijke week-/maandgemiddelden en ontbrekende informatie. Bij ontbrekende weerwaarden blijft de klikbare `—` behouden.
@@ -53,7 +76,7 @@ Voor deze eerste publicatie is alles (HTML, CSS, JavaScript, route en icoon) bew
 
 Weer: [Open-Meteo](https://open-meteo.com/). Zontijden: [Sunrise-Sunset.org](https://sunrise-sunset.org/).
 
-Noorderlicht: geen externe widget en geen eigen voorspellingen. De cockpit combineert zes compacte tegels: **Vooruitzicht** (op dit moment `—` met directe link naar de plaatsgebonden [Nordlyskart Trip Planner](https://nordlyskart.no/en/northern-lights/alta/trip-planner)), **Bewolking nacht** (18:00–06:00 lokaal uit de uurverwachting van Open-Meteo), **Maanlicht** (benadering van verlicht maanoppervlak op basis van de Open-Meteo-maanfase), **Aurora nu** ([NOAA SWPC OVATION](https://www.spaceweather.gov/products/aurora-30-minute-forecast)), **Bewolking nu** (Open-Meteo) en **Kp nu** ([NOAA](https://www.spaceweather.gov/products/planetary-k-index)). Het maanlichtpercentage zegt niet of de maan boven de horizon staat. De waarde `Vooruitzicht` wordt niet automatisch gevuld: er is nog geen betrouwbare, rechtstreeks leesbare toegang tot de afzonderlijke beoordelingen 'Good/Possible/Weak' van Nordlyskart. Dat is bewust niet nagebootst. De geselecteerde reisnacht bepaalt alleen de nachtelijke bronwaarden; de drie 'nu'-tegels horen bij de actuele tijd. Buiten de voorspellingsperiode of bij bronproblemen is een `—` zichtbaar, als aanklikbare tegel.
+Noorderlicht: geen externe widget en geen eigen voorspellingen. De cockpit combineert zes compacte tegels: **Vooruitzicht** (op dit moment `—` met directe link naar de plaatsgebonden [Nordlyskart Trip Planner](https://nordlyskart.no/en/northern-lights/alta/trip-planner)), **Bewolking nacht** (18:00–06:00 lokaal uit de uurverwachting van Open-Meteo), **Maanlicht** (benadering van verlicht maanoppervlak op basis van de Open-Meteo-maanfase), **Aurora nu** ([NOAA SWPC OVATION](https://www.spaceweather.gov/products/aurora-30-minute-forecast)), **Bewolking nu** (Open-Meteo) en **Kp nu** ([NOAA](https://www.spaceweather.gov/products/planetary-k-index)). Het maanlichtpercentage zegt niet of de maan boven de horizon staat. De waarde `Vooruitzicht` wordt niet automatisch gevuld: er is nog geen betrouwbare, rechtstreeks leesbare toegang tot de afzonderlijke beoordelingen 'Good/Possible/Weak' van Nordlyskart. Dat is bewust niet nagebootst. De geselecteerde reisnacht bepaalt de nachtelijke bronwaarden; de drie 'nu'-tegels zijn alleen ingevuld wanneer die reisdatum gelijk is aan vandaag. Dit voorkomt dat een actuele NOAA-meting als voorspelling voor een toekomstige reisdag verschijnt. Buiten de voorspellingsperiode of bij bronproblemen is een `—` zichtbaar, als aanklikbare tegel.
 
 **Brandstof:** onder Etappe staat een compacte, klikbare indicatie voor benzine 95 in het bestemmingsland (geen prijsvoorspelling voor de reisdatum). Denemarken: actuele landelijke pompprijsgemiddelden via de openbare fuel-prices.eu-API; Zweden, Duitsland en Nederland: laatste wekelijkse nationale Euro 95-gemiddelde uit de EU Oil Bulletin-historie; Noorwegen: laatste SSB-maandgemiddelde in NOK via de publieke PxWebApi v2. De meetdatum en het type prijs staan bij het bedrag. Bij een waarde in NOK, SEK of DKK verschijnt daaronder klein de indicatieve euro-omrekening op basis van de laatst beschikbare ECB-referentiekoers via [Frankfurter](https://frankfurter.dev/). De euro-omrekening en het streepje wanneer een koers ontbreekt zijn apart klikbaar naar [ECB](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html). Koersen worden binnen zeven dagen van hun peildatum geaccepteerd; ECB-koersen zijn geen realtime bank- of wisselkantoortarieven. Als een landelijk bedrag al in euro’s wordt geleverd, verschijnt geen onnodige dubbele omrekening. Bij een onbereikbare of onvolledige brandstofbron verschijnt `—` met een link. In Direct openen staat een aparte link *Benzineprijzen* om kort voor het tanken actuele prijzen te controleren. Brandstofzekerheid en voldoende reserve blijven belangrijker dan een eventueel klein prijsverschil. Bron: [fuel-prices.eu](https://www.fuel-prices.eu/api/docs/), [SSB](https://www.ssb.no/en/statbank/table/09654) en [DrivstoffAppen](https://drivstoffappen.no/drivstoffpriser).
 
