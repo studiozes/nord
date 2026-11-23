@@ -969,7 +969,7 @@ window.NORD_RETURN = '';
   };
   function roadNowContent(d){
     const point=auroraState.cloud.get(locationId(d));
-    const fresh=Boolean(point?.at&&point?.checkedAt
+    const fresh=Boolean(!d.destinationChanged&&d.date===dateAtHome()&&point?.at&&point?.checkedAt
       &&Date.now()-point.checkedAt<25*60000&&Date.now()-point.at<90*60000);
     const rain=fresh?n(point.precip):null;
     const humidity=fresh?n(point.humidity):null;
@@ -978,7 +978,7 @@ window.NORD_RETURN = '';
     const rainText=rain===null||rain<0?'—':rain.toLocaleString('nl-NL',{maximumFractionDigits:1})+' mm';
     const humidityText=humidity===null||humidity<0||humidity>100?'—':Math.round(humidity)+'%';
     const visibilityText=visibility===null||visibility<0?'—':visibility<1000?Math.round(visibility)+' m':(visibility/1000).toLocaleString('nl-NL',{maximumFractionDigits:1})+' km';
-    const sourceWeather='https://vegvar.atlas.vegvesen.no/';
+    const sourceTraffic=urls(d).road;
     const sourceYr='https://www.yr.no/en';
     return `<section class="details-section road-now-section">
       <h3>Actueel weer <a class="source-meta" href="${esc(weatherCurrentUrl(d))}" target="_blank" rel="noopener noreferrer" title="Open de actuele modelwaarden bij Open-Meteo">${fresh?'Model · '+updatedTime(point.at):'Model · —'}</a></h3>
@@ -988,8 +988,8 @@ window.NORD_RETURN = '';
         ${sourceTile('compass',bearing,'Wind uit',weatherCurrentUrl(d),'road-now-tile','Actuele windrichting op 10 meter · Open-Meteo')}
         ${sourceTile('eye',visibilityText,'Zicht',weatherCurrentUrl(d),'road-now-tile','Modelinschatting zicht op deze locatie, geen daadwerkelijke meting langs de weg · Open-Meteo')}
       </div>
-      <details class="cockpit-more"><summary>Wegweer en Yr.no</summary>
-        <div class="links">${link('Wegmetingen · Vegvesen',sourceWeather)} ${link('Verwachting · Yr.no',sourceYr)}</div>
+      <details class="cockpit-more"><summary>Meer weer- en verkeersbronnen</summary>
+        <div class="links">${link('Officiële verkeersinformatie',sourceTraffic)} ${link('Verwachting · Yr.no',sourceYr)}</div>
       </details>
     </section>`;
   }
@@ -1413,7 +1413,10 @@ window.NORD_RETURN = '';
   }
   // Iedere informatietegel is zelf een link naar de bron van de waarde.
   // Geen extra server of eigen databeheer; ontbrekende gegevens blijven '—'.
-  const LOCAL_TZ=d=>d.country==='dk'?'Europe/Copenhagen':d.country==='se'?'Europe/Stockholm':'Europe/Oslo';
+  const LOCAL_TZ=d=>({
+    dk:'Europe/Copenhagen',se:'Europe/Stockholm',no:'Europe/Oslo',
+    de:'Europe/Berlin',nl:'Europe/Amsterdam',fi:'Europe/Helsinki'
+  })[d.country]||'Europe/Oslo';
   const WEATHER_DAILY_FIELDS='temperature_2m_mean,apparent_temperature_mean,weather_code,wind_gusts_10m_max,wind_direction_10m_dominant,precipitation_probability_max,snowfall_sum,cloud_cover_mean,relative_humidity_2m_mean,moon_phase';
   const WEATHER_HOURLY_FIELDS='cloud_cover';
   const weatherDailyUrl=d=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
@@ -1718,8 +1721,8 @@ window.NORD_RETURN = '';
   })[w?.icon]||'Verwachting niet beschikbaar';
   function overviewContent(d){
     const w=d.destinationChanged?null:weather(d),u=urls(d);
-    const today=d.date===dateAtHome(),hasAurora=Boolean(AURORA_PLACES[d.place])&&!d.destinationChanged;
-    const oval=today&&hasAurora?localOval(d):null;
+    const today=d.date===dateAtHome();
+    const oval=today&&!d.destinationChanged?localOval(d):null;
     const kp=today?kpNow():null;
     const night=n(w?.nightCloud),moonlight=n(w?.moonlight);
     const roadPts=roadPoints(d),road=roadPts.length&&today?roadKnown(d):null;
@@ -1789,7 +1792,7 @@ window.NORD_RETURN = '';
     return `<div class="detail-inner">
       ${overviewContent(d)}
       <div class="cockpit-panel cockpit-panel--route-weather"><div class="route-weather-dynamic">${routeWeatherContent(d)}</div></div>
-      ${AURORA_PLACES[d.place]&&!d.destinationChanged?`<div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>`:''}
+      <div class="cockpit-panel cockpit-panel--aurora"><section class="details-section aurora-section" data-aurora-location="${esc(d.place)}"><h3>Noorderlicht${d.destinationChanged?' · geplande locatie '+esc(d.place):''}</h3><div class="aurora-dynamic">${auroraContent(d)}</div></section></div>
       <div class="cockpit-duo cockpit-duo--conditions">
         <div class="cockpit-panel cockpit-panel--weather">
       <div class="details-section"><h3>Weer${d.destinationChanged?' · gepland '+esc(d.place):''} <a class="source-meta" href="${esc(weatherDailyUrl(d))}" target="_blank" rel="noopener noreferrer" title="Open de daggegevens bij Open-Meteo">${esc(weatherMeta(d))}</a></h3>
@@ -1815,10 +1818,10 @@ window.NORD_RETURN = '';
           </div>
         </div>
       </div>
-      ${roadPoints(d).length || (d.country==='no'&&!d.destinationChanged)?`<div class="cockpit-duo cockpit-duo--roads">
-        ${roadPoints(d).length?`<div class="cockpit-panel road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
-        ${d.country==='no'&&!d.destinationChanged?`<div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>`:''}
-      </div>`:''}
+      <div class="cockpit-duo cockpit-duo--roads">
+        <div class="cockpit-panel road-alerts-dynamic">${roadAlertsContent(d)}</div>
+        <div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>
+      </div>
       <div class="cockpit-panel cockpit-panel--stage">
       <div class="details-section"><h3>Etappe</h3>
         <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
@@ -1843,11 +1846,11 @@ window.NORD_RETURN = '';
         </div>
       </div>
       ${stayContent(d)}
-      ${d.country==='no'&&!d.routeChanged?roadcamContent(d):''}
+      ${roadcamContent(d)}
       <div class="cockpit-panel cockpit-panel--actions">
       <div class="details-section"><h3>Direct openen</h3><div class="links">
         ${link('Verkeer',u.road)} ${d.ferry?link('Veerboot',u.ferry):''}
-        ${link(d.destinationChanged?'Windkaart (gepland)':'Windkaart',u.wind)} ${AURORA_PLACES[d.place]&&!d.destinationChanged?link('Noorderlicht',u.aurora):''} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)}
+        ${link(d.destinationChanged?'Windkaart (gepland)':'Windkaart',u.wind)} ${link('Noorderlicht',u.aurora)} ${link('Tanken',u.fuel)} ${link('Benzineprijzen',FUEL_URL[d.country]||FUEL_URL.nl)}
       </div></div>
       </div>
 
@@ -1893,10 +1896,12 @@ window.NORD_RETURN = '';
     return null;
   }
   function auroraContent(d){
-    const today=d.date===dateAtHome(),w=weather(d),oval=today?localOval(d):null,kp=today?kpNow():null,cloud=auroraState.cloud.get(locationId(d));
-    const currentCloud=today&&cloud?.at&&Date.now()-cloud.at<65*60000?cloud.value:null;
+    const today=d.date===dateAtHome(),w=d.destinationChanged?null:weather(d),
+      oval=today&&!d.destinationChanged?localOval(d):null,kp=today?kpNow():null,
+      cloud=auroraState.cloud.get(locationId(d));
+    const currentCloud=today&&!d.destinationChanged&&cloud?.at&&Date.now()-cloud.at<65*60000?cloud.value:null;
     const locality=AURORA_PLACES[d.place];
-    const plannerUrl=(locality?.url||'https://nordlyskart.no/en/northern-lights')+'/trip-planner';
+    const plannerUrl=locality?.url?locality.url+'/trip-planner':'https://nordlyskart.no/en/northern-lights';
     const tiles=[
       {icon:'moonstar',label:'Vooruitzicht',value:'—',url:plannerUrl,
         title:'Nordlyskart Trip Planner voor de geselecteerde plaats. De langetermijnbeoordeling is niet automatisch uitleesbaar.'},
@@ -1913,11 +1918,11 @@ window.NORD_RETURN = '';
         url:'https://www.spaceweather.gov/products/planetary-k-index',title:'Actuele planetaire Kp-index · NOAA'}
     ];
     return `<div class="aurora-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,t.url,'aurora-tile',t.title)).join('')}</div>
-      <div class="links">${link('Nordlyskart · vanavond',locality?.url||'https://nordlyskart.no/en/northern-lights')}</div>`;
+      <div class="links">${link('Noorderlicht · bron',locality?.url||'https://nordlyskart.no/en/northern-lights')}</div>`;
   }
   function updateAuroraDisplay(){
     const d=days().find(day=>day.id===selected);
-    if(!AURORA_PLACES[d?.place]||d.destinationChanged)return;
+    if(!d)return;
     refreshOverview(d);
     const target=desktopLayout.matches
       ? $('sideDetail').querySelector('.aurora-dynamic')
@@ -1931,7 +1936,7 @@ window.NORD_RETURN = '';
   async function fetchAurora(force=false){
     if(auroraState.pending)return auroraState.pending;
     const d=days().find(day=>day.id===selected);
-    if(!AURORA_PLACES[d?.place]||d.destinationChanged||d.date!==dateAtHome())return;
+    if(!d||d.destinationChanged||d.date!==dateAtHome())return;
     const now=Date.now(),id=locationId(d),jobs=[];
     if(force || now-auroraState.ovalAt>10*60000){
       auroraState.ovalAt=now;
@@ -1949,7 +1954,7 @@ window.NORD_RETURN = '';
     }
     const current=auroraState.cloud.get(id);
     if(force || !current || now-(current.checkedAt||0)>15*60000){
-      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m,visibility',timezone:d.country==='se'?'Europe/Stockholm':'Europe/Oslo'});
+      const q=new URLSearchParams({latitude:String(d.lat),longitude:String(d.lon),current:'cloud_cover,precipitation,relative_humidity_2m,wind_direction_10m,visibility',timezone:LOCAL_TZ(d)});
       jobs.push(getJSON('https://api.open-meteo.com/v1/forecast?'+q,10000).then(result=>{
         const v=key=>result?.current?.[key];
         const num=key=>v(key)===null||v(key)===undefined||v(key)===''||!Number.isFinite(Number(v(key)))?null:Number(v(key));
@@ -1980,7 +1985,7 @@ window.NORD_RETURN = '';
     auroraState.pending=Promise.all(jobs).then(updateAuroraDisplay).finally(()=>{
       auroraState.pending=null;
       const current=days().find(day=>day.id===selected);
-      if(AURORA_PLACES[current?.place] && !auroraState.cloud.has(locationId(current))){
+      if(current&&!current.destinationChanged&&current.date===dateAtHome()&&!auroraState.cloud.has(locationId(current))){
         Promise.resolve().then(()=>fetchAurora(false).catch(()=>{}));
       }
     });
