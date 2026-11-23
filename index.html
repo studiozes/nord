@@ -1942,9 +1942,11 @@ window.NORD_RETURN = '';
     const currentCloud=today&&!d.destinationChanged&&cloud?.at&&Date.now()-cloud.at<65*60000?cloud.value:null;
     const locality=AURORA_PLACES[d.place];
     const plannerUrl=locality?.url?locality.url+'/trip-planner':'https://nordlyskart.no/en/northern-lights';
+    const plannerTitle=locality?.url
+      ?'Nordlyskart Trip Planner voor de geplande bestemming. De langetermijnbeoordeling is niet automatisch uitleesbaar.'
+      :'Geen plaatsgebonden Nordlyskart-planner gekoppeld. Open de algemene noorderlichtbron.';
     const tiles=[
-      {icon:'moonstar',label:'Vooruitzicht',value:'—',url:plannerUrl,
-        title:'Nordlyskart Trip Planner voor de geselecteerde plaats. De langetermijnbeoordeling is niet automatisch uitleesbaar.'},
+      {icon:'moonstar',label:'Vooruitzicht',value:'—',url:plannerUrl,title:plannerTitle},
       {icon:'cloudy',label:'Bewolking nacht',value:n(w?.nightCloud)===null?'—':Math.round(w.nightCloud)+'%',
         url:weatherDailyUrl(d),title:'Modelgemiddelde van 18:00 tot 06:00 lokale tijd op de geselecteerde nacht · Open-Meteo'},
       {icon:'moon',label:'Maanlicht',value:n(w?.moonlight)===null?'—':Math.round(w.moonlight)+'%',
