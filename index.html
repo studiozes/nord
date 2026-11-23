@@ -1434,7 +1434,7 @@ window.NORD_RETURN = '';
     return `<a class="info-box source-tile ${esc(extraClass)}" href="${esc(url)}" target="_blank" rel="noopener noreferrer"
       title="${esc(description||'Open bron: '+label)}"
       aria-label="${esc(label+': '+textValue+'. Open bron in nieuw tabblad.')}">
-      ${ico(icon)}<div class="value${textValue==='—'?' is-empty':''}">${esc(textValue)}</div><div class="label">${esc(label)}</div></a>`;
+      ${textValue==='—'?'':ico(icon)}<div class="value${textValue==='—'?' is-empty':''}">${esc(textValue)}</div><div class="label">${esc(label)}</div></a>`;
   }
   function staticStageTile(icon,value,label){
     return `<div class="info-box stage-tile stage-tile--static" aria-label="${esc(label+': '+value)}">
