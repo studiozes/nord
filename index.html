@@ -722,6 +722,11 @@ window.NORD_RETURN = '';
   const addDays=(day,n)=>iso(Date.parse(day+'T12:00:00Z') + n*MS_DAY);
   const labelDate=(day,opts={weekday:'short',day:'numeric',month:'short'})=>new Intl.DateTimeFormat('nl-NL',{timeZone:'UTC',...opts}).format(new Date(day+'T12:00:00Z'));
   const n = x => x===null||x===undefined||(typeof x==='string'&&!x.trim())?null:Number.isFinite(Number(x))?Number(x):null;
+  const displayValue=x=>{
+    if(x===null||x===undefined||(typeof x==='number'&&!Number.isFinite(x)))return '—';
+    const text=String(x).trim();
+    return !text||/^(?:nan|null|undefined|n\/a)$/i.test(text)?'—':text;
+  };
   const fmtDeg = x => n(x)===null?'—':`${Math.round(Number(x))}°`;
   const fmt = (x,suf='') => n(x)===null?'—':`${Math.round(Number(x))}${suf}`;
   const locationId=d=>`${d.lat.toFixed(2)},${d.lon.toFixed(2)}`;
@@ -778,7 +783,13 @@ window.NORD_RETURN = '';
   const weather=d=>weatherCache[dataKey(d)]?.value || null;
   const solar=d=>sunCache[dataKey(d)]?.value || null;
   const fresh=d=>{const item=weatherCache[dataKey(d)];return item && Date.now()-item.when<60*60*1000 && item.value && Object.hasOwn(item.value,'humidity') && Object.hasOwn(item.value,'nightCloud') && Object.hasOwn(item.value,'moonlight') && Object.hasOwn(item.value,'windDir') && Object.hasOwn(item.value,'precipChance')};
-  const codeIcon=c=>c==null?'cloudy':c===0?'sun':c<=3?'part':[45,48].includes(c)?'cloudy':[51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(c)?'rain':[71,73,75,77,85,86].includes(c)?'snow':'cloudy';
+  const codeIcon=c=>{
+    const v=n(c);
+    if(v===null||v<0||v>99)return null;
+    return v===0?'sun':v<=3?'part':[45,48].includes(v)?'cloudy':
+      [51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(v)?'rain':
+      [71,73,75,77,85,86].includes(v)?'snow':'cloudy';
+  };
   // Lokale bronnen bij de geplande overnachtingsplaatsen.
   // Reine en Mefjordvær gebruiken de bevestigde gemeentepagina (Moskenes / Senja).
   const AURORA_PLACES=Object.freeze({
@@ -1016,10 +1027,10 @@ window.NORD_RETURN = '';
     const item=roadAlerts.get(roadKey(d));
     return item?.ok&&Date.now()-item.at<10*60000?item:null;
   }
-  const roadGlance=d=>d.routeChanged?'—':roadKnown(d)?String(roadKnown(d).closed):'—';
+  const roadGlance=d=>d.routeChanged||d.date!==dateAtHome()?'—':roadKnown(d)?String(roadKnown(d).closed):'—';
   function roadAlertsContent(d){
     const points=roadPoints(d);if(!points.length)return '';
-    const result=roadKnown(d);
+    const result=d.date===dateAtHome()?roadKnown(d):null;
     const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
     const source=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
     const info='Officiële Vegvesen-kaart; telling binnen circa 25 km rond bekende routepunten, inclusief mogelijk geplande meldingen. De volledige route is niet gecontroleerd.';
@@ -1271,11 +1282,11 @@ window.NORD_RETURN = '';
     lat:String(d.lat),lng:String(d.lon),date:d.date
   });
   function sourceTile(icon,value,label,url,extraClass='',description=''){
-    const textValue=String(value??'—');
+    const textValue=displayValue(value);
     return `<a class="info-box source-tile ${esc(extraClass)}" href="${esc(url)}" target="_blank" rel="noopener noreferrer"
       title="${esc(description||'Open bron: '+label)}"
       aria-label="${esc(label+': '+textValue+'. Open bron in nieuw tabblad.')}">
-      ${ico(icon)}<div class="value">${esc(textValue)}</div><div class="label">${esc(label)}</div></a>`;
+      ${ico(icon)}<div class="value${textValue==='—'?' is-empty':''}">${esc(textValue)}</div><div class="label">${esc(label)}</div></a>`;
   }
   function staticStageTile(icon,value,label){
     return `<div class="info-box stage-tile stage-tile--static" aria-label="${esc(label+': '+value)}">
@@ -1320,8 +1331,8 @@ window.NORD_RETURN = '';
     const item=fxRates.get(currency);
     const euro=item?Number(amount)/item.rate:null;
     return {
-      value:'≈ € '+(euro===null?'—':new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(euro))+'/l',
-      date:item?'ECB · '+fuelDate(item.date):'ECB · koers —'
+      value:euro===null?'—':'≈ € '+new Intl.NumberFormat('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2}).format(euro)+'/l',
+      date:item?'ECB · '+fuelDate(item.date):'ECB · —'
     };
   }
   function fuelFxLink(x){
@@ -1545,12 +1556,14 @@ window.NORD_RETURN = '';
 
   // One-glance cockpit: source-linked values, no invented scores or safety verdicts.
   // NOAA's live aurora/Kp readings only relate to the selected day when it is today.
-  const heroStat=(key,label,value,url,description)=>
-    '<a class="nord-stat" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer"'
-    +' title="'+esc(description)+'" aria-label="'+esc(label+': '+value+'. Open bron.')+'">'
-    +'<span class="nord-stat-label">'+esc(label)+'</span>'
-    +'<strong class="nord-stat-number" data-overview-value="'+esc(key)+'">'+esc(value)+'</strong></a>';
-  const forecastIconName=w=>w?.icon||'cloudy';
+  const heroStat=(key,label,value,url,description)=>{
+    const shown=displayValue(value);
+    return '<a class="nord-stat" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer"'
+      +' title="'+esc(description)+'" aria-label="'+esc(label+': '+shown+'. Open bron.')+'">'
+      +'<span class="nord-stat-label">'+esc(label)+'</span>'
+      +'<strong class="nord-stat-number'+(shown==='—'?' is-empty':'')+'" data-overview-value="'+esc(key)+'">'+esc(shown)+'</strong></a>';
+  };
+  const forecastIconName=w=>w?.icon||null;
   const forecastCondition=w=>({
     sun:'Helder',part:'Licht bewolkt',cloudy:'Bewolkt',
     rain:'Neerslag',snow:'Sneeuw'
@@ -1585,8 +1598,8 @@ window.NORD_RETURN = '';
       +(d.destinationChanged?'<span class="nord-overview-plan">Weerwaarden: geplande bestemming '+esc(d.place)+'</span>':'')
       +'</div><a class="nord-temperature" href="'+esc(weatherDailyUrl(d))+'" target="_blank" rel="noopener noreferrer"'
       +' title="Gemiddelde dagtemperatuur op de geplande bestemming · Open-Meteo">'
-      +'<span class="nord-weather-icon">'+ico(forecastIconName(w))+'</span>'
-      +'<strong data-overview-value="temp">'+esc(fmtDeg(w?.temp))+'</strong>'
+      +'<span class="nord-weather-icon">'+(forecastIconName(w)?ico(forecastIconName(w)):'')+'</span>'
+      +'<strong class="'+(n(w?.temp)===null?'is-empty':'')+'" data-overview-value="temp">'+esc(fmtDeg(w?.temp))+'</strong>'
       +'<span class="nord-temp-caption">'+esc(w?'Gem. dag · '+forecastCondition(w):'Nog geen dagverwachting')+'</span></a></div>'
       +'<div class="nord-overview-grid">'+stats+'</div>'
       +'<div class="nord-overview-foot"><span class="nord-weather-meta">'+esc(weatherMeta(d))+'</span>'
@@ -1602,7 +1615,10 @@ window.NORD_RETURN = '';
     if(!next)return;
     current.querySelectorAll('[data-overview-value]').forEach(el=>{
       const incoming=next.querySelector('[data-overview-value="'+el.getAttribute('data-overview-value')+'"]');
-      if(incoming&&el.textContent!==incoming.textContent)el.textContent=incoming.textContent;
+      if(incoming){
+        if(el.textContent!==incoming.textContent)el.textContent=incoming.textContent;
+        el.classList.toggle('is-empty',incoming.classList.contains('is-empty'));
+      }
     });
     current.querySelectorAll('a.nord-stat').forEach((el,i)=>{
       const incoming=next.querySelectorAll('a.nord-stat')[i];
@@ -1824,52 +1840,9 @@ window.NORD_RETURN = '';
   }
   const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopLayout=window.matchMedia('(min-width:820px)');
-  let scrollSyncPausedUntil=0, scrollFrame=0;
-
-  // Desktop: rechterpaneel toont automatisch de dag waar links langs wordt gescrold.
-  // Niet opnieuw de hele tijdlijn opbouwen tijdens het scrollen: dat voorkomt verspringen.
-  function syncDesktopSelection(){
-    scrollFrame=0;
-    if(!desktopLayout.matches || Date.now()<scrollSyncPausedUntil)return;
-    const cards=[...$('timeline').querySelectorAll('.day-card')];
-    if(!cards.length)return;
-    const pivot=Math.min(220,Math.max(90,window.innerHeight*.3));
-    let active=cards[0];
-    for(const card of cards){
-      if(card.getBoundingClientRect().top<=pivot)active=card;
-      else break;
-    }
-    const id=active.dataset.id;
-    if(!id || id===selected)return;
-    const d=days().find(day=>day.id===id);
-    if(!d)return;
-    selected=id;
-    for(const card of cards){
-      const isActive=card.dataset.id===id;
-      card.classList.toggle('is-open',isActive);
-      const button=card.querySelector('[data-select]');
-      if(button)button.setAttribute('aria-expanded',String(isActive));
-    }
-    $('sideDetail').innerHTML=detailContent(d);
-    bindCameraFallbacks();
-    if(navigator.onLine!==false){
-      loadFuel(fuelCountry(d)).catch(()=>{});
-      loadRegionalFuel(d).catch(()=>{});
-      fetchFx().catch(()=>{});
-      fetchAurora().catch(()=>{});
-    }
-    const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
-    loadRouteWeather(d).catch(()=>{});
-    $('sideDetail').scrollTop=0;
-  }
-  window.addEventListener('scroll',()=>{
-    if(!desktopLayout.matches || scrollFrame)return;
-    scrollFrame=requestAnimationFrame(syncDesktopSelection);
-  },{passive:true});
-  desktopLayout.addEventListener('change',()=>{
-    render();
-    if(desktopLayout.matches)syncDesktopSelection();
-  });
+  // Eén natuurlijke paginascroll op elk schermformaat.
+  // De geselecteerde etappe verandert alleen na een expliciete keuze.
+  desktopLayout.addEventListener('change',()=>render());
 
   let lastCheckedAt=0;
   const updatedTime=at=>new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit'}).format(new Date(at));
@@ -1914,6 +1887,7 @@ window.NORD_RETURN = '';
       if(i>=values.length)return;
       const value=String(values[i]);
       if(el.textContent!==value)el.textContent=value;
+      el.classList.toggle('is-empty',value==='—');
       // De gesproken waarde volgt altijd de zichtbare bronwaarde, ook bij live updates.
       const tile=el.closest('a.source-tile');
       const label=tile?.querySelector('.label')?.textContent?.trim();
@@ -1929,8 +1903,9 @@ window.NORD_RETURN = '';
       if(!card)continue;
       const w=d.destinationChanged?null:weather(d),temperature=card.querySelector('.day-weather');
       if(temperature){
-        const wanted=ico(w?.icon||'cloudy'),svg=temperature.querySelector('svg');
-        if(svg&&svg.outerHTML!==wanted)svg.outerHTML=wanted;
+        const visual=temperature.querySelector('.day-weather-visual');
+        const wanted=w?.icon?ico(w.icon):'';
+        if(visual&&visual.innerHTML!==wanted)visual.innerHTML=wanted;
         writeValues(temperature,'.reading',[fmtDeg(w?.temp)]);
         writeValues(temperature,'.feel',['Voelt '+fmtDeg(w?.feel)]);
       }
@@ -1967,7 +1942,7 @@ window.NORD_RETURN = '';
         <button type="button" class="day-button" data-select="${esc(d.id)}" aria-expanded="${open}" aria-controls="${desktop?'sideDetail':'detail-'+esc(d.id)}">
         <div class="day-main"><span class="day-date"><span class="num">${esc(labelDate(d.date,{day:'numeric'}))}</span><span class="month">${esc(labelDate(d.date,{weekday:'short',month:'short'}))}</span></span>
         <span class="day-summary"><span class="day-title">${esc(d.overnightPlace||d.place)}${d.optional?' · optie':''}</span><span class="day-route" style="display:block">${esc(sub)}</span></span>
-        <span class="day-weather">${ico(w?.icon||'cloudy')}<span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">Voelt ${fmtDeg(w?.feel)}</span></span>
+        <span class="day-weather"><span class="day-weather-visual">${w?.icon?ico(w.icon):''}</span><span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">Voelt ${fmtDeg(w?.feel)}</span></span>
         ${ico('arrow','chevron')}
         </div><div class="day-glance">
           <span class="glance" title="Windstoten · km/u" aria-label="Windstoten, kilometer per uur">${ico('wind')}<strong>${fmt(w?.gust)}</strong></span>
@@ -1994,9 +1969,12 @@ window.NORD_RETURN = '';
       const id=btn.dataset.select;
       if(id!==selected){
         selected=id;
-        scrollSyncPausedUntil=Date.now()+900;
+        const restoreFocus=document.activeElement===btn;
         render();
-        $('sideDetail').scrollTop=0;
+        if(restoreFocus){
+          const next=$('timeline').querySelector('[data-select="'+id+'"]');
+          next?.focus({preventScroll:true});
+        }
       }
       // De geselecteerde dag gaat op smalle schermen naar boven.
       // Op brede schermen blijft de gekozen dag in beeld zonder grote sprong.
