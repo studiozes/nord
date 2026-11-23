@@ -882,6 +882,7 @@ window.NORD_RETURN = '';
   };
   const fmtDeg = x => n(x)===null?'—':`${Math.round(Number(x))}°`;
   const fmt = (x,suf='') => n(x)===null?'—':`${Math.round(Number(x))}${suf}`;
+  const feelsLike=x=>n(x)===null?'—':'Voelt '+fmtDeg(x);
   const locationId=d=>`${d.lat.toFixed(2)},${d.lon.toFixed(2)}`;
   const weatherCache=safeGet('weather',{});
   const sunCache=safeGet('sun',{});
@@ -1767,8 +1768,9 @@ window.NORD_RETURN = '';
     const night=n(w?.nightCloud),moonlight=n(w?.moonlight);
     const roadPts=roadPoints(d),road=roadPts.length&&today?roadKnown(d):null;
     const roadSource=roadPts.length?roadMapUrl(roadPts.find(p=>p.name==='Kvænangsfjellet'||p.name==='Sennalandet'||p.name==='Saltfjellet')||roadPts[0],ROAD_MAP_VIEWS.find(v=>v.key==='traffic')):u.road;
+    const auroraSource=AURORA_PLACES[d.place]?.url;
     const auroraUrl=today?'https://www.spaceweather.gov/products/aurora-30-minute-forecast':
-      (AURORA_PLACES[d.place]?.url||'https://nordlyskart.no/en/northern-lights')+'/trip-planner';
+      auroraSource?auroraSource+'/trip-planner':'https://nordlyskart.no/en/northern-lights';
     const summaryDate=labelDate(d.date,{weekday:'long',day:'numeric',month:'long'});
     const mainPlace=d.overnightPlace||d.place;
     const stats=[
@@ -2102,7 +2104,7 @@ window.NORD_RETURN = '';
         const wanted=w?.icon?ico(w.icon):'';
         if(visual&&visual.innerHTML!==wanted)visual.innerHTML=wanted;
         writeValues(temperature,'.reading',[fmtDeg(w?.temp)]);
-        writeValues(temperature,'.feel',['Voelt '+fmtDeg(w?.feel)]);
+        writeValues(temperature,'.feel',[feelsLike(w?.feel)]);
       }
       writeValues(card,'.day-glance strong',[fmt(w?.gust),fmt(w?.snow),fmt(w?.nightCloud,'%')]);
     }
@@ -2137,13 +2139,21 @@ window.NORD_RETURN = '';
         <button type="button" class="day-button" data-select="${esc(d.id)}" aria-expanded="${open}" aria-controls="${desktop?'sideDetail':'detail-'+esc(d.id)}">
         <div class="day-main"><span class="day-date"><span class="num">${esc(labelDate(d.date,{day:'numeric'}))}</span><span class="month">${esc(labelDate(d.date,{weekday:'short',month:'short'}))}</span></span>
         <span class="day-summary"><span class="day-title">${esc(d.overnightPlace||d.place)}${d.optional?' · optie':''}</span><span class="day-route" style="display:block">${esc(sub)}</span></span>
-        <span class="day-weather"><span class="day-weather-visual">${w?.icon?ico(w.icon):''}</span><span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">Voelt ${fmtDeg(w?.feel)}</span></span>
+        <span class="day-weather"><span class="day-weather-visual">${w?.icon?ico(w.icon):''}</span><span class="reading">${fmtDeg(w?.temp)}</span><span class="feel">${feelsLike(w?.feel)}</span></span>
         ${ico('arrow','chevron')}
         </div><div class="day-glance">
-          <span class="glance" title="Windstoten · km/u" aria-label="Windstoten, kilometer per uur">${ico('wind')}<strong>${fmt(w?.gust)}</strong></span>
-          <span class="glance" title="Sneeuwval · cm per dag" aria-label="Sneeuwval, centimeter per dag">${ico('snow')}<strong>${fmt(w?.snow)}</strong></span>
-          <span class="glance" title="Bewolking nacht · percentage" aria-label="Bewolking gedurende de nacht, percentage">${ico('moonstar')}<strong>${fmt(w?.nightCloud,'%')}</strong></span>
-          <span class="glance" title="Afsluitmeldingen rond controlepunten · geen volledige routecontrole" aria-label="Afsluitmeldingen bij controlepunten">${ico('road')}<strong>${roadGlance(d)}</strong></span>
+          <span class="glance" title="Maximale windstoten op de bestemming">
+            <span class="glance-label">Wind</span><span class="glance-reading"><strong>${fmt(w?.gust)}</strong><small>km/u</small></span>
+          </span>
+          <span class="glance" title="Sneeuwval over de hele dag">
+            <span class="glance-label">Sneeuw</span><span class="glance-reading"><strong>${fmt(w?.snow)}</strong><small>cm</small></span>
+          </span>
+          <span class="glance" title="Bewolking tijdens de nacht">
+            <span class="glance-label">Nacht</span><span class="glance-reading"><strong>${fmt(w?.nightCloud,'%')}</strong></span>
+          </span>
+          <span class="glance" title="Afsluitmeldingen bij de bekende routepunten, geen volledige routecontrole">
+            <span class="glance-label">Wegen</span><span class="glance-reading"><strong>${roadGlance(d)}</strong></span>
+          </span>
         </div></button>
         <div class="day-details" id="detail-${esc(d.id)}" ${open?'':'hidden'}>${open?detailContent(d):''}</div></article>`;
     }).join('');
