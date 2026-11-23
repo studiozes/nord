@@ -570,7 +570,7 @@ window.NORD_RETURN = '';
   function dateAtHome(){ const parts = new Intl.DateTimeFormat('en-CA',{timeZone:TIMEZONE,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const map=Object.fromEntries(parts.map(p=>[p.type,p.value]));return `${map.year}-${map.month}-${map.day}`; }
   const addDays=(day,n)=>iso(Date.parse(day+'T12:00:00Z') + n*MS_DAY);
   const labelDate=(day,opts={weekday:'short',day:'numeric',month:'short'})=>new Intl.DateTimeFormat('nl-NL',{timeZone:'UTC',...opts}).format(new Date(day+'T12:00:00Z'));
-  const n = x => Number.isFinite(Number(x)) && x!==null ? Number(x) : null;
+  const n = x => x===null||x===undefined||(typeof x==='string'&&!x.trim())?null:Number.isFinite(Number(x))?Number(x):null;
   const fmtDeg = x => n(x)===null?'—':`${Math.round(Number(x))}°`;
   const fmt = (x,suf='') => n(x)===null?'—':`${Math.round(Number(x))}${suf}`;
   const locationId=d=>`${d.lat.toFixed(2)},${d.lon.toFixed(2)}`;
@@ -579,11 +579,46 @@ window.NORD_RETURN = '';
   let mode=safeGet('mode','preview')==='trip'?'trip':'preview';
   let selected=null;
   let busy=false, lastError=false;
-  const countryName=c=>({dk:'Denmark',se:'Sweden',no:'Norway',de:'Germany',nl:'Netherlands'})[c]||'Norway';
+
+  // Originele reis blijft onaangetast. Wijzigingen worden lokaal per datum bewaard.
+  const actualStops=safeGet('actualStops',{});
+  const STOP_COUNTRIES=['no','se','dk','de','nl','fi'];
+  function stopFor(date){
+    const value=actualStops&&typeof actualStops==='object'&&!Array.isArray(actualStops)?actualStops[date]:null;
+    if(!value||typeof value.place!=='string'||typeof value.country!=='string')return null;
+    const place=value.place.trim(),country=value.country.toLowerCase();
+    return place&&place.length<=85&&STOP_COUNTRIES.includes(country)?{place,country}:null;
+  }
+  function tripDays(){
+    return ROUTE.map((original,i)=>{
+      const stop=stopFor(original.date),prior=ROUTE[i-1];
+      const last=prior&&prior.ferry!=='stena'?stopFor(prior.date):null;
+      const changedFrom=Boolean(last&&prior.place===original.from&&(last.place!==prior.place||last.country!==prior.country));
+      const from=changedFrom?last.place:original.from,fromCountry=changedFrom?last.country:(original.fromCountry||original.country);
+      const overnightPlace=stop?stop.place:original.place,overnightCountry=stop?stop.country:original.country;
+      const changedTo=overnightPlace!==original.place||overnightCountry!==original.country;
+      return {...original,id:'trip-'+i,stage:'trip',from,fromCountry,overnightPlace,overnightCountry,
+        actualStop:stop,destinationChanged:changedTo,routeChanged:changedTo||changedFrom};
+    });
+  }
+  function storeStop(date,place,country){
+    if(mode!=='trip'||!ROUTE.some(d=>d.date===date&&d.ferry!=='stena'&&d.place!=='Schijndel'))return false;
+    const value=String(place||'').trim().replace(/\s+/g,' ');
+    if(!value||value.length>85||!STOP_COUNTRIES.includes(country))return false;
+    actualStops[date]={place:value,country};
+    safePut('actualStops',actualStops);
+    return true;
+  }
+  function clearStop(date){
+    if(!Object.prototype.hasOwnProperty.call(actualStops,date))return;
+    delete actualStops[date];safePut('actualStops',actualStops);
+  }
+
+  const countryName=c=>({dk:'Denmark',se:'Sweden',no:'Norway',de:'Germany',nl:'Netherlands',fi:'Finland'})[c]||'Norway';
   const placeCountry=d=>countryName(d.country);
   const previewPlaces=ROUTE.filter((d,i)=>!d.optional && (i===0 || d.place!==ROUTE[i-1].place)).slice(0,9);
   function days(){
-    if(mode==='trip')return ROUTE.map((d,i)=>({...d,id:'trip-'+i,stage:'trip'}));
+    if(mode==='trip')return tripDays();
     const today=dateAtHome();
     return previewPlaces.map((d,i)=>({...d,date:addDays(today,i),id:'preview-'+i,stage:'preview'}));
   }
@@ -665,9 +700,10 @@ window.NORD_RETURN = '';
     '2027-01-30':[{name:'Sennalandet',lat:70.26854,lon:24.09215},{name:'Nordkapptunnelen',lat:70.9251,lon:25.6971}]
   });
   const ROAD_RADIUS_KM=25,roadAlerts=new Map(),roadPending=new Map();
-  const roadPlan=d=>ROUTE.find(r=>r.from===d.from&&r.place===d.place)||d;
+  const roadPlan=d=>ROUTE.find(r=>r.date===d.date)||d;
   const roadKey=d=>roadPlan(d).date;
   function roadPoints(d){
+    if(d.routeChanged)return [];
     const plan=roadPlan(d),points=[];
     const origin=ROUTE.find(r=>r.place===plan.from&&r.country==='no');
     if(origin)points.push({name:origin.place,lat:origin.lat,lon:origin.lon});
@@ -697,7 +733,7 @@ window.NORD_RETURN = '';
     const item=roadAlerts.get(roadKey(d));
     return item?.ok&&Date.now()-item.at<10*60000?item:null;
   }
-  const roadGlance=d=>roadKnown(d)?String(roadKnown(d).closed):'?';
+  const roadGlance=d=>d.routeChanged?'—':roadKnown(d)?String(roadKnown(d).closed):'?';
   function roadAlertsContent(d){
     const points=roadPoints(d);if(!points.length)return '';
     const result=roadKnown(d);
@@ -705,7 +741,7 @@ window.NORD_RETURN = '';
     const source=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
     const info='Officiële Vegvesen-kaart; telling binnen circa 25 km rond bekende routepunten, inclusief mogelijk geplande meldingen. De volledige route is niet gecontroleerd.';
     const tiles=[
-      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitingen'},
+      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitmeldingen'},
       {icon:'alert',value:result?String(result.other):'—',label:'Meldingen'},
       {icon:'road',value:String(points.length),label:'Controlepunten'}
     ];
@@ -844,7 +880,7 @@ window.NORD_RETURN = '';
   }
 
   function urls(d){
-    const coord=`${d.lat},${d.lon}`;const place=`${d.place}, ${placeCountry(d)}`;
+    const coord=`${d.lat},${d.lon}`;const place=`${d.overnightPlace||d.place}, ${countryName(d.overnightCountry||d.country)}`;
     const aurora=AURORA_PLACES[d.place]?.url || 'https://nordlyskart.no/en/northern-lights';
     return {
       maps:`https://maps.apple.com/?${new URLSearchParams({saddr:`${d.from}, ${countryName(d.fromCountry||d.country)}`,daddr:place,dirflg:'d'})}`,
@@ -861,7 +897,7 @@ window.NORD_RETURN = '';
   // Zoek altijd voor twee gasten en één nacht bij de eindbestemming.
   // Geen verplichte beddenfilter of harde prijsgrens: een kleine cabin met één bed kan passend zijn.
   function staySearch(d){
-    const location=d.place+', '+countryName(d.country);
+    const location=(d.overnightPlace||d.place)+', '+countryName(d.overnightCountry||d.country);
     const checkin=d.date,checkout=addDays(checkin,1);
     const booking='https://www.booking.com/searchresults.html?'+new URLSearchParams({
       ss:location,checkin,checkout,group_adults:'2',group_children:'0',no_rooms:'1',lang:'nl'
@@ -877,13 +913,13 @@ window.NORD_RETURN = '';
       'Tromsø':'https://www.hometogo.nl/f/tromsoe/',
       'Göteborg':'https://www.hometogo.nl/f/goeteborg/'
     };
-    const homeToGo=homeToGoByPlace[d.place]||({
+    const homeToGo=homeToGoByPlace[d.overnightPlace||d.place]||({
       no:'https://www.hometogo.nl/f/noorwegen/',
       se:'https://www.hometogo.nl/f/zweden/',
       nl:'https://www.hometogo.nl/',
       de:'https://www.hometogo.nl/'
-    }[d.country]||'https://www.hometogo.nl/');
-    const terms=d.country==='no'?'rorbu cabin winter accommodation':d.country==='se'?'stuga cabin winter accommodation':'small cabin unique accommodation';
+    }[d.overnightCountry||d.country]||'https://www.hometogo.nl/');
+    const terms=(d.overnightCountry||d.country)==='no'?'rorbu cabin winter accommodation':(d.overnightCountry||d.country)==='se'?'stuga cabin winter accommodation':'small cabin unique accommodation';
     const special='https://www.google.com/maps/search/?api=1&'+new URLSearchParams({
       query:terms+' '+location
     });
@@ -967,8 +1003,8 @@ window.NORD_RETURN = '';
     nl:'https://energy.ec.europa.eu/data-and-analysis/weekly-oil-bulletin_en'
   };
   const fuelPrices=new Map(),fuelPending=new Map(),fuelAttempts=new Map();
-  const fuelCountry=d=>String(d.country||'').toLowerCase();
-  const fuelUrl=c=>FUEL_URL[c]||FUEL_URL.nl;
+  const fuelCountry=d=>String(d.overnightCountry||d.country||'').toLowerCase();
+  const fuelUrl=c=>FUEL_URL[c]||'https://www.google.com/maps/search/?api=1&query=gas+station';
   const fuelDate=v=>/^\d{4}M\d{2}$/.test(v)?v.slice(5,7)+'-'+v.slice(0,4):
     /^\d{4}-\d{2}-\d{2}$/.test(v)?v.slice(8,10)+'-'+v.slice(5,7):'';
 
@@ -1048,6 +1084,7 @@ window.NORD_RETURN = '';
     return 12742*Math.asin(Math.min(1,Math.sqrt(h)));
   };
   function regionalFuelText(d){
+    if(d.destinationChanged)return null;
     const item=regionalFuel.get(fuelKey(d));
     if(!item || Date.now()-item.checked>6*3600000 || item.stations<3)return null;
     return {
@@ -1073,7 +1110,7 @@ window.NORD_RETURN = '';
     updateFuel(fuelCountry(d));
   }
   async function loadRegionalFuel(d,force=false){
-    if(fuelCountry(d)!=='no')return; // Andere landen bieden hier geen betrouwbare vrije station-feed.
+    if(d.destinationChanged||fuelCountry(d)!=='no')return; // Andere landen bieden hier geen betrouwbare vrije station-feed.
     const key=fuelKey(d),existing=regionalFuel.get(key);
     if(!force&&existing&&Date.now()-existing.checked<6*3600000)return;
     if(regionalFuelPending.has(key))return regionalFuelPending.get(key);
