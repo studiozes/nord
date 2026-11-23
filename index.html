@@ -785,16 +785,18 @@ window.NORD_RETURN = '';
     start_date:d.date,end_date:d.date,timezone:'auto'
   });
   const routeWeatherValues=(d,p)=>routeWeatherCache[routeWeatherKey(d,p)]?.values||null;
+
   function routeWeatherContent(d){
     if(d.routeChanged)return '<section class="details-section"><h3>Weer onderweg</h3>'
-      +'<p class="route-weather-note">Route aangepast · geen oude routeverwachting. Controleer de nieuwe route en de officiële wegstatus.</p></section>';
+      +'<p class="route-weather-note">Route aangepast. Controleer de nieuwe route en de officiële wegstatus.</p></section>';
     const points=routeWeatherPoints(d);
     if(!points.length)return '';
     const available=weatherDayAvailable(d.date);
-    const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)]).filter(x=>x&&Number.isFinite(Number(x.when))&&Number(x.when)>0&&x.values);
+    const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)])
+      .filter(x=>x&&Number.isFinite(Number(x.when))&&Number(x.when)>0&&x.values);
     const latest=known.length?Math.min(...known.map(e=>e.when)):null;
     const failed=points.some(p=>Date.now()-(routeWeatherFailures.get(routeWeatherKey(d,p))||0)<15*60000);
-    const stamp=navigator.onLine===false?'offline · opgeslagen gegevens':
+    const stamp=navigator.onLine===false?'offline · eerder opgehaald':
       !available?'buiten voorspellingsperiode':
       failed?'bron tijdelijk niet bereikbaar':
       !known.length?'nog geen uurverwachting':
@@ -805,20 +807,28 @@ window.NORD_RETURN = '';
       const num=n(v);
       return num===null?'—':num.toLocaleString('nl-NL',{maximumFractionDigits:maximum})+unit;
     };
+    const rowValue=(label,value)=>
+      '<span class="route-weather-measure"><small>'+esc(label)+'</small>'
+      +'<span class="route-weather-value">'+esc(value)+'</span></span>';
     const rows=points.map(p=>{
       const v=routeWeatherValues(d,p),url=routeWeatherUrl(d,p),time=String(p.hour).padStart(2,'0')+':00';
       const temperature=metric(v?.temp,'°'),gust=metric(v?.gust,' km/u'),
         snow=metric(v?.snow,' cm',1),visibility=n(v?.visibility)===null?'—':
-        n(v.visibility)<1000?metric(v.visibility,' m'):
-        metric(v.visibility/1000,' km',1);
-      const title=p.name+' · modelverwachting voor '+time+' lokale tijd; geen verwachte passeertijd. '+(p.pass?'Controleer de officiële bergpasstatus. ':'')+'Open-Meteo';
-      return '<a class="route-weather-row" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" title="'+esc(title)+'"'
-        +' aria-label="'+esc(p.name+', '+time+': '+temperature+', windstoten '+gust+', sneeuw '+snow+', zicht '+visibility+'. Open modelbron.')+'">'
-        +'<span class="route-weather-place">'+(p.pass?ico('road'):ico('pin'))+'<span>'+esc(p.name)+'<small>'+esc(time)+' · model</small></span></span>'
-        +'<span class="route-weather-value">'+esc(temperature)+'</span>'
-        +'<span class="route-weather-value">'+esc(gust)+'</span>'
-        +'<span class="route-weather-value">'+esc(snow)+'</span>'
-        +'<span class="route-weather-value">'+esc(visibility)+'</span></a>';
+        n(v.visibility)<1000?metric(v.visibility,' m'):metric(v.visibility/1000,' km',1),
+        cloud=metric(v?.cloud,'%');
+      const title=p.name+' · weersmodel voor '+time+' lokale tijd. Dit is geen verwachte passeertijd. '
+        +(p.pass?'Controleer altijd de officiële bergpasstatus. ':'')+'Open-Meteo';
+      const access=p.name+' om '+time+': temperatuur '+temperature+', windstoten '+gust
+        +', sneeuw '+snow+', zicht '+visibility+', bewolking '+cloud+'. Open weersbron.';
+      return '<a class="route-weather-row" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer"'
+        +' title="'+esc(title)+'" aria-label="'+esc(access)+'">'
+        +'<span class="route-weather-row-top"><span class="route-weather-place">'+esc(p.name)
+        +'<small>'+esc(time)+' · model'+(p.pass?' · bergpas':'')+'</small></span>'
+        +'<strong class="route-weather-value route-weather-temperature">'+esc(temperature)+'</strong></span>'
+        +'<span class="route-weather-measures">'
+        +rowValue('Wind',gust)+rowValue('Sneeuw',snow)
+        +rowValue('Zicht',visibility)+rowValue('Wolken',cloud)
+        +'</span></a>';
     }).join('');
     const passes=points.filter(p=>p.pass);
     const official=passes.length?'<div class="route-weather-links">'
@@ -826,10 +836,9 @@ window.NORD_RETURN = '';
       +'</div>':'';
     return '<section class="details-section route-weather-section"><h3>Weer onderweg'
       +'<span class="route-weather-meta">'+esc(stamp)+'</span></h3>'
-      +'<div class="route-weather-head" aria-hidden="true"><span>Locatie · kijkuur</span><span>Temp.</span><span>Wind</span><span>Sneeuw</span><span>Zicht</span></div>'
       +'<div class="route-weather-rows">'+rows+'</div>'
       +official
-      +'<p class="route-weather-note">Vaste kijkuren, geen passagetijden · sneeuw per uur · modelweer, geen wegmeting.</p>'
+      +'<p class="route-weather-note">Vaste kijkuren, geen passagetijden · sneeuw per uur · geen wegmetingen.</p>'
       +'</section>';
   }
   function refreshRouteWeatherPanel(d){
