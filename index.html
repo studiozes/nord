@@ -14,7 +14,7 @@
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#101114;--panel:#202125;--text:#f6f6f8;--muted:#b0b0bb;--hair:#34353b;--accent:#9bc4ed;--shade:#28292f;--selected:#303138;--warn:#ebbf76;--alert:#f0787c;--unknown:#8e8e97}}
 :root[data-theme=dark]{color-scheme:dark;--bg:#101114;--panel:#202125;--text:#f6f6f8;--muted:#b0b0bb;--hair:#34353b;--accent:#9bc4ed;--shade:#28292f;--selected:#303138;--warn:#ebbf76;--alert:#f0787c;--unknown:#8e8e97}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto;scroll-padding-top:12px}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 button{cursor:pointer;color:inherit}
@@ -48,7 +48,9 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .day-title{font-size:14px;font-weight:620;line-height:1.24;letter-spacing:-.12px;overflow-wrap:anywhere}
 .day-route{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.32;overflow-wrap:anywhere}
 .day-weather{width:68px;flex:0 0 68px;text-align:right;display:grid;grid-template-columns:23px 1fr;align-items:center;gap:3px}
-.day-weather svg{height:22px;width:22px;color:#8aa5bc}
+.day-weather-visual{display:flex;align-items:center;justify-content:center;min-width:0;min-height:22px}
+.day-weather-visual svg{height:22px;width:22px;color:var(--muted)}
+.day-weather-visual:empty{visibility:hidden}
 .day-weather .reading{font-size:18px;font-weight:580;letter-spacing:-.4px;font-variant-numeric:tabular-nums;line-height:1.1}
 .day-weather .feel{grid-column:1/-1;font-size:11px;color:var(--muted);line-height:1.25}
 .chevron{height:16px;width:16px;flex:0 0 16px;color:var(--muted);transition:transform .16s ease}
@@ -155,7 +157,7 @@ h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0
 .return-card{background:transparent;border:1px dashed var(--hair);border-radius:15px;padding:15px;color:var(--muted);display:flex;gap:12px;align-items:center;font-size:12px}
 .return-card svg{width:21px;height:21px;flex:0 0 21px}
 .side-detail{display:none}
-@media(min-width:820px){.app-shell{padding-top:16px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:sticky;top:16px;max-height:68vh;max-height:68dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:245px}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
+@media(min-width:820px){.app-shell{padding-top:16px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:static;top:auto;max-height:none;overflow:visible;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:0}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
 @media(max-width:374px){.app-shell{padding-left:10px;padding-right:10px}.day-button{padding-left:10px;padding-right:10px}.day-main{gap:7px}.day-date{width:38px;flex-basis:38px}.day-weather{width:58px;flex-basis:58px}.day-weather .reading{font-size:16px}.day-glance{margin-left:45px}.glance{font-size:10px;gap:2px}.glance svg{width:13px;height:13px;flex-basis:13px}}
 .fuel-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:8px 9px;border-radius:9px;background:var(--bg);border:1px solid transparent;color:var(--text);text-decoration:none;min-width:0}
 .fuel-strip:hover{background:var(--shade);border-color:var(--hair);text-decoration:none}
@@ -307,7 +309,8 @@ summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
   .layout{grid-template-columns:minmax(265px,300px) minmax(0,1fr);gap:20px}
   .side-detail{
     background:transparent;border:0;border-radius:0;padding:0;box-shadow:none;
-    max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);top:18px
+    position:static;overflow:visible;max-height:none;min-height:0;
+    overscroll-behavior:auto;scrollbar-width:auto
   }
   .day-button{padding:11px 13px}
   .day-glance{gap:5px}
@@ -401,6 +404,138 @@ summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
   .route-weather-row{gap:8px;min-height:95px;padding:12px 0}
   .route-weather-measures{gap:4px}
   .route-weather-measure .route-weather-value{font-size:11px}
+}
+
+
+/* Finishing pass: one page scroll, consistent surfaces, spacing and empty states.
+   Keep the data density, remove card-on-card styling. */
+:root{
+  --nord-radius:17px;
+  --nord-inner-gap:12px;
+  --nord-section-gap:12px
+}
+html,body{max-width:100%;min-width:0}
+body{-webkit-overflow-scrolling:touch}
+.app-shell{
+  padding-bottom:calc(30px + env(safe-area-inset-bottom,0px));
+  min-width:0
+}
+.layout,.timeline,.side-detail,.day-details,.detail-inner,
+.cockpit-duo,.cockpit-panel,.details-section,.nord-overview,
+.route-weather-section,.route-weather-rows{min-width:0}
+.timeline{align-content:start}
+.day-card{overflow:visible;scroll-margin-top:12px}
+.day-card .day-button{min-width:0}
+.day-card.is-open{background:var(--selected)}
+.day-card.is-open .day-button{border-radius:13px}
+.detail-inner{gap:var(--nord-section-gap)}
+.nord-overview,.cockpit-panel,.cockpit-expand{
+  border:0;border-radius:var(--nord-radius);background:var(--panel);
+  box-shadow:none
+}
+.nord-overview{padding:21px 20px 12px}
+.cockpit-panel,.cockpit-panel--route-weather{padding:17px 18px}
+.cockpit-panel{gap:var(--nord-inner-gap)}
+.details-section{gap:9px}
+.cockpit-duo{gap:var(--nord-section-gap)}
+.cockpit-duo--roads{grid-template-columns:minmax(0,1fr)}
+.cockpit-duo--roads>.cockpit-panel{min-width:0}
+.cockpit-panel--light .source-tile,
+.cockpit-panel--weather .source-tile,
+.cockpit-panel--aurora .source-tile{
+  min-height:63px;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;gap:3px;text-align:center
+}
+.cockpit-duo--roads .road-alert-tile,
+.cockpit-duo--roads .road-now-tile{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:0;min-height:65px;padding:8px 5px;gap:3px;
+  text-align:center;grid-template-columns:none
+}
+.cockpit-duo--roads .road-alert-tile .label,
+.cockpit-duo--roads .road-now-tile .label{
+  grid-column:auto;grid-row:auto;font-weight:430;
+  color:var(--muted);line-height:1.25;text-align:center
+}
+.cockpit-duo--roads .road-alert-tile .value,
+.cockpit-duo--roads .road-now-tile .value{
+  grid-column:auto;grid-row:auto;font-size:16px;
+  font-variant-numeric:tabular-nums;font-weight:590;text-align:center;
+  white-space:normal
+}
+.road-alert-tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.road-now-tiles{grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.road-alert-tiles .source-tile,.road-now-tiles .source-tile{background:transparent}
+.source-tile,.route-weather-row,.nord-stat,
+.route-cta,.fuel-strip,.links a,.stay-provider{
+  -webkit-tap-highlight-color:transparent
+}
+:is(.source-tile,.nord-stat,.route-weather-row,.fuel-strip,.links a,.stay-provider,
+  .stay-special,.route-cta,.roadcam-card):focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px
+}
+.source-tile,.nord-stat{color:var(--text)}
+.value.is-empty,.nord-stat-number.is-empty,
+.route-weather-value.is-empty,.nord-temperature strong.is-empty{
+  color:var(--muted);font-weight:470
+}
+.nord-weather-icon:empty{visibility:hidden}
+.nord-stat-label{overflow-wrap:anywhere}
+.nord-stat-number{overflow-wrap:anywhere}
+.nord-stat{min-width:0;min-height:77px}
+.nord-overview-foot{row-gap:6px}
+.route-weather-row{min-height:96px}
+.route-weather-row:hover{border-radius:8px}
+.route-weather-measures{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+.route-weather-measure{min-width:0}
+.route-weather-measure .route-weather-value{font-variant-numeric:tabular-nums}
+.route-weather-links{gap:8px}
+.route-weather-links .links{min-width:0}
+.cockpit-expand{overflow:visible}
+.cockpit-expand summary{padding:11px 18px;min-height:44px}
+.cockpit-expand[open] summary{border-bottom-color:var(--hair)}
+.roadcam-content{padding:13px 18px 18px}
+.roadcam-card{background:transparent;border:0;border-radius:10px;padding:2px}
+.roadcam-card:hover{background:var(--shade);border:0}
+.links a,.stay-provider,.route-cta,.fuel-strip{
+  border:0;border-radius:11px;background:var(--shade);color:var(--text)
+}
+.links a:hover,.stay-provider:hover,.route-cta:hover,.fuel-strip:hover{
+  background:var(--selected);border:0;text-decoration:none
+}
+.links a{min-height:44px;padding:9px 10px;font-size:12px}
+.stay-provider{min-height:72px;padding:11px 6px}
+.stay-provider-icon{background:transparent;color:var(--muted)}
+.stay-provider-hint{font-size:11px;line-height:1.2}
+.route-cta{min-height:44px}
+.fuel-strip{min-height:60px;padding:11px 12px}
+.actual-stay-edit{margin-top:8px}
+.actual-stay-edit>summary{min-height:44px}
+.actual-stay-actions button{min-height:44px;color:var(--text);background:var(--selected)}
+.actual-stay-inputs input,.actual-stay-inputs select{min-height:44px}
+.actual-stay-form>small,.actual-route-note,.route-weather-note{line-height:1.45}
+@media(min-width:820px){
+  .side-detail{
+    display:block;position:static;top:auto;max-height:none!important;
+    height:auto;overflow:visible!important;overscroll-behavior:auto;
+    scrollbar-width:auto
+  }
+  .layout{align-items:start}
+}
+@media(max-width:819px){
+  .day-details{padding:0 7px 12px}
+  .nord-overview{padding:19px 17px 12px}
+  .cockpit-panel,.cockpit-panel--route-weather{padding:15px 15px}
+}
+@media(max-width:359px){
+  .nord-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nord-stat{min-height:66px;padding:11px 8px}
+  .nord-stat-label{font-size:11px}
+  .nord-stat-number{font-size:16px}
+  .road-now-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
 }
 
 </style>
