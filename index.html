@@ -550,6 +550,12 @@ body{-webkit-overflow-scrolling:touch}
 .road-alert-tiles,.road-now-tiles,.aurora-tiles{min-width:0}
 .cockpit-panel--aurora,.cockpit-duo--roads>.cockpit-panel{min-height:0}
 
+
+.route-weather-row--empty:hover{background:transparent;border-radius:0}
+.route-weather-row--empty .route-weather-place{color:var(--muted)}
+.route-weather-row--empty .route-weather-value{color:var(--muted)}
+.route-weather-row--empty .route-weather-value.is-empty{font-weight:450}
+
 </style>
   
   
@@ -1054,11 +1060,25 @@ window.NORD_RETURN = '';
   });
   const routeWeatherValues=(d,p)=>routeWeatherCache[routeWeatherKey(d,p)]?.values||null;
 
+  // Identieke kolommen bij een gewijzigde route of ontbrekende controlepunten.
+  // Geen weerwaarden tonen voor een route die we niet kunnen lokaliseren.
+  function emptyRouteWeather(d,message){
+    const emptyMetric=label=>'<span class="route-weather-measure"><small>'+esc(label)
+      +'</small><span class="route-weather-value is-empty">—</span></span>';
+    return '<section class="details-section route-weather-section"><h3>Weer onderweg'
+      +'<span class="route-weather-meta">—</span></h3>'
+      +'<div class="route-weather-rows"><div class="route-weather-row route-weather-row--empty">'
+      +'<span class="route-weather-row-top"><span class="route-weather-place">Routepunten'
+      +'<small>—</small></span><strong class="route-weather-value route-weather-temperature is-empty">—</strong></span>'
+      +'<span class="route-weather-measures">'+emptyMetric('Wind')+emptyMetric('Sneeuw')
+      +emptyMetric('Zicht')+emptyMetric('Wolken')+'</span></div></div>'
+      +'<p class="route-weather-note">'+esc(message)+' '
+      +link('Controleer route',urls(d).maps)+'</p></section>';
+  }
   function routeWeatherContent(d){
-    if(d.routeChanged)return '<section class="details-section"><h3>Weer onderweg</h3>'
-      +'<p class="route-weather-note">Route aangepast. Controleer de nieuwe route en de officiële wegstatus.</p></section>';
+    if(d.routeChanged)return emptyRouteWeather(d,'Route aangepast. Er zijn nog geen passende kijkpunten vastgesteld.');
     const points=routeWeatherPoints(d);
-    if(!points.length)return '';
+    if(!points.length)return emptyRouteWeather(d,'Geen voorbereide kijkpunten beschikbaar.');
     const available=weatherDayAvailable(d.date);
     const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)])
       .filter(x=>x&&Number.isFinite(Number(x.when))&&Number(x.when)>0&&x.values);
@@ -1844,10 +1864,10 @@ window.NORD_RETURN = '';
       </div>
       <div class="cockpit-panel cockpit-panel--stage">
       <div class="details-section"><h3>Etappe</h3>
-        <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
+        <div class="stage-tiles">
           ${staticStageTile('pin',d.from,'Van')}
           ${staticStageTile('flag',d.overnightPlace||d.place,'Naar')}
-          ${mode==='trip'?sourceTile('compass',!d.routeChanged&&Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile',d.routeChanged?'Aangepaste route: afstand zelf controleren in Apple Kaarten.':'Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.')):''}
+          ${sourceTile('compass',!d.routeChanged&&Number.isFinite(d.roadEstimateKm)?'ca. '+Number(d.roadEstimateKm).toLocaleString('nl-NL')+' km':'—','Rijafstand',u.maps,'stage-tile',d.routeChanged?'Aangepaste route: afstand zelf controleren in Apple Kaarten.':'Indicatieve rijafstand zonder veerboten. '+(d.roadEstimateNote||'Bekijk de actuele route in Apple Kaarten.'))}
         </div>
       </div>
       ${stayEditor(d)}
