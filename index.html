@@ -541,6 +541,9 @@ body{-webkit-overflow-scrolling:touch}
 
 @media(min-width:820px){.side-detail{scroll-margin-top:12px}}
 
+
+.nord-place h2:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
 </style>
   
   
@@ -1169,7 +1172,10 @@ window.NORD_RETURN = '';
     const item=roadAlerts.get(roadKey(d));
     return item?.ok&&Date.now()-item.at<10*60000?item:null;
   }
-  const roadGlance=d=>d.routeChanged||d.date!==dateAtHome()?'—':roadKnown(d)?String(roadKnown(d).closed):'—';
+  const roadGlance=d=>{
+    if(d.routeChanged||d.date!==dateAtHome())return '—';
+    return displayValue(roadKnown(d)?.closed);
+  };
   function roadAlertsContent(d){
     const points=roadPoints(d);if(!points.length)return '';
     const result=d.date===dateAtHome()?roadKnown(d):null;
@@ -1177,8 +1183,8 @@ window.NORD_RETURN = '';
     const source=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
     const info='Officiële Vegvesen-kaart; telling binnen circa 25 km rond bekende routepunten, inclusief mogelijk geplande meldingen. De volledige route is niet gecontroleerd.';
     const tiles=[
-      {icon:'roadblock',value:result?String(result.closed):'—',label:'Afsluitmeldingen'},
-      {icon:'alert',value:result?String(result.other):'—',label:'Meldingen'},
+      {icon:'roadblock',value:displayValue(result?.closed),label:'Afsluitmeldingen'},
+      {icon:'alert',value:displayValue(result?.other),label:'Meldingen'},
       {icon:'road',value:String(points.length),label:'Controlepunten'}
     ];
     return `<section class="details-section road-alert-section"><h3>Wegmeldingen <a class="source-meta" href="${esc(source)}" target="_blank" rel="noopener noreferrer" title="Open de officiële verkeersmeldingen bij Vegvesen">${result?'Vegvesen · '+updatedTime(result.at):'Vegvesen · —'}</a></h3>
@@ -1730,7 +1736,7 @@ window.NORD_RETURN = '';
       heroStat('oval','Aurora nu',oval===null?'—':Math.round(oval)+'%',auroraUrl,'NOAA OVATION kortetermijnmodel boven deze plaats, geen kans op zichtbaarheid. Alleen voor vandaag.'),
       heroStat('kp','Kp nu',kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1}),'https://www.spaceweather.gov/products/planetary-k-index','Actuele planetaire Kp-index. Niet de voorspelling voor de geselecteerde toekomstige datum.'),
       heroStat('daylight','Daglicht',d.destinationChanged?'—':readableSun(d,'length'),solarSourceUrl(d),'Daglicht op de geplande bestemming · Sunrise-Sunset.org'),
-      heroStat('roads','Wegmeldingen',road?String(road.closed+road.other):'—',roadSource,'Actieve en mogelijk geplande Vegvesen-meldingen rond enkele routepunten, geen volledige routecheck. Alleen actuele meldingen, geen voorspelling.')
+      heroStat('roads','Wegmeldingen',road&&n(road.closed)!==null&&n(road.other)!==null?String(road.closed+road.other):'—',roadSource,'Actieve en mogelijk geplande Vegvesen-meldingen rond enkele routepunten, geen volledige routecheck. Alleen actuele meldingen, geen voorspelling.')
     ].join('');
     return '<section class="nord-overview" aria-label="Weer, noorderlicht en wegmeldingen in één oogopslag">'
       +'<div class="nord-overview-head"><div class="nord-place">'
@@ -2114,8 +2120,13 @@ window.NORD_RETURN = '';
         const restoreFocus=document.activeElement===btn;
         render();
         if(restoreFocus){
-          const next=$('timeline').querySelector('[data-select="'+id+'"]');
-          next?.focus({preventScroll:true});
+          if(desktopLayout.matches){
+            const heading=$('sideDetail').querySelector('.nord-place h2');
+            if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}
+          }else{
+            const next=$('timeline').querySelector('[data-select="'+id+'"]');
+            next?.focus({preventScroll:true});
+          }
         }
       }
       // Op mobiel opent de geselecteerde etappe in de tijdlijn.
