@@ -25,6 +25,18 @@ De volledige interface gebruikt een neutrale selectie in plaats van de oude blau
 
 De voorbereiding gebruikt nog de 14 huidige etappes en 35 vooraf gekozen routepunten. De exacte Polarsteps-planning kan later de kijkuren en stops verfijnen zonder dat Nord een configuratiedashboard wordt.
 
+## Consistente weergave en scrollen (november 2026)
+
+Een afwerkingsronde voor Nord One Glance, zonder nieuwe functies of extra instellingen:
+
+- **Eén doorlopende pagina:** op desktop is de tweede, intern scrollende rechterzijbalk verwijderd. De hele pagina heeft één natuurlijke scroll; scrollen verandert de geselecteerde etappe niet meer automatisch. Klikken op een andere etappe brengt de bovenkant van de nieuwe cockpit in beeld. Op mobiel blijft het detail onder de geselecteerde etappe geopend. Toetsenbordfocus wordt bij wisseling behouden en naar de nieuwe cockpit verplaatst wanneer nodig. Verminderde beweging wordt gerespecteerd.
+- **Eén visueel systeem:** neutrale selectie, overal dezelfde basis voor paneelachtergronden, afgeronde hoeken, ruimte tussen secties, numerieke typografie, subtiele scheidingslijnen en bronlinks. Weer, noorderlicht, daglicht, wegmeldingen, brandstof en overnachtingslinks gebruiken dezelfde rustige vormprincipes zonder randen rond ieder getal. Klikbare hoofdelementen houden voldoende hoogte voor aanraakbediening.
+- **Ontbrekende informatie:** bronwaarden die `null`, leeg, niet-numeriek of niet beschikbaar zijn worden als **`—`** weergegeven. Bij ontbrekende weergegevens toont Nord geen fictief wolkenicoon. Ontbrekende euro-omrekeningen worden als een enkel streepje getoond, zonder verzonnen eurobedrag of eenheid. Een echte waarde van **0** blijft **0**.
+- **Datumbewust:** actuele wegmeldingen en NOAA-waarden worden niet als vooruitzichten voor toekomstige etappes getoond. De relevante bron blijft wel aanklikbaar. Poolnacht met nul daglicht en zonsopkomst *Geen* zijn geldige astronomische omstandigheden, geen ontbrekende gegevens.
+- **Responsieve afwerking:** extra controles en kleine-schermopmaak voor smalle telefoons, flexibele kolommen, afbreking van lange labels, veilige schermranden en consistente ondermarges. Geen globaal verbergen van horizontale overloop waarmee echte layoutfouten onzichtbaar worden.
+
+Technisch gecontroleerd: JavaScript-syntax, CSS-blokstructuur, 14 reis- en 14 testetappes, een afwijkende overnachtingsplaats, 35 voorbereide routepunten, ontbrekende getallen en behoud van nulwaarden. Echte Safari/iPhone/Mac-rendering, scrollgevoel, dynamische browserwerkbalken en de feitelijke GitHub Pages-release blijven aparte praktijkcontroles. De app blijft zelf HTML/CSS/JavaScript op GitHub Pages; er zijn geen nieuwe afhankelijkheden of diensten toegevoegd.
+
 ## Testen
 
 Open de bestaande Nord op GitHub Pages. De reisstand opent standaard in een nieuwe browser. Met de subtiele periodekeuze bovenaan kun je ook de teststand openen:
@@ -104,7 +116,7 @@ Bij prijsbedragen in kronen is `NOK/SEK/DKK` de hoofdwaarde. De kleine euro-indi
 
 Op basis van de nu bekende 14 Nord-etappes (de oorspronkelijke Polarsteps-link was niet rechtstreeks uitleesbaar) zijn **35 vaste kijkmomenten** voorbereid. Elke etappe bevat 2 tot 4 relevante locaties: vertrek, een bekend controlepunt en/of de eindbestemming. Voorbeelden zijn Mosjøen, Saltfjellet, Bodø, Narvik, Kvænangsfjellet en Sennalandet. De coördinaten zijn afkomstig uit de bestaande Nord-route en de reeds vastgelegde controlepunten; onbekende tussentrajecten zijn niet ingevuld met verzonnen plaatsen.
 
-De rij **Weer onderweg** staat meteen onder Weer en Daglicht. Je hoeft onderweg **geen locatie, uur, model of filter** te kiezen. Elk van de 35 momenten is vooraf gekoppeld aan een indicatief lokaal uur, met de labeltekst **model**. Deze uren zijn alleen consistente steekproefmomenten van de weersverwachting: het zijn **geen verwachte passeer- of aankomsttijden** en niet gebaseerd op een bevestigde veerbootdienstregeling.
+Het onderdeel **Weer onderweg** staat direct onder het overzicht van de gekozen reisdag. Je hoeft onderweg **geen locatie, uur, model of filter** te kiezen. Elk van de 35 momenten is vooraf gekoppeld aan een indicatief lokaal uur, met de labeltekst **model**. Deze uren zijn alleen consistente steekproefmomenten van de weersverwachting: het zijn **geen verwachte passeer- of aankomsttijden** en niet gebaseerd op een bevestigde veerbootdienstregeling.
 
 Per punt toont Nord:
 - temperatuur in °C;
