@@ -961,6 +961,7 @@ window.NORD_RETURN = '';
     updateDynamicPanel(target,roadAlertsContent(active));
     const glance=$('timeline').querySelector('.day-card.is-open .day-glance .glance:last-child strong');
     if(glance)glance.textContent=roadGlance(active);
+    refreshOverview(active);
   }
   function roadDate(s){
     if(typeof s!=='string')return null;
@@ -1422,10 +1423,88 @@ window.NORD_RETURN = '';
     return job;
   }
 
+
+  // One-glance cockpit: source-linked values, no invented scores or safety verdicts.
+  // NOAA's live aurora/Kp readings only relate to the selected day when it is today.
+  const heroStat=(key,label,value,url,description)=>
+    '<a class="nord-stat" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer"'
+    +' title="'+esc(description)+'" aria-label="'+esc(label+': '+value+'. Open bron.')+'">'
+    +'<span class="nord-stat-label">'+esc(label)+'</span>'
+    +'<strong class="nord-stat-number" data-overview-value="'+esc(key)+'">'+esc(value)+'</strong></a>';
+  const forecastIconName=w=>w?.icon||'cloudy';
+  const forecastCondition=w=>({
+    sun:'Helder',part:'Licht bewolkt',cloudy:'Bewolkt',
+    rain:'Neerslag',snow:'Sneeuw'
+  })[w?.icon]||'Verwachting niet beschikbaar';
+  function overviewContent(d){
+    const w=d.destinationChanged?null:weather(d),u=urls(d);
+    const today=d.date===dateAtHome(),hasAurora=Boolean(AURORA_PLACES[d.place])&&!d.destinationChanged;
+    const oval=today&&hasAurora?localOval(d):null;
+    const kp=today?kpNow():null;
+    const night=n(w?.nightCloud),moonlight=n(w?.moonlight);
+    const roadPts=roadPoints(d),road=roadPts.length&&today?roadKnown(d):null;
+    const roadSource=roadPts.length?roadMapUrl(roadPts.find(p=>p.name==='Kvænangsfjellet'||p.name==='Sennalandet'||p.name==='Saltfjellet')||roadPts[0],ROAD_MAP_VIEWS.find(v=>v.key==='traffic')):u.road;
+    const auroraUrl=today?'https://www.spaceweather.gov/products/aurora-30-minute-forecast':
+      (AURORA_PLACES[d.place]?.url||'https://nordlyskart.no/en/northern-lights')+'/trip-planner';
+    const summaryDate=labelDate(d.date,{weekday:'long',day:'numeric',month:'long'});
+    const mainPlace=d.overnightPlace||d.place;
+    const stats=[
+      heroStat('gust','Windstoten',fmt(w?.gust,' km/u'),weatherDailyUrl(d),'Dagmaximum windstoten in de modelverwachting · Open-Meteo'),
+      heroStat('snow','Sneeuwval',n(w?.snow)===null?'—':Number(w.snow).toLocaleString('nl-NL',{maximumFractionDigits:1})+' cm',weatherDailyUrl(d),'Sneeuwval over de hele dag · Open-Meteo'),
+      heroStat('night','Wolken nacht',night===null?'—':Math.round(night)+'%',weatherDailyUrl(d),'Modelgemiddelde bewolking van 18:00 tot 06:00 lokale tijd · Open-Meteo'),
+      heroStat('moon','Maanlicht',moonlight===null?'—':Math.round(moonlight)+'%',weatherDailyUrl(d),'Berekende maanverlichting; geen rekening met maanhoogte · Open-Meteo'),
+      heroStat('oval','Aurora nu',oval===null?'—':Math.round(oval)+'%',auroraUrl,'NOAA OVATION kortetermijnmodel boven deze plaats, geen kans op zichtbaarheid. Alleen voor vandaag.'),
+      heroStat('kp','Kp nu',kp===null?'—':kp.toLocaleString('nl-NL',{maximumFractionDigits:1}),'https://www.spaceweather.gov/products/planetary-k-index','Actuele planetaire Kp-index. Niet de voorspelling voor de geselecteerde toekomstige datum.'),
+      heroStat('daylight','Daglicht',d.destinationChanged?'—':readableSun(d,'length'),solarSourceUrl(d),'Daglicht op de geplande bestemming · Sunrise-Sunset.org'),
+      heroStat('roads','Wegmeldingen',road?String(road.closed+road.other):'—',roadSource,'Actieve en mogelijk geplande Vegvesen-meldingen rond enkele routepunten, geen volledige routecheck. Alleen actuele meldingen, geen voorspelling.')
+    ].join('');
+    return '<section class="nord-overview" aria-label="Weer, noorderlicht en wegmeldingen in één oogopslag">'
+      +'<div class="nord-overview-head"><div class="nord-place">'
+      +'<span class="nord-eyebrow">'+esc(summaryDate)+'</span>'
+      +'<h2>'+esc(mainPlace)+'</h2>'
+      +'<span class="nord-overview-route">'+esc(d.from+' → '+mainPlace)+'</span>'
+      +(d.destinationChanged?'<span class="nord-overview-plan">Weerwaarden: geplande bestemming '+esc(d.place)+'</span>':'')
+      +'</div><a class="nord-temperature" href="'+esc(weatherDailyUrl(d))+'" target="_blank" rel="noopener noreferrer"'
+      +' title="Gemiddelde dagtemperatuur op de geplande bestemming · Open-Meteo">'
+      +'<span class="nord-weather-icon">'+ico(forecastIconName(w))+'</span>'
+      +'<strong data-overview-value="temp">'+esc(fmtDeg(w?.temp))+'</strong>'
+      +'<span class="nord-temp-caption">'+esc(forecastCondition(w))+'</span></a></div>'
+      +'<div class="nord-overview-grid">'+stats+'</div>'
+      +'<div class="nord-overview-foot"><span class="nord-weather-meta">'+esc(weatherMeta(d))+'</span>'
+      +'<span>Alle waarden openen hun bron</span></div></section>';
+  }
+  function refreshOverview(d){
+    const root=desktopLayout.matches?$('sideDetail'):$('timeline').querySelector('.day-card.is-open .day-details');
+    const current=root?.querySelector('.nord-overview');
+    if(!current)return;
+    const template=document.createElement('template');
+    template.innerHTML=overviewContent(d);
+    const next=template.content.querySelector('.nord-overview');
+    if(!next)return;
+    current.querySelectorAll('[data-overview-value]').forEach(el=>{
+      const incoming=next.querySelector('[data-overview-value="'+el.getAttribute('data-overview-value')+'"]');
+      if(incoming&&el.textContent!==incoming.textContent)el.textContent=incoming.textContent;
+    });
+    current.querySelectorAll('a.nord-stat').forEach((el,i)=>{
+      const incoming=next.querySelectorAll('a.nord-stat')[i];
+      if(!incoming)return;
+      for(const attr of ['aria-label','title','href']){
+        const val=incoming.getAttribute(attr);
+        if(val!==null&&el.getAttribute(attr)!==val)el.setAttribute(attr,val);
+      }
+    });
+    const oldMeta=current.querySelector('.nord-weather-meta'),newMeta=next.querySelector('.nord-weather-meta');
+    if(oldMeta&&newMeta&&oldMeta.textContent!==newMeta.textContent)oldMeta.textContent=newMeta.textContent;
+    const oldCondition=current.querySelector('.nord-temp-caption'),newCondition=next.querySelector('.nord-temp-caption');
+    if(oldCondition&&newCondition&&oldCondition.textContent!==newCondition.textContent)oldCondition.textContent=newCondition.textContent;
+    const oldIcon=current.querySelector('.nord-weather-icon'),newIcon=next.querySelector('.nord-weather-icon');
+    if(oldIcon&&newIcon&&oldIcon.innerHTML!==newIcon.innerHTML)oldIcon.innerHTML=newIcon.innerHTML;
+  }
+
   function detailContent(d){
     const w=weather(d),u=urls(d);
     return `<div class="detail-inner">
-      <div class="detail-heading"><h2>${esc(d.overnightPlace||d.place)}</h2><small>${esc(labelDate(d.date))}</small></div>
+      ${overviewContent(d)}
       <div class="cockpit-panel cockpit-panel--stage">
       <div class="details-section"><h3>Etappe</h3>
         <div class="stage-tiles ${mode==='trip'?'':'stage-tiles--two'}">
@@ -1531,8 +1610,8 @@ window.NORD_RETURN = '';
     return null;
   }
   function auroraContent(d){
-    const w=weather(d),oval=localOval(d),kp=kpNow(),cloud=auroraState.cloud.get(locationId(d));
-    const currentCloud=cloud?.at&&Date.now()-cloud.at<65*60000?cloud.value:null;
+    const today=d.date===dateAtHome(),w=weather(d),oval=today?localOval(d):null,kp=today?kpNow():null,cloud=auroraState.cloud.get(locationId(d));
+    const currentCloud=today&&cloud?.at&&Date.now()-cloud.at<65*60000?cloud.value:null;
     const locality=AURORA_PLACES[d.place];
     const plannerUrl=(locality?.url||'https://nordlyskart.no/en/northern-lights')+'/trip-planner';
     const tiles=[
@@ -1555,7 +1634,8 @@ window.NORD_RETURN = '';
   }
   function updateAuroraDisplay(){
     const d=days().find(day=>day.id===selected);
-    if(!AURORA_PLACES[d?.place])return;
+    if(!AURORA_PLACES[d?.place]||d.destinationChanged)return;
+    refreshOverview(d);
     const target=desktopLayout.matches
       ? $('sideDetail').querySelector('.aurora-dynamic')
       : $('timeline').querySelector('.day-card.is-open .aurora-dynamic');
@@ -1747,6 +1827,7 @@ window.NORD_RETURN = '';
       const meta=root.querySelector('.cockpit-panel--weather .source-meta');
       if(meta)meta.textContent=weatherMeta(d);
     }
+    refreshOverview(d);
     updateAuroraDisplay();
   }
 
