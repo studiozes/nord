@@ -814,7 +814,7 @@ window.NORD_RETURN = '';
       const title=p.name+' · modelverwachting voor '+time+' lokale tijd; geen verwachte passeertijd. '+(p.pass?'Controleer de officiële bergpasstatus. ':'')+'Open-Meteo';
       return '<a class="route-weather-row" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" title="'+esc(title)+'"'
         +' aria-label="'+esc(p.name+', '+time+': '+temperature+', windstoten '+gust+', sneeuw '+snow+', zicht '+visibility+'. Open modelbron.')+'">'
-        +'<span class="route-weather-place">'+(p.pass?ico('alert'):ico('pin'))+'<span>'+esc(p.name)+'<small>'+esc(time)+' · model</small></span></span>'
+        +'<span class="route-weather-place">'+(p.pass?ico('road'):ico('pin'))+'<span>'+esc(p.name)+'<small>'+esc(time)+' · model</small></span></span>'
         +'<span class="route-weather-value">'+esc(temperature)+'</span>'
         +'<span class="route-weather-value">'+esc(gust)+'</span>'
         +'<span class="route-weather-value">'+esc(snow)+'</span>'
@@ -829,7 +829,7 @@ window.NORD_RETURN = '';
       +'<div class="route-weather-head" aria-hidden="true"><span>Locatie · kijkuur</span><span>Temp.</span><span>Wind</span><span>Sneeuw</span><span>Zicht</span></div>'
       +'<div class="route-weather-rows">'+rows+'</div>'
       +official
-      +'<p class="route-weather-note">Vaste kijkuren, geen passagetijden · modelweer, geen meting aan de weg.</p>'
+      +'<p class="route-weather-note">Vaste kijkuren, geen passagetijden · sneeuw per uur · modelweer, geen wegmeting.</p>'
       +'</section>';
   }
   function refreshRouteWeatherPanel(d){
