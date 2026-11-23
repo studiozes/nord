@@ -1,5 +1,5 @@
 /* Nord offline-basis: alleen de eigen routepagina, nooit externe live-bronnen. */
-const SHELL_CACHE='nord-shell-2026-11-v2';
+const SHELL_CACHE='nord-shell-2026-11-v3';
 const SHELL_URL=new URL('./index.html',self.registration.scope).toString();
 
 self.addEventListener('install',event=>{
