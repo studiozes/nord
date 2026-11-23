@@ -544,6 +544,12 @@ body{-webkit-overflow-scrolling:touch}
 
 .nord-place h2:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
 
+
+/* Identical weather, aurora and traffic panels for every itinerary country. */
+.roadcam-empty{color:var(--muted);font-size:18px;font-weight:450;line-height:1;margin:0;padding:10px 4px 16px;text-align:center}
+.road-alert-tiles,.road-now-tiles,.aurora-tiles{min-width:0}
+.cockpit-panel--aurora,.cockpit-duo--roads>.cockpit-panel{min-height:0}
+
 </style>
   
   
@@ -1177,20 +1183,31 @@ window.NORD_RETURN = '';
     return displayValue(roadKnown(d)?.closed);
   };
   function roadAlertsContent(d){
-    const points=roadPoints(d);if(!points.length)return '';
-    const result=d.date===dateAtHome()?roadKnown(d):null;
+    const points=roadPoints(d),hasVegvesenPoints=points.length>0;
+    const result=hasVegvesenPoints&&d.date===dateAtHome()?roadKnown(d):null;
     const focus=points.find(p=>/Saltfjellet|Sennalandet|Kvænangsfjellet/.test(p.name))||points[0];
-    const source=roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'));
-    const info='Officiële Vegvesen-kaart; telling binnen circa 25 km rond bekende routepunten, inclusief mogelijk geplande meldingen. De volledige route is niet gecontroleerd.';
+    // Outside known Norwegian checkpoints, preserve the section but do not
+    // imply that a complete national incident feed has been checked.
+    const source=hasVegvesenPoints
+      ?roadMapUrl(focus,ROAD_MAP_VIEWS.find(view=>view.key==='traffic'))
+      :urls(d).road;
+    const info=hasVegvesenPoints
+      ?'Vegvesen-meldingen binnen circa 25 km van bekende controlepunten; geen volledige routecontrole.'
+      :'Geen automatisch gecontroleerde wegmeldingen voor deze etappe. Open de officiële verkeersbron.';
     const tiles=[
       {icon:'roadblock',value:displayValue(result?.closed),label:'Afsluitmeldingen'},
       {icon:'alert',value:displayValue(result?.other),label:'Meldingen'},
-      {icon:'road',value:String(points.length),label:'Controlepunten'}
+      {icon:'road',value:hasVegvesenPoints?String(points.length):'—',label:'Controlepunten'}
     ];
-    return `<section class="details-section road-alert-section"><h3>Wegmeldingen <a class="source-meta" href="${esc(source)}" target="_blank" rel="noopener noreferrer" title="Open de officiële verkeersmeldingen bij Vegvesen">${result?'Vegvesen · '+updatedTime(result.at):'Vegvesen · —'}</a></h3>
+    const mapLinks=hasVegvesenPoints
+      ?ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')
+      :link('Officiële verkeersinformatie',source);
+    return `<section class="details-section road-alert-section"><h3>Wegmeldingen
+      <a class="source-meta" href="${esc(source)}" target="_blank" rel="noopener noreferrer"
+       title="Officiële verkeersbron voor deze etappe">${hasVegvesenPoints?'Vegvesen':'Verkeersbron'} · ${result?updatedTime(result.at):'—'}</a></h3>
       <div class="road-alert-tiles">${tiles.map(t=>sourceTile(t.icon,t.value,t.label,source,'road-alert-tile',info)).join('')}</div>
-      <details class="cockpit-more"><summary>Kaarten · Vegvesen</summary>
-        <div class="links">${ROAD_MAP_VIEWS.map(view=>link(view.label,roadMapUrl(focus,view))).join('')}</div>
+      <details class="cockpit-more"><summary>Verkeerskaarten en bronnen</summary>
+        <div class="links">${mapLinks}</div>
       </details>
     </section>`;
   }
@@ -1212,7 +1229,10 @@ window.NORD_RETURN = '';
       oldTiles.forEach((tile,i)=>{
         const incoming=newTiles[i],currentValue=tile.querySelector('.value');
         const value=incoming.querySelector('.value')?.textContent;
-        if(currentValue&&value!=null&&currentValue.textContent!==value)currentValue.textContent=value;
+        if(currentValue&&value!=null){
+          if(currentValue.textContent!==value)currentValue.textContent=value;
+          currentValue.classList.toggle('is-empty',incoming.querySelector('.value')?.classList.contains('is-empty')===true);
+        }
         for(const attr of ['aria-label','title','href']){
           const next=incoming.getAttribute(attr);
           if(next!==null&&tile.getAttribute(attr)!==next)tile.setAttribute(attr,next);
@@ -1281,7 +1301,7 @@ window.NORD_RETURN = '';
     return pending;
   }
   function roadcamContent(d){
-    const cams=ROUTE_CAMERAS[d.place]||[];
+    const cams=d.routeChanged?[]:(ROUTE_CAMERAS[d.place]||[]);
     const token=Math.max(roadcamStamp,Math.floor(Date.now()/60000)*60000);
     return `<details class="cockpit-expand roadcam-section"><summary>Wegcamera's</summary>
       <div class="roadcam-content">
@@ -1296,8 +1316,8 @@ window.NORD_RETURN = '';
           <img loading="lazy" src="${esc(image)}" alt="${esc(cam.name)} · Vegvesen">
           <span class="roadcam-fallback">—</span>
         </a>`;
-      }).join('')}</div>`:''}
-      <div class="links">${link('Alle wegcamera’s',camMap(d))}</div>
+      }).join('')}</div>`:'<p class="roadcam-empty">—</p>'}
+      <div class="links">${cams.length?link('Alle wegcamera’s',camMap(d)):link('Officiële verkeersinformatie',urls(d).road)}</div>
       </div>
     </details>`;
   }
