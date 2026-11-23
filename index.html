@@ -793,8 +793,10 @@ window.NORD_RETURN = '';
     const available=weatherDayAvailable(d.date);
     const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)]).filter(x=>x&&Number.isFinite(Number(x.when))&&Number(x.when)>0&&x.values);
     const latest=known.length?Math.min(...known.map(e=>e.when)):null;
+    const failed=points.some(p=>Date.now()-(routeWeatherFailures.get(routeWeatherKey(d,p))||0)<15*60000);
     const stamp=navigator.onLine===false?'offline · opgeslagen gegevens':
       !available?'buiten voorspellingsperiode':
+      failed?'bron tijdelijk niet bereikbaar':
       !known.length?'nog geen uurverwachting':
       known.length<points.length?'gedeeltelijk bijgewerkt':
       Date.now()-latest>3*3600000?'eerder opgehaald '+updatedTime(latest):
@@ -837,7 +839,28 @@ window.NORD_RETURN = '';
     const target=root?.querySelector('.route-weather-dynamic');
     if(!target)return;
     const html=routeWeatherContent(active);
-    if(target.innerHTML!==html)target.innerHTML=html;
+    if(target.innerHTML===html)return;
+    const template=document.createElement('template');
+    template.innerHTML=html;
+    const before=[...target.querySelectorAll('a.route-weather-row')];
+    const after=[...template.content.querySelectorAll('a.route-weather-row')];
+    // Bij een gelijkblijvende etappe alleen waarden aanpassen; focus en scroll blijven staan.
+    if(before.length&&before.length===after.length&&before.every((el,i)=>el.href===after[i].href)){
+      before.forEach((el,i)=>{
+        const next=after[i];
+        const oldVals=el.querySelectorAll('.route-weather-value');
+        const newVals=next.querySelectorAll('.route-weather-value');
+        oldVals.forEach((v,j)=>{if(newVals[j]&&v.textContent!==newVals[j].textContent)v.textContent=newVals[j].textContent;});
+        for(const attr of ['aria-label','title']){
+          if(el.getAttribute(attr)!==next.getAttribute(attr))el.setAttribute(attr,next.getAttribute(attr));
+        }
+      });
+      const oldMeta=target.querySelector('.route-weather-meta');
+      const newMeta=template.content.querySelector('.route-weather-meta');
+      if(oldMeta&&newMeta&&oldMeta.textContent!==newMeta.textContent)oldMeta.textContent=newMeta.textContent;
+      return;
+    }
+    target.innerHTML=html;
   }
 
   const ROAD_RADIUS_KM=25,roadAlerts=new Map(),roadPending=new Map();
