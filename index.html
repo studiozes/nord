@@ -271,6 +271,29 @@ summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-
 .actual-route-note{margin:6px 0}
 @media(max-width:374px){.actual-stay-inputs{grid-template-columns:1fr}}
 
+
+/* Vooraf voorbereide uurweerpunten, zonder filters of instellingen. */
+.cockpit-panel--route-weather{padding:11px 12px}
+.route-weather-section{gap:7px}
+.route-weather-section h3{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 8px;align-items:baseline}
+.route-weather-meta{font-size:10px;font-weight:450;color:var(--muted)}
+.route-weather-head,.route-weather-row{display:grid;grid-template-columns:minmax(103px,1.6fr) repeat(4,minmax(0,1fr));gap:5px;align-items:center;text-align:center;min-width:0}
+.route-weather-head{font-size:10px;color:var(--muted);padding:0 6px 4px}
+.route-weather-head>span:first-child{text-align:left}
+.route-weather-rows{display:grid;gap:5px}
+.route-weather-row{min-height:52px;padding:6px;border:1px solid var(--hair);border-radius:10px;background:var(--panel);color:var(--text);text-decoration:none}
+.route-weather-row:hover{background:var(--shade);text-decoration:none}
+.route-weather-place{display:flex;align-items:center;gap:5px;min-width:0;text-align:left;font-size:11px;line-height:1.23;font-weight:600;overflow-wrap:anywhere}
+.route-weather-place svg{width:14px;height:14px;flex:0 0 14px;color:var(--muted)}
+.route-weather-place span{min-width:0}
+.route-weather-place small{display:block;margin-top:2px;font-size:10px;line-height:1.2;color:var(--muted);font-weight:400}
+.route-weather-value{font-size:11px;line-height:1.25;font-variant-numeric:tabular-nums;overflow-wrap:normal}
+.route-weather-note{font-size:10px;line-height:1.35;color:var(--muted);margin:2px 0}
+.route-weather-links{display:flex;gap:5px;flex-wrap:wrap}
+.route-weather-links a{font-size:11px;line-height:1.2}
+.route-weather-links svg{width:12px;height:12px}
+@container(max-width:370px){.route-weather-head,.route-weather-row{grid-template-columns:minmax(78px,1.45fr) repeat(4,minmax(0,1fr));gap:3px}.route-weather-head{font-size:9px}.route-weather-row{padding:6px 4px}.route-weather-place{font-size:10px}.route-weather-place svg{display:none}.route-weather-value{font-size:10px}}
+
 </style>
   
   
@@ -639,7 +662,7 @@ window.NORD_RETURN = '';
   function days(){
     if(mode==='trip')return tripDays();
     const today=dateAtHome();
-    return previewPlaces.map((d,i)=>({...d,date:addDays(today,i),id:'preview-'+i,stage:'preview'}));
+    return previewPlaces.map((d,i)=>({...d,planDate:d.date,date:addDays(today,i),id:'preview-'+i,stage:'preview'}));
   }
   function dataKey(d){return `${locationId(d)}@${d.date}`}
   const weather=d=>weatherCache[dataKey(d)]?.value || null;
@@ -718,6 +741,105 @@ window.NORD_RETURN = '';
     '2027-01-29':[{name:'Sennalandet',lat:70.26854,lon:24.09215},{name:'Nordkapptunnelen',lat:70.9251,lon:25.6971}],
     '2027-01-30':[{name:'Sennalandet',lat:70.26854,lon:24.09215},{name:'Nordkapptunnelen',lat:70.9251,lon:25.6971}]
   });
+
+  // Voorbereide kijkmomenten voor de voorlopig bekende Polarsteps-route.
+  // Uren zijn vaste steekproefmomenten op lokale tijd, GEEN route- of aankomsttijden.
+  // Alle locaties komen uit de bestaande etappes of ROAD_CHECK_POINTS.
+  const ROUTE_WEATHER_SLOTS=Object.freeze({
+    '2027-01-21':[['Schijndel',9],['Kiel',17]],
+    '2027-01-22':[['Göteborg',9],['Tynset',18]],
+    '2027-01-23':[['Tynset',9],['Mosjøen',15],['Mo i Rana',19]],
+    '2027-01-24':[['Mo i Rana',9],['Saltfjellet',12],['Bodø',16],['Reine',20]],
+    '2027-01-25':[['Reine',10],['Svolvær',16]],
+    '2027-01-26':[['Svolvær',9],['Narvik',13],['Mefjordvær',19]],
+    '2027-01-27':[['Mefjordvær',10],['Tromsø',17]],
+    '2027-01-28':[['Tromsø',9],['Kvænangsfjellet',14],['Alta',19]],
+    '2027-01-29':[['Alta',10],['Sennalandet',13],['Honningsvåg',18]],
+    '2027-01-30':[['Honningsvåg',10],['Sennalandet',14],['Alta',18]],
+    '2027-01-31':[['Alta',9],['Luleå',19]],
+    '2027-02-01':[['Luleå',9],['Gävle',19]],
+    '2027-02-02':[['Gävle',9],['Göteborg',18]],
+    '2027-02-03':[['Kiel',9],['Schijndel',18]]
+  });
+  const ROUTE_WEATHER_FIELDS='temperature_2m,wind_gusts_10m,snowfall,visibility';
+  const routeWeatherCache=safeGet('routeWeather',{})||{};
+  const routeWeatherAttempts=new Map(),routeWeatherPending=new Map();
+  const weatherDayAvailable=day=>{
+    const gap=(Date.parse(day+'T12:00:00Z')-Date.parse(dateAtHome()+'T12:00:00Z'))/MS_DAY;
+    return gap>=0&&gap<=15;
+  };
+  function routeWeatherPoints(d){
+    const planDate=d.planDate||d.date;
+    const slots=ROUTE_WEATHER_SLOTS[planDate]||[];
+    const existing=ROUTE.concat(...Object.values(ROAD_CHECK_POINTS));
+    return slots.map(([name,hour])=>{
+      const location=existing.find(p=>p.place===name||p.name===name);
+      return location&&Number.isFinite(location.lat)&&Number.isFinite(location.lon)?
+        {name,hour,lat:location.lat,lon:location.lon,country:location.country||d.country,
+          pass:/Saltfjellet|Kvænangsfjellet|Sennalandet/.test(name)}:null;
+    }).filter(Boolean);
+  }
+  const routeWeatherKey=(d,p)=>[d.date,p.name,p.hour,p.lat.toFixed(3),p.lon.toFixed(3)].join('|');
+  const routeWeatherUrl=(d,p)=>'https://api.open-meteo.com/v1/forecast?'+new URLSearchParams({
+    latitude:String(p.lat),longitude:String(p.lon),hourly:ROUTE_WEATHER_FIELDS,
+    start_date:d.date,end_date:d.date,timezone:'auto'
+  });
+  const routeWeatherValues=(d,p)=>routeWeatherCache[routeWeatherKey(d,p)]?.values||null;
+  function routeWeatherContent(d){
+    if(d.routeChanged)return '<section class="details-section"><h3>Weer onderweg</h3>'
+      +'<p class="route-weather-note">Route aangepast · geen oude routeverwachting. Controleer de nieuwe route en de officiële wegstatus.</p></section>';
+    const points=routeWeatherPoints(d);
+    if(!points.length)return '';
+    const available=weatherDayAvailable(d.date);
+    const known=points.map(p=>routeWeatherCache[routeWeatherKey(d,p)]).filter(Boolean);
+    const latest=known.length?Math.min(...known.map(e=>e.when)):null;
+    const stamp=navigator.onLine===false?'offline · opgeslagen gegevens':
+      !available?'buiten voorspellingsperiode':
+      !known.length?'nog geen uurverwachting':
+      known.length<points.length?'gedeeltelijk bijgewerkt':
+      Date.now()-latest>3*3600000?'eerder opgehaald '+updatedTime(latest):
+      'bijgewerkt '+updatedTime(latest);
+    const metric=(v,unit,maximum=0)=>{
+      const num=n(v);
+      return num===null?'—':num.toLocaleString('nl-NL',{maximumFractionDigits:maximum})+unit;
+    };
+    const rows=points.map(p=>{
+      const v=routeWeatherValues(d,p),url=routeWeatherUrl(d,p),time=String(p.hour).padStart(2,'0')+':00';
+      const temperature=metric(v?.temp,'°'),gust=metric(v?.gust,' km/u'),
+        snow=metric(v?.snow,' cm',1),visibility=n(v?.visibility)===null?'—':
+        n(v.visibility)<1000?metric(v.visibility,' m'):
+        metric(v.visibility/1000,' km',1);
+      const title=p.name+' · modelverwachting voor '+time+' lokale tijd; geen verwachte passeertijd. '+(p.pass?'Controleer de officiële bergpasstatus. ':'')+'Open-Meteo';
+      return '<a class="route-weather-row" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer" title="'+esc(title)+'"'
+        +' aria-label="'+esc(p.name+', '+time+': '+temperature+', windstoten '+gust+', sneeuw '+snow+', zicht '+visibility+'. Open modelbron.')+'">'
+        +'<span class="route-weather-place">'+(p.pass?ico('alert'):ico('pin'))+'<span>'+esc(p.name)+'<small>'+esc(time)+' · model</small></span></span>'
+        +'<span class="route-weather-value">'+esc(temperature)+'</span>'
+        +'<span class="route-weather-value">'+esc(gust)+'</span>'
+        +'<span class="route-weather-value">'+esc(snow)+'</span>'
+        +'<span class="route-weather-value">'+esc(visibility)+'</span></a>';
+    }).join('');
+    const passes=points.filter(p=>p.pass);
+    const official=passes.length?'<div class="route-weather-links">'
+      +passes.map(p=>link('Wegstatus '+p.name,roadMapUrl(p,ROAD_MAP_VIEWS.find(v=>v.key==='passes-flow')))).join('')
+      +'</div>':'';
+    return '<section class="details-section route-weather-section"><h3>Weer onderweg'
+      +'<span class="route-weather-meta">'+esc(stamp)+'</span></h3>'
+      +'<div class="route-weather-head" aria-hidden="true"><span>Locatie · kijkuur</span><span>Temp.</span><span>Wind</span><span>Sneeuw</span><span>Zicht</span></div>'
+      +'<div class="route-weather-rows">'+rows+'</div>'
+      +official
+      +'<p class="route-weather-note">Vaste kijkuren, geen passagetijden · modelweer, geen meting aan de weg.</p>'
+      +'</section>';
+  }
+  function refreshRouteWeatherPanel(d){
+    const active=days().find(x=>x.id===selected);
+    if(!active||active.id!==d.id)return;
+    const root=desktopLayout.matches?$('sideDetail'):$('timeline').querySelector('.day-card.is-open .day-details');
+    const target=root?.querySelector('.route-weather-dynamic');
+    if(!target)return;
+    const html=routeWeatherContent(active);
+    if(target.innerHTML!==html)target.innerHTML=html;
+  }
+
   const ROAD_RADIUS_KM=25,roadAlerts=new Map(),roadPending=new Map();
   const roadPlan=d=>ROUTE.find(r=>r.date===d.date)||d;
   const roadKey=d=>roadPlan(d).date;
@@ -1330,6 +1452,7 @@ window.NORD_RETURN = '';
           </div>
         </div>
       </div>
+      <div class="cockpit-panel cockpit-panel--route-weather"><div class="route-weather-dynamic">${routeWeatherContent(d)}</div></div>
       ${roadPoints(d).length || (d.country==='no'&&!d.destinationChanged)?`<div class="cockpit-duo cockpit-duo--roads">
         ${roadPoints(d).length?`<div class="cockpit-panel road-alerts-dynamic">${roadAlertsContent(d)}</div>`:''}
         ${d.country==='no'&&!d.destinationChanged?`<div class="cockpit-panel road-now-dynamic">${roadNowContent(d)}</div>`:''}
