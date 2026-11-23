@@ -1507,10 +1507,12 @@ window.NORD_RETURN = '';
     }
     $('sideDetail').innerHTML=detailContent(d);
     bindCameraFallbacks();
-    loadFuel(fuelCountry(d)).catch(()=>{});
-    loadRegionalFuel(d).catch(()=>{});
-    fetchFx().catch(()=>{});
-    fetchAurora().catch(()=>{});
+    if(navigator.onLine!==false){
+      loadFuel(fuelCountry(d)).catch(()=>{});
+      loadRegionalFuel(d).catch(()=>{});
+      fetchFx().catch(()=>{});
+      fetchAurora().catch(()=>{});
+    }
     const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
     $('sideDetail').scrollTop=0;
   }
@@ -1532,7 +1534,8 @@ window.NORD_RETURN = '';
       const gap=(Date.parse(d.date+'T12:00:00Z')-Date.parse(today+'T12:00:00Z'))/MS_DAY;
       return gap>=0&&gap<=15;
     });
-    el.textContent=busy?'Vernieuwen…':
+    el.textContent=navigator.onLine===false?'Offline · route beschikbaar, live gegevens niet':
+      busy?'Vernieuwen…':
       lastError?'Niet alle weersbronnen beschikbaar':
       !forecastWithinRange?'Weer buiten voorspellingsperiode':
       lastCheckedAt?'Weer gecontroleerd '+updatedTime(lastCheckedAt):
@@ -1544,7 +1547,7 @@ window.NORD_RETURN = '';
     const old=Date.now()-item.when>3*3600000;
     const when=new Intl.DateTimeFormat('nl-NL',old?{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}:
       {hour:'2-digit',minute:'2-digit'}).format(new Date(item.when));
-    return (old?'eerder opgehaald':'bijgewerkt')+' '+when;
+    return navigator.onLine===false?'offline · opgeslagen '+when:(old?'eerder opgehaald':'bijgewerkt')+' '+when;
   }
   const weatherTileValues=w=>[
     fmtDeg(w?.temp),
@@ -1631,13 +1634,15 @@ window.NORD_RETURN = '';
     $('sideDetail').innerHTML=detailContent(arr.find(d=>d.id===selected));
     bindCameraFallbacks();
     const fuelDay=arr.find(d=>d.id===selected);
-    if(fuelDay){
+    if(fuelDay&&navigator.onLine!==false){
       loadFuel(fuelCountry(fuelDay)).catch(()=>{});
       loadRegionalFuel(fuelDay).catch(()=>{});
       fetchFx().catch(()=>{});
     }
-    fetchAurora().catch(()=>{});
-    const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
+    if(navigator.onLine!==false){
+      fetchAurora().catch(()=>{});
+      const selectedRoadDay=days().find(x=>x.id===selected);if(selectedRoadDay)fetchRoadAlerts(selectedRoadDay).catch(()=>{});
+    }
     $('timeline').querySelectorAll('[data-select]').forEach(btn=>btn.addEventListener('click',()=>{
       const id=btn.dataset.select;
       if(id!==selected){
@@ -1700,6 +1705,7 @@ window.NORD_RETURN = '';
   }
   let refreshCycle=0, pendingRefresh=false;
   async function refresh(force=false){
+    if(navigator.onLine===false){busy=false;updateStatus();return;}
     if(busy){pendingRefresh=true;return;}busy=true;lastError=false;updateStatus();
     const arr=days(),cycle=++refreshCycle;
     const uniqueSun=arr.filter((d,i,a)=>!sunCache[dataKey(d)] && a.findIndex(x=>dataKey(x)===dataKey(d))===i);
@@ -1730,7 +1736,7 @@ window.NORD_RETURN = '';
   const theme=safeGet('theme','auto');if(theme==='light'||theme==='dark')document.documentElement.dataset.theme=theme;
   $('refresh').innerHTML=ico('refresh');syncBrowserTheme();
   systemDark.addEventListener('change',()=>{if(!document.documentElement.dataset.theme)syncBrowserTheme()});
-  $('refresh').addEventListener('click',()=>{refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});fetchFx(true).catch(()=>{});}});
+  $('refresh').addEventListener('click',()=>{if(navigator.onLine===false){updateStatus();return;}refreshCameraImages();refresh(true);fetchAurora(true).catch(()=>{});const d=days().find(x=>x.id===selected);if(d){fetchRoadAlerts(d,true).catch(()=>{});loadFuel(fuelCountry(d),true).catch(()=>{});loadRegionalFuel(d,true).catch(()=>{});fetchFx(true).catch(()=>{});}});
   $('theme').addEventListener('click',changeTheme);
 
   // Eén handler voor de zichtbare mobiele of desktopeditor.
@@ -1751,7 +1757,25 @@ window.NORD_RETURN = '';
   });
   $('mode-preview').addEventListener('click',()=>changeMode('preview'));
   $('mode-trip').addEventListener('click',()=>changeMode('trip'));
-  render();refresh();
+  // De routepagina is na een eerste online bezoek opnieuw te openen zonder internet.
+  // Alleen de app-shell wordt gecachet, nooit live verkeers-, weer- of prijsdata.
+  if('serviceWorker' in navigator&&location.protocol==='https:'){
+    navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
+  }
+  window.addEventListener('offline',()=>updateStatus());
+  window.addEventListener('online',()=>{
+    updateStatus();refresh();
+    const d=days().find(x=>x.id===selected);
+    if(d){
+      loadFuel(fuelCountry(d)).catch(()=>{});
+      loadRegionalFuel(d).catch(()=>{});
+      fetchFx().catch(()=>{});
+      fetchAurora().catch(()=>{});
+      fetchRoadAlerts(d).catch(()=>{});
+    }
+  });
+  render();
+  if(navigator.onLine!==false)refresh();
 })();
 
 </script>
