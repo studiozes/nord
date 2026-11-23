@@ -77,6 +77,20 @@ De dagwaarden worden binnen de bestaande weershorizon van 16 dagen opgehaald, vi
 
 Bij prijsbedragen in kronen is `NOK/SEK/DKK` de hoofdwaarde. De kleine euro-indicatie is apart aanklikbaar, laat de ECB-peildatum zien en verandert niet de oorspronkelijke prijs. Een ontbrekende koers geeft `≈ € —/l`, zonder schatting. De EUR-omrekening hoort bij de getoonde benzineprijs en is niet per definitie de koers op de dag waarop die benzineprijs werd gemeten.
 
+## Werkelijke overnachting en offline gebruik (november 2026)
+
+De originele 14-daagse reisroute wordt niet overschreven. In **Reis 2027** verschijnt bij alle gewone overnachtingsdagen een compacte, uitklapbare keuze **Werkelijke overnachting vastleggen**. Vul plaats en land in en kies **Opslaan**. Daarna:
+
+- Toont de etappe de gekozen overnachtingsplaats, en de volgende gewone etappe gebruikt die plaats en dat land als vertrekpunt in de Apple Kaarten-link. De accommodatiezoeker voor de betreffende nacht gebruikt ook de gekozen locatie, datum, één nacht en **twee personen**.
+- Behoudt Nord de oorspronkelijke bestemming intern. Voor een afwijkende eindbestemming worden de weer- en daglichtwaarden expliciet aangeduid als gegevens bij de **geplande** bestemming. In de tijdlijn verschijnen daar geen misleidende weergetallen voor de alternatieve plaats.
+- Wordt een aangepaste rijafstand niet gegokt. De automatische wegmeldingentelling en de routecamera's verdwijnen voor een gewijzigde etappe; controleer de werkelijke route zelf bij Apple Kaarten en de officiële wegbeheerder. De telling is sowieso alleen een inventarisatie van meldingen rondom controlepunten, geen bewijs dat de route open of veilig is. De betreffende tegel noemt daarom **Afsluitmeldingen**.
+- Blijven reisdata, vervolgovernachtingsdatums en vaste veerboten **ongewijzigd**. Nord verschuift niet automatisch een nacht of veerboot. De twee Stena Line-nachten en de thuiskomstdag zijn niet bewerkbaar.
+- Kan **Planning herstellen** per datum de afwijking verwijderen. Alle wijzigingen worden alleen lokaal in de browser op dit apparaat opgeslagen en synchroniseren niet tussen bijvoorbeeld Mac en iPhone. Maak bij gebruik op meerdere apparaten dezelfde wijziging op elk apparaat.
+
+Voor offline beschikbaarheid is `sw.js` toegevoegd, een kleine service worker die alleen de eigen `index.html` en daarmee de routegegevens beschikbaar houdt. Na **één succesvol online bezoek** kan de pagina opnieuw worden geopend wanneer er tijdelijk geen internet is, voor zover de browser de offline opslag bewaart. Een offline statusmelding maakt duidelijk dat live weer, wegmeldingen, benzineprijzen en externe boekingslinks niet zijn bijgewerkt; die externe gegevens worden **niet** in de offline cache opgeslagen. De reeds lokaal opgeslagen weergegevens krijgen een vermelding dat ze offline en mogelijk verouderd zijn. Vooraf op de telefoon online openen en daarna met vliegtuigmodus testen blijft essentieel. Een service worker werkt alleen op HTTPS en is niet gegarandeerd wanneer de browser caches verwijdert.
+
+De numerieke bronverwerking behandelt lege waarden, witruimte en `null` als onbekend, maar accepteert een échte `0` wel. Er zijn geen extra API-sleutels, accounts, back-end, GPS-volging of automatische veiligheidsclaims toegevoegd.
+
 ## Overnachten tijdens de etappe
 
 De compacte accommodatiezoeker staat meteen onder **Etappe**, vóór het weer. In de reisstand worden de geplande eindbestemming, incheckdatum en standaard één nacht gekozen, voor **2 personen**.
