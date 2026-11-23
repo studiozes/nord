@@ -1,5 +1,9 @@
 # Nord
 
+## Wegcamera’s als bronlinks
+
+Wegcamera’s staan direct boven Direct openen in dezelfde vaste linkstijl. Bekende camera’s openen de oorspronkelijke officiële Vegvesen-pagina; voor andere Noorse etappes is de algemene camerakaart beschikbaar. Bij een onbekende of aangepaste route blijft een streepje met de officiële verkeersbron staan. De app haalt geen camerabeelden meer automatisch op. De offline shell is bijgewerkt naar v8.
+
 ## Technische onderhoudsronde (23 november 2026)
 
 - De ongewijzigde route, CSS, pure hulpfuncties, applicatielogica en PNG zijn losse, versiegebonden bestanden in `assets/`. De HTML bevat geen dubbele Base64-afbeelding meer. Alleen het zichtbare detailpaneel wordt opgebouwd.

@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 const read=name=>fs.readFileSync(path.join(__dirname,'..',name),'utf8');
 const context=vm.createContext({window:{},Intl,Date});
-for(const f of ['assets/plan-v7.js','assets/core-v7.js','assets/app-v7.js','sw.js'])new vm.Script(read(f),{filename:f});
+for(const f of ['assets/plan-v7.js','assets/core-v7.js','assets/app-v8.js','sw.js'])new vm.Script(read(f),{filename:f});
 for(const f of ['assets/plan-v7.js','assets/core-v7.js'])vm.runInContext(read(f),context);
 const {NordCore:c,NORD_PLAN:p}=context.window;
 assert.equal(p.length,14);

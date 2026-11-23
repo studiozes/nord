@@ -1,8 +1,8 @@
-/* Nord v7: versioned local app-shell; external live sources are never cached. */
-const SHELL_CACHE='nord-shell-2026-11-v7';
+/* Nord v8: versioned local app-shell; external live sources are never cached. */
+const SHELL_CACHE='nord-shell-2026-11-v8';
 const absolute=path=>new URL(path,self.registration.scope).toString();
 const SHELL_URL=absolute('./index.html');
-const ASSETS=['./assets/nord-v7.css','./assets/plan-v7.js','./assets/core-v7.js','./assets/app-v7.js','./assets/icon-v7.png'].map(absolute);
+const ASSETS=['./assets/nord-v7.css','./assets/plan-v7.js','./assets/core-v7.js','./assets/app-v8.js','./assets/icon-v7.png'].map(absolute);
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
     const cache=await caches.open(SHELL_CACHE);
