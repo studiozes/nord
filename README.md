@@ -1,5 +1,14 @@
 # Nord
 
+## Technische onderhoudsronde (23 november 2026)
+
+- De ongewijzigde route, CSS, pure hulpfuncties, applicatielogica en PNG zijn losse, versiegebonden bestanden in `assets/`. De HTML bevat geen dubbele Base64-afbeelding meer. Alleen het zichtbare detailpaneel wordt opgebouwd.
+- De geselecteerde etappe krijgt voorrang bij weer en daglicht. Forecast-verzoeken voor dezelfde exacte locatie en tijdzone delen één lopend verzoek; dagen op dezelfde locatie worden uit één resultaat verwerkt. Actuele Open-Meteo-waarden van vandaag delen het forecast-verzoek. Een handmatige verversing tijdens een lopende cyclus behoudt de forceeroptie.
+- Meetwaarden worden per animatieframe gebundeld; de etappelijst heeft één klikhandler. Bestaande bronlinks, route, lokale overnachtingen, vormgeving en offline basis blijven behouden.
+- De service worker installeert een volledige, versiegebonden lokale app-shell; live externe bronnen worden niet gecachet. Bij een nieuwe assetversie moeten HTML, tests en service worker gezamenlijk worden bijgewerkt.
+- `node tests/regression.cjs` controleert syntax, 14 reisdagen, nul versus ontbrekende waarde, datumgrenzen, prioriteit, groepering en offline assetverwijzingen. Live API's en browserweergave zijn aparte praktijkcontroles.
+
+
 ## Launch-afwerking: Nord Release Candidate (23 november 2026)
 
 Deze versie kiest voor een **doordacht, stabiel productontwerp**, niet voor extra functies. De site gebruikt nog steeds een enkele HTML-pagina, native systeemfonts en controleerbare bronnen, zonder frameworks of toegangssleutels.

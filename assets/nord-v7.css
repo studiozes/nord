@@ -1,0 +1,595 @@
+:root{color-scheme:light;--bg:#f5f5f7;--panel:#fff;--text:#1c1c1e;--muted:#62636a;--hair:#e5e5e9;--accent:#31628d;--shade:#f1f1f4;--selected:#eeeef1;--warn:#9a712b;--alert:#b64043;--unknown:#86868b}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){color-scheme:dark;--bg:#101114;--panel:#202125;--text:#f6f6f8;--muted:#b0b0bb;--hair:#34353b;--accent:#9bc4ed;--shade:#28292f;--selected:#303138;--warn:#ebbf76;--alert:#f0787c;--unknown:#8e8e97}}
+:root[data-theme=dark]{color-scheme:dark;--bg:#101114;--panel:#202125;--text:#f6f6f8;--muted:#b0b0bb;--hair:#34353b;--accent:#9bc4ed;--shade:#28292f;--selected:#303138;--warn:#ebbf76;--alert:#f0787c;--unknown:#8e8e97}
+*{box-sizing:border-box}
+html{scroll-behavior:auto;scroll-padding-top:12px}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent}
+button{cursor:pointer;color:inherit}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.app-shell{max-width:1120px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) calc(52px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.mast-actions{display:flex;gap:7px;flex:0 0 auto}
+.icon-button{width:44px;height:44px;border:0;border-radius:50%;background:var(--panel);display:grid;place-items:center}
+.icon-button svg{width:19px;height:19px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;min-height:44px}
+.modes{display:flex;border-radius:11px;padding:3px;background:var(--panel);gap:2px;flex:0 0 auto}
+.modes button{border:0;background:transparent;border-radius:8px;min-height:44px;padding:5px 11px;font-size:13px;font-weight:550}
+.modes button[aria-pressed=true]{background:var(--shade);color:var(--accent)}
+.update{font-size:11px;color:var(--muted);text-align:right;line-height:1.25}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+h1{font-size:19px;line-height:1.2;letter-spacing:-.35px;font-weight:650;margin:0}
+.heading-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:0;text-align:right}
+.heading p{font-size:12px;margin:0;color:var(--muted);text-align:right}
+@media(max-width:374px){h1{font-size:17px}.modes button{padding-left:9px;padding-right:9px;font-size:12px}.toolbar{gap:6px}.mast-actions{gap:4px}}
+.layout{display:block}
+.timeline{display:grid;gap:8px;min-width:0}
+.day-card{scroll-margin-top:16px;background:var(--panel);border-radius:15px;overflow:hidden;min-width:0;border:1px solid transparent}
+.day-card.is-open{border-color:var(--hair)}
+.day-button{touch-action:manipulation;display:block;width:100%;border:0;background:none;text-align:left;padding:13px 13px 12px;min-height:83px}
+.day-main{display:flex;align-items:center;gap:10px;min-width:0}
+.day-date{width:46px;flex:0 0 46px;display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;color:var(--muted)}
+.day-date .num{font-size:16px;font-weight:600;letter-spacing:-.2px;color:var(--text);font-variant-numeric:tabular-nums}
+.day-date .month{font-size:11px}
+.day-summary{min-width:0;flex:1}
+.day-title{font-size:14px;font-weight:620;line-height:1.24;letter-spacing:-.12px;overflow-wrap:anywhere}
+.day-route{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.32;overflow-wrap:anywhere}
+.day-weather{width:68px;flex:0 0 68px;text-align:right;display:grid;grid-template-columns:23px 1fr;align-items:center;gap:3px}
+.day-weather-visual{display:flex;align-items:center;justify-content:center;min-width:0;min-height:22px}
+.day-weather-visual svg{height:22px;width:22px;color:var(--muted)}
+.day-weather-visual:empty{visibility:hidden}
+.day-weather .reading{font-size:18px;font-weight:580;letter-spacing:-.4px;font-variant-numeric:tabular-nums;line-height:1.1}
+.day-weather .feel{grid-column:1/-1;font-size:11px;color:var(--muted);line-height:1.25}
+.chevron{height:16px;width:16px;flex:0 0 16px;color:var(--muted);transition:transform .16s ease}
+.is-open .chevron{transform:rotate(90deg)}
+.day-glance{margin:9px 0 0 56px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:3px;align-items:center}
+.glance{min-width:0;display:flex;align-items:center;gap:3px;font-size:11px;color:var(--muted);white-space:nowrap}
+.glance svg{width:15px;height:15px;flex:0 0 15px;color:var(--muted)}
+.glance strong{font-size:11px;color:var(--text);font-weight:520;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.glance.warn strong,.glance.warn svg{color:var(--warn)}
+.glance.alert strong,.glance.alert svg{color:var(--alert)}
+.day-details{padding:0 14px 15px}
+.detail-inner{container-type:inline-size;border-top:1px solid var(--hair);padding-top:10px;display:grid;gap:9px}
+.step-list{list-style:none;margin:0 0 2px 0;padding:0 0 0 15px;border-left:1px solid var(--hair)}.step-list li{position:relative;padding:4px 0 4px 6px;font-size:12px;line-height:1.4}.step-list li::before{content:'';position:absolute;left:-19px;top:11px;width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.detail-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.detail-heading h2{font-size:17px;letter-spacing:-.3px;font-weight:620;margin:0}
+.detail-heading small{color:var(--muted);font-size:11px}
+.detail-rows{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.weather-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.weather-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:72px;padding:7px 5px;gap:2px}
+.weather-tile svg{width:17px;height:17px;margin:0}
+.weather-tile .value{font-size:16px;line-height:1.15}
+.weather-tile .label{font-size:11px;line-height:1.25}
+@container (min-width:720px){.weather-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@container (max-width:310px){.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.info-box{border-radius:11px;background:var(--bg);padding:5px 4px;text-align:center;min-width:0}
+.info-box svg{width:16px;height:16px;margin:0 auto 2px;display:block;color:var(--muted)}
+.info-box .value{font-weight:650;font-variant-numeric:tabular-nums;font-size:15px;white-space:nowrap}
+.info-box .label{font-size:11px;color:var(--muted);margin-top:1px;line-height:1.25;max-width:100%;overflow-wrap:anywhere;hyphens:auto;text-wrap:balance}
+.details-section{display:grid;gap:5px;min-width:0}
+.details-section h3{font-size:12px;font-weight:620;margin:0;color:var(--muted);letter-spacing:.01em}
+.metric-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid var(--hair);padding:8px 0;font-size:13px}
+.metric-row:first-of-type{border-top:0}
+.metric-row .number{font-variant-numeric:tabular-nums;font-weight:550;text-align:right}
+.metric-row .label{color:var(--muted)}
+.snow-note{color:var(--muted);font-size:11px;line-height:1.45}
+.links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.links a{display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:4px;padding:5px 6px;border:1px solid var(--hair);border-radius:9px;min-height:44px;font-size:11px;line-height:1.25;color:var(--text);min-width:0;overflow-wrap:anywhere}
+.links a svg{width:15px;height:15px;color:var(--muted)}
+.detail-inner a svg{display:inline-block;width:14px;height:14px;max-width:14px;max-height:14px;flex:0 0 14px;vertical-align:-2px}
+.links a:hover{background:var(--bg);text-decoration:none}
+@container (min-width:450px){.links{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.source-tile{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:62px;color:var(--text);text-decoration:none;transition:background .14s ease,border-color .14s ease;border:1px solid transparent}
+.source-tile:hover{background:var(--shade);border-color:var(--hair);text-decoration:none}
+.source-tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.source-tile .value{max-width:100%;overflow-wrap:anywhere;white-space:normal}
+.source-tile svg{width:16px;height:16px;max-width:16px;max-height:16px;flex:0 0 16px;margin:0 auto 2px}
+.stage-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.stage-tiles--two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stage-tile .value{font-size:13px;line-height:1.22}
+.stage-tile .label{order:-1;margin:0 0 3px}
+.stage-tile svg{margin:0 auto 2px}
+.stage-tile--static{display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:62px}
+.stage-tile--static .value{overflow-wrap:anywhere;white-space:normal}
+.stage-tile .value{overflow-wrap:anywhere;white-space:normal}
+.route-steps{font-size:12px}
+.route-steps summary{cursor:pointer;min-height:34px;display:flex;align-items:center;color:var(--muted)}
+.road-alert-details{font-size:11px;color:var(--muted)}
+.road-alert-details summary{cursor:pointer;padding:3px 0}
+@container (min-width:390px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.aurora-tile .value{overflow-wrap:anywhere;white-space:normal}
+.cockpit-more{display:block;font-size:11px;color:var(--muted)}
+.cockpit-more summary{cursor:pointer;min-height:26px;display:flex;align-items:center}
+.cockpit-more .links{margin-top:4px}
+.aurora-section{gap:7px}
+.aurora-context{font-size:11px;color:var(--muted);line-height:1.35;margin:0 0 3px}
+.aurora-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.aurora-tile{min-width:0;padding:5px 3px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.aurora-tile svg{width:18px;height:18px;margin:0 0 3px}
+.aurora-tile .value{font-size:17px;line-height:1.3}
+.aurora-tile .label{font-size:11px;line-height:1.25;text-align:center}
+.aurora-meta{font-size:11px;color:var(--muted);line-height:1.4}
+.aurora-meta a{font-size:11px}
+@media(max-width:374px){.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.aurora-tile .value{font-size:15px}}
+.road-now-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.road-now-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:62px;padding:5px 3px}
+.road-now-tile svg{width:17px;height:17px;margin:0 0 2px}
+.road-now-tile .value{font-size:16px;line-height:1.2}
+.road-now-tile .label{font-size:11px;line-height:1.25}
+.road-now-note{font-size:11px;line-height:1.45;color:var(--muted)}
+.road-alert-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.road-alert-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:62px;padding:5px 3px}
+.road-alert-tile svg{width:17px;height:17px;margin:0 0 2px}
+.road-alert-tile .value{font-size:16px;line-height:1.2}
+.road-alert-tile .label{font-size:11px;line-height:1.2;text-align:center}
+.road-alert-entry{border-top:1px solid var(--hair);padding:8px 0;font-size:12px;line-height:1.35}
+.road-alert-entry .road-alert-name{font-weight:590}
+.road-alert-entry .road-alert-description{color:var(--muted);font-size:11px;margin-top:2px}
+.road-alert-meta{color:var(--muted);font-size:11px;line-height:1.45}
+.roadcam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.roadcam-card{display:block;background:var(--bg);border-radius:11px;overflow:hidden;color:var(--text);text-decoration:none;min-width:0;border:1px solid transparent;padding:4px}
+.roadcam-card:hover{border-color:var(--hair);background:var(--shade);text-decoration:none}
+.roadcam-card img{display:block;width:100%;aspect-ratio:16/10;object-fit:contain;background:var(--bg);border-radius:7px}
+.roadcam-caption{font-size:11px;font-weight:550;line-height:1.25;padding:5px 6px;min-height:29px;overflow-wrap:anywhere}
+.roadcam-fallback{display:none;aspect-ratio:16/10;place-items:center;padding:8px;font-size:11px;color:var(--muted);text-align:center;background:var(--bg)}
+.roadcam-card.is-unavailable img{display:none}
+.roadcam-card.is-unavailable .roadcam-fallback{display:grid}
+.roadcam-meta{color:var(--muted);font-size:11px;line-height:1.45}
+@container (min-width:450px){.roadcam-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.notice{font-size:12px;color:var(--muted)}
+.notice.important{color:var(--warn)}
+.graph{border-radius:12px;background:var(--bg);padding:12px 12px 8px;overflow:hidden}
+.graph svg{display:block;width:100%;height:85px}
+.graph .graph-caption{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--muted)}
+.graph .graph-title{font-size:11px;color:var(--muted);margin-bottom:8px}
+.return-card{background:transparent;border:1px dashed var(--hair);border-radius:15px;padding:15px;color:var(--muted);display:flex;gap:12px;align-items:center;font-size:12px}
+.return-card svg{width:21px;height:21px;flex:0 0 21px}
+.side-detail{display:none}
+@media(min-width:820px){.app-shell{padding-top:16px}.layout{display:grid;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr);align-items:start;gap:20px}.side-detail{display:block;position:static;top:auto;max-height:none;overflow:visible;background:var(--panel);border:1px solid var(--hair);border-radius:17px;padding:18px;min-height:0}.day-details{display:none}.day-button{padding:13px 14px}.day-glance{gap:8px}.day-weather{width:79px;flex-basis:79px}.day-title{font-size:15px}}
+@media(max-width:374px){.app-shell{padding-left:10px;padding-right:10px}.day-button{padding-left:10px;padding-right:10px}.day-main{gap:7px}.day-date{width:38px;flex-basis:38px}.day-weather{width:58px;flex-basis:58px}.day-weather .reading{font-size:16px}.day-glance{margin-left:45px}.glance{font-size:10px;gap:2px}.glance svg{width:13px;height:13px;flex-basis:13px}}
+.fuel-strip{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:8px 9px;border-radius:9px;background:var(--bg);border:1px solid transparent;color:var(--text);text-decoration:none;min-width:0}
+.fuel-strip:hover{background:var(--shade);border-color:var(--hair);text-decoration:none}
+.fuel-name{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:570}
+.fuel-name svg{height:16px;width:16px;flex:0 0 16px;color:var(--muted)}
+.fuel-number{font-size:15px;font-weight:650;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fuel-meta{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+
+
+/* Fuel reference links and currency conversion */
+.fuel-quote{display:grid;gap:3px;min-width:0;align-content:start}
+.fuel-fx{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:2px 6px;min-width:0;color:var(--muted);font-size:11px;line-height:1.3;padding:0 5px;text-decoration:none}
+.fuel-fx:hover{text-decoration:underline}
+.fuel-fx-value{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.fuel-fx-date{color:var(--muted);font-weight:450}
+.fuel-fx:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* Overnachten: three source shortcuts, no booking widgets or live price claims. */
+.cockpit-panel--stay .details-section{gap:7px}
+.cockpit-panel--stay h3{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;justify-content:space-between}
+.stay-providers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.stay-provider{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:68px;padding:10px 5px;border:1px solid var(--hair);border-radius:11px;background:var(--panel);color:var(--text);text-align:center;text-decoration:none;transition:border-color .18s ease,background .18s ease}
+.stay-provider:hover{border-color:var(--accent);background:var(--shade);text-decoration:none}
+.stay-provider-icon{display:grid;place-items:center;width:27px;height:27px;border-radius:9px;background:var(--shade);color:var(--accent)}
+.stay-provider-icon svg{width:17px;height:17px}
+.stay-provider-name{font-size:12px;line-height:1.2;font-weight:600;white-space:nowrap}
+.stay-provider-hint{font-size:10px;line-height:1.15;color:var(--muted);font-weight:450}
+.stay-special{display:flex;align-items:center;gap:7px;min-height:34px;padding:4px 5px;color:var(--muted);font-size:11px;font-weight:550;text-decoration:none}
+.stay-special svg{width:14px;height:14px;flex:0 0 14px}
+.stay-special:hover{color:var(--accent);text-decoration:none}
+.stay-special svg:last-child{margin-left:auto}
+.stay-provider:focus-visible,.stay-special:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:374px){.stay-provider{min-height:64px;padding:7px 3px}.stay-provider-name{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.stay-provider{transition:none}}
+
+
+
+/* Alleen bij etappe: optionele werkelijke overnachting */
+.actual-stay-edit{border-top:1px solid var(--hair);padding-top:7px;margin-top:7px}
+.actual-stay-edit>summary{display:flex;align-items:center;gap:7px;min-height:38px;font-size:12px;font-weight:580;color:var(--accent);cursor:pointer;list-style:none}
+.actual-stay-edit>summary::-webkit-details-marker{display:none}
+.actual-stay-edit>summary svg{width:16px;height:16px;flex:0 0 16px}
+.actual-stay-edit>summary span{overflow-wrap:anywhere}
+.actual-stay-form{display:grid;gap:9px;padding:7px 0}
+.actual-stay-inputs{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:7px}
+.actual-stay-inputs label{display:grid;gap:4px;min-width:0;color:var(--muted);font-size:11px}
+.actual-stay-inputs input,.actual-stay-inputs select{min-height:43px;width:100%;min-width:0;padding:8px;border:1px solid var(--hair);border-radius:8px;background:var(--panel);color:var(--text);font-size:13px}
+.actual-stay-inputs :is(input,select):focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.actual-stay-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.actual-stay-actions button{min-height:39px;border:0;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:580;background:var(--shade);color:var(--accent)}
+.actual-stay-actions .actual-stay-reset{background:transparent;color:var(--muted)}
+.actual-stay-form>small,.actual-route-note{color:var(--muted);font-size:11px;line-height:1.4}
+.actual-route-note{margin:6px 0}
+@media(max-width:374px){.actual-stay-inputs{grid-template-columns:1fr}}
+
+
+
+
+
+/* NORD PRODUCT SYSTEM · 2026-11-23
+   One coherent cascade. System typography, predictable grids and measured spacing.
+   Viewport-specific choices follow the available content width. */
+:root{
+  --nord-radius:16px;
+  --nord-panel-gap:12px;
+  --nord-surface-padding:18px;
+  --nord-touch:44px
+}
+html,body{min-width:0;max-width:100%}
+body{font-size:1rem;line-height:1.46}
+.app-shell{
+  max-width:1240px;
+  min-width:0;
+  padding:20px max(16px,env(safe-area-inset-right))
+    calc(36px + env(safe-area-inset-bottom))
+    max(16px,env(safe-area-inset-left))
+}
+.heading{margin:4px 0 18px}
+.heading h1{font-size:1.5rem;line-height:1.12;letter-spacing:-.035em;font-weight:650}
+.brand-year{font-size:.8125rem;letter-spacing:0;font-weight:450;color:var(--muted)}
+.heading .update{font-size:.75rem;line-height:1.35}
+.heading p{font-size:.8125rem}
+.toolbar{margin-bottom:16px;min-height:44px}
+.modes{border:1px solid var(--hair);border-radius:12px;padding:3px;gap:2px;background:var(--panel)}
+.modes button{font-size:.8125rem;min-height:44px;padding:7px 12px;border-radius:9px;color:var(--muted)}
+.modes button[aria-pressed=true]{color:var(--text);background:var(--selected);font-weight:600}
+.icon-button{border:1px solid var(--hair);background:var(--panel);min-width:44px;min-height:44px}
+.icon-button:hover{background:var(--shade)}
+.layout,.timeline,.side-detail,.day-details,.detail-inner,
+.cockpit-duo,.cockpit-panel,.details-section,.nord-overview,
+.route-weather-section,.route-weather-rows{min-width:0}
+.layout{align-items:start}
+.timeline{gap:6px;align-content:start}
+.day-card{border:0;border-radius:13px;box-shadow:none;overflow:visible;scroll-margin-top:12px;background:var(--panel)}
+.day-card.is-open{background:var(--selected);border:0}
+.day-button{min-width:0;min-height:96px;padding:12px 13px;border-radius:13px;text-align:left}
+.day-button:hover{background:var(--shade)}
+.day-card.is-open .day-button{background:transparent}
+.day-main{gap:10px}
+.day-date{width:43px;flex-basis:43px}
+.day-date .num{font-size:1.125rem;font-weight:600;letter-spacing:-.02em}
+.day-date .month{font-size:.75rem}
+.day-title{font-size:.9375rem;font-weight:600;line-height:1.28;letter-spacing:-.015em}
+.day-card.is-open .day-title{font-weight:650}
+.day-route{font-size:.75rem;line-height:1.35;margin-top:3px}
+.day-weather{width:72px;flex:0 0 72px;grid-template-columns:23px minmax(0,1fr);gap:3px}
+.day-weather .reading{font-size:1.1875rem;font-weight:570;line-height:1.15;font-variant-numeric:tabular-nums}
+.day-weather .feel{font-size:.6875rem;color:var(--muted);line-height:1.3}
+.day-weather-visual svg{color:var(--muted)}
+.day-glance{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;margin:10px 0 0 53px;align-items:start
+}
+.glance{
+  min-width:0;display:flex;flex-direction:column;align-items:flex-start;
+  gap:3px;white-space:normal;line-height:1.24
+}
+.glance-label{font-size:.6875rem;font-weight:450;color:var(--muted)}
+.glance-reading{display:flex;gap:2px;flex-wrap:wrap;align-items:baseline;min-width:0}
+.glance strong{
+  color:var(--text);font-size:.8125rem;font-weight:590;line-height:1.25;
+  font-variant-numeric:tabular-nums;overflow:visible;text-overflow:clip
+}
+.glance-reading small{font-size:.625rem;line-height:1.25;font-weight:450;color:var(--muted)}
+.day-card.is-open .day-glance{color:var(--text)}
+.day-details{padding:0 8px 14px}
+.detail-inner{
+  display:grid;gap:var(--nord-panel-gap);
+  padding-top:11px;border-top:1px solid var(--hair);
+  container-type:inline-size
+}
+.nord-overview,.cockpit-panel,.cockpit-expand{
+  background:var(--panel);border:0;border-radius:var(--nord-radius);
+  box-shadow:none;min-width:0
+}
+.cockpit-panel{display:grid;align-content:start;gap:10px;padding:var(--nord-surface-padding)}
+.details-section{display:grid;gap:9px}
+.details-section h3{
+  margin:0;font-size:.9375rem;font-weight:630;letter-spacing:-.018em;
+  color:var(--text);line-height:1.3
+}
+.cockpit-panel--weather h3,.road-alert-section h3,.road-now-section h3,
+.cockpit-panel--stay h3,.route-weather-section h3{
+  display:flex;align-items:baseline;justify-content:space-between;
+  flex-wrap:wrap;gap:6px 12px
+}
+.cockpit-duo{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--nord-panel-gap)}
+.cockpit-duo--roads{grid-template-columns:minmax(0,1fr)}
+.cockpit-expand{overflow:visible}
+.cockpit-expand summary{
+  display:flex;align-items:center;cursor:pointer;
+  min-height:var(--nord-touch);padding:12px 18px;
+  font-size:.875rem;line-height:1.25;font-weight:570;color:var(--text)
+}
+.cockpit-expand[open] summary{border-bottom:1px solid var(--hair)}
+.roadcam-content{display:grid;gap:10px;padding:14px 18px 18px}
+.roadcam-card{background:transparent;border:0;border-radius:10px;padding:2px}
+.roadcam-card:hover{background:var(--shade);border:0}
+.roadcam-empty{
+  color:var(--muted);font-size:1.25rem;font-weight:450;
+  line-height:1.1;margin:0;padding:12px 4px 16px;text-align:center
+}
+.info-box{background:transparent;border-radius:8px;padding:8px 5px;min-width:0}
+.info-box .value{
+  font-size:1rem;font-weight:570;letter-spacing:-.02em;
+  line-height:1.24;white-space:normal;font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere
+}
+.info-box .label{
+  font-size:.75rem;font-weight:450;line-height:1.3;margin-top:4px;
+  color:var(--muted);overflow-wrap:anywhere;hyphens:auto
+}
+.source-tile{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:4px;min-width:0;min-height:76px;padding:10px 5px;
+  border:0;border-radius:9px;background:transparent;color:var(--text);
+  transition:background .14s ease;text-align:center;text-decoration:none
+}
+.source-tile:hover{background:var(--shade);border:0;text-decoration:none}
+.cockpit-panel--weather .source-tile svg,
+.cockpit-panel--light .source-tile svg,
+.cockpit-panel--aurora .source-tile svg,
+.cockpit-duo--roads .source-tile svg{display:none}
+.weather-tiles,.aurora-tiles,.detail-rows,.road-now-tiles,.road-alert-tiles{
+  display:grid;min-width:0;gap:0
+}
+.weather-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+.aurora-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+.detail-rows{grid-template-columns:repeat(3,minmax(0,1fr))}
+.road-now-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+.road-alert-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+.weather-tile,.aurora-tile,.road-alert-tile,.road-now-tile{min-width:0}
+.cockpit-duo--roads .road-alert-tile,.cockpit-duo--roads .road-now-tile{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:4px;min-height:76px;padding:10px 5px;text-align:center;
+  grid-template-columns:none
+}
+.cockpit-duo--roads .road-alert-tile .value,
+.cockpit-duo--roads .road-now-tile .value{
+  grid-column:auto;grid-row:auto;white-space:normal;font-size:1rem;text-align:center
+}
+.cockpit-duo--roads .road-alert-tile .label,
+.cockpit-duo--roads .road-now-tile .label{
+  grid-column:auto;grid-row:auto;color:var(--muted);text-align:center
+}
+.cockpit-panel--light .source-tile,
+.cockpit-panel--weather .source-tile,
+.cockpit-panel--aurora .source-tile{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:76px;text-align:center;gap:4px
+}
+.cockpit-panel--light .source-tile .value,.cockpit-panel--light .source-tile .label,
+.cockpit-panel--weather .weather-tile .value,.cockpit-panel--weather .weather-tile .label{
+  grid-column:auto;grid-row:auto;text-align:center;white-space:normal
+}
+.source-meta{
+  display:inline-flex;align-items:center;min-height:36px;max-width:100%;
+  font-size:.75rem;line-height:1.4;font-weight:450;
+  color:var(--muted);text-decoration:none
+}
+.source-meta:hover{text-decoration:underline}
+.stage-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.stage-tile{min-height:74px}
+.stage-tile .label{font-size:.75rem}
+.stage-tile .value{font-size:.8125rem;font-weight:570}
+.stage-tile svg{display:none}
+.stage-utilities{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;min-width:0}
+.fuel-strip,.route-cta,.links a,.stay-provider{
+  background:var(--shade);border:0;border-radius:11px;color:var(--text)
+}
+.fuel-strip:hover,.route-cta:hover,.links a:hover,.stay-provider:hover{
+  background:var(--selected);border:0;text-decoration:none
+}
+.fuel-strip{min-height:64px;padding:11px 12px}
+.fuel-number{font-size:1rem}
+.fuel-meta{font-size:.75rem;line-height:1.4}
+.fuel-fx{min-height:36px;font-size:.75rem;padding-inline:6px}
+.route-cta{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  min-height:var(--nord-touch);padding:10px 14px;
+  font-weight:600;font-size:.8125rem;text-decoration:none
+}
+.links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.links a{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:0;min-height:var(--nord-touch);padding:10px 9px;
+  font-size:.8125rem;line-height:1.3;text-align:center
+}
+.links a svg{color:var(--muted)}
+.stay-provider{min-height:78px;padding:12px 6px;gap:6px}
+.stay-provider:hover{border:0}
+.stay-provider-icon{background:transparent;color:var(--muted)}
+.stay-provider-name{font-size:.8125rem;font-weight:600}
+.stay-provider-hint{font-size:.6875rem;line-height:1.25}
+.stay-special{min-height:44px;font-size:.8125rem;color:var(--muted)}
+.actual-stay-edit{margin-top:8px}
+.actual-stay-edit>summary{min-height:44px;color:var(--text);font-size:.8125rem}
+.actual-stay-inputs input,.actual-stay-inputs select{min-height:44px;font-size:1rem}
+.actual-stay-inputs label{font-size:.75rem}
+.actual-stay-actions button{min-height:44px;background:var(--selected);color:var(--text)}
+.actual-stay-form>small,.actual-route-note,.route-weather-note{font-size:.75rem;line-height:1.45}
+.route-steps summary,.cockpit-more summary{min-height:44px;touch-action:manipulation}
+.cockpit-more{font-size:.75rem}
+.cockpit-panel--actions .links a{font-size:.8125rem}
+.return-card{font-size:.8125rem}
+/* One glance: a single calm hierarchy, not eight separate dashboard cards. */
+.nord-overview{display:block;min-width:0;padding:22px 20px 13px}
+.nord-overview-head{display:flex;justify-content:space-between;align-items:flex-start;gap:13px;min-width:0}
+.nord-place{display:grid;align-content:start;gap:5px;min-width:0;flex:1}
+.nord-eyebrow{font-size:.75rem;font-weight:530;line-height:1.35;text-transform:capitalize;color:var(--muted)}
+.nord-place h2{
+  margin:0;font-size:clamp(1.65rem,4vw,2rem);line-height:1.08;
+  letter-spacing:-.035em;font-weight:650;overflow-wrap:anywhere
+}
+.nord-overview-route{font-size:.8125rem;color:var(--muted);line-height:1.4;overflow-wrap:anywhere}
+.nord-overview-plan{font-size:.75rem;color:var(--muted);line-height:1.4}
+.nord-temperature{
+  display:grid;grid-template-columns:26px minmax(0,auto);gap:0 4px;
+  align-items:center;justify-content:end;min-width:75px;flex:0 0 auto;
+  color:var(--text);text-decoration:none
+}
+.nord-temperature:hover{color:var(--text);text-decoration:none}
+.nord-weather-icon{grid-row:1;grid-column:1;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.nord-weather-icon svg{width:23px!important;height:23px!important;max-width:none!important;max-height:none!important}
+.nord-temperature strong{
+  grid-column:2;grid-row:1;
+  font-size:clamp(2.75rem,6vw,3.4rem);font-weight:480;
+  line-height:1;letter-spacing:-.04em;white-space:nowrap;font-variant-numeric:tabular-nums
+}
+.nord-temp-caption{
+  grid-column:1/-1;justify-self:end;margin-top:5px;
+  color:var(--muted);font-size:.75rem;line-height:1.25
+}
+.nord-overview-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  margin-top:20px;border-top:1px solid var(--hair)
+}
+.nord-stat{
+  display:flex;flex-direction:column;justify-content:center;
+  gap:7px;min-width:0;min-height:82px;padding:13px 12px;
+  border-bottom:1px solid var(--hair);border-radius:0;
+  color:var(--text);text-decoration:none
+}
+.nord-stat:hover{background:var(--shade);text-decoration:none}
+.nord-stat-label{font-size:.75rem;line-height:1.32;color:var(--muted);overflow-wrap:anywhere}
+.nord-stat-number{
+  font-size:1.125rem;font-weight:600;line-height:1.24;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere
+}
+.nord-overview-foot{
+  display:flex;justify-content:space-between;flex-wrap:wrap;
+  gap:7px 12px;padding:11px 3px 0;
+  color:var(--muted);font-size:.75rem;line-height:1.35
+}
+.value.is-empty,.nord-stat-number.is-empty,
+.route-weather-value.is-empty,.nord-temperature strong.is-empty{
+  color:var(--muted);font-weight:450
+}
+.nord-weather-icon:empty{visibility:hidden}
+/* Route detail: fixed fields, conditional values only. */
+.cockpit-panel--route-weather{padding:var(--nord-surface-padding)}
+.route-weather-section{gap:7px}
+.route-weather-section h3{align-items:baseline}
+.route-weather-meta{font-size:.75rem;font-weight:430;color:var(--muted)}
+.route-weather-rows{display:grid;gap:0}
+.route-weather-row{
+  display:grid;gap:11px;min-height:108px;
+  padding:15px 2px;border:0;border-bottom:1px solid var(--hair);border-radius:0;
+  background:transparent;color:var(--text);text-decoration:none
+}
+.route-weather-row:last-child{border-bottom:0}
+.route-weather-row:hover{background:var(--shade);border-radius:8px;text-decoration:none}
+.route-weather-row-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.route-weather-place{
+  display:flex;flex-direction:column;gap:2px;min-width:0;
+  font-size:.875rem;line-height:1.3;font-weight:600;overflow-wrap:anywhere
+}
+.route-weather-place small{font-size:.75rem;line-height:1.3;font-weight:430;color:var(--muted)}
+.route-weather-temperature{
+  font-size:1.5rem;line-height:1.1;font-weight:520;
+  letter-spacing:-.03em;white-space:nowrap;font-variant-numeric:tabular-nums
+}
+.route-weather-measures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-width:0}
+.route-weather-measure{display:flex;flex-direction:column;gap:4px;min-width:0}
+.route-weather-measure small{font-size:.75rem;line-height:1.3;color:var(--muted)}
+.route-weather-measure .route-weather-value{
+  font-size:.8125rem;line-height:1.35;font-weight:580;
+  overflow-wrap:anywhere;font-variant-numeric:tabular-nums
+}
+.route-weather-note{margin:3px 0 0;color:var(--muted)}
+.route-weather-links{display:flex;flex-wrap:wrap;gap:5px 10px}
+.route-weather-links a{
+  display:inline-flex;align-items:center;min-height:44px;
+  padding:7px 2px;font-size:.8125rem;line-height:1.3
+}
+.route-weather-row--empty:hover{background:transparent;border-radius:0}
+.route-weather-row--empty .route-weather-place,
+.route-weather-row--empty .route-weather-value{color:var(--muted)}
+.route-weather-row--empty .route-weather-value.is-empty{font-weight:450}
+:where(.route-steps,.cockpit-more,.cockpit-expand) summary{font-size:.8125rem}
+:is(.source-tile,.nord-stat,.route-weather-row,.fuel-strip,.links a,.stay-provider,
+    .stay-special,.route-cta,.roadcam-card,.route-weather-links a,.nord-temperature):focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px
+}
+.nord-place h2:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+:where(.source-tile,.route-weather-row,.nord-stat,.links a,.stay-provider){
+  -webkit-tap-highlight-color:transparent
+}
+@container (min-width:440px){
+  .weather-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .road-now-tiles{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .links{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@container (min-width:560px){
+  .nord-overview-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .aurora-tiles{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+@container (min-width:700px){
+  .cockpit-duo--conditions,.cockpit-duo--roads{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container (max-width:340px){
+  .route-weather-measures{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .nord-place h2{font-size:1.6rem}
+  .nord-temperature strong{font-size:2.65rem}
+}
+@media (min-width:820px){
+  .app-shell{padding-top:24px}
+  .layout{display:grid;grid-template-columns:minmax(255px,292px) minmax(0,1fr);gap:20px;align-items:start}
+  .side-detail{
+    display:block;position:static;top:auto;overflow:visible;
+    max-height:none;min-height:0;height:auto;background:transparent;
+    border:0;border-radius:0;padding:0;box-shadow:none;scroll-margin-top:12px
+  }
+  .day-details{display:none}
+}
+@media (max-width:819px){
+  .app-shell{padding-top:14px}
+  .day-details{padding:0 7px 13px}
+  .detail-inner{padding-top:10px}
+  .nord-overview{padding:20px 18px 13px}
+  .cockpit-panel,.cockpit-panel--route-weather{padding:16px}
+}
+@media (max-width:374px){
+  .app-shell{padding-inline:10px}
+  .day-button{padding-inline:10px}
+  .day-main{gap:7px}
+  .day-date{width:38px;flex-basis:38px}
+  .day-weather{width:60px;flex-basis:60px}
+  .day-glance{margin-left:45px;gap:4px}
+  .glance-label{font-size:.625rem}
+  .glance strong{font-size:.75rem}
+  .glance-reading small{font-size:.5625rem}
+  .nord-overview{padding:18px 14px 12px}
+  .cockpit-panel,.cockpit-panel--route-weather{padding:14px}
+  .actual-stay-inputs{grid-template-columns:minmax(0,1fr)}
+}
+@media (pointer:coarse){
+  .source-meta{min-height:44px}
+  .stay-special,.fuel-fx{min-height:44px}
+}
+@media (hover:none){
+  .source-tile:hover,.nord-stat:hover,.route-weather-row:hover{background:transparent}
+  .day-button:hover{background:transparent}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+
+/* Hide unused units when the corresponding reading is unknown. */
+.glance-reading [hidden]{display:none}
+.glance strong.is-empty{color:var(--muted);font-weight:450}
+@media (min-width:820px){.day-glance{gap:5px}}
+
+
+/* Final legibility pass: even auxiliary labels remain comfortably readable. */
+.day-weather .feel{font-size:.75rem}
+.glance-reading small{font-size:.6875rem}
+.stay-provider-hint{font-size:.75rem;line-height:1.3}
+.snow-note,.fuel-meta,.roadcam-meta,.road-alert-meta{font-size:.75rem;line-height:1.45}
+.step-list li{font-size:.8125rem;line-height:1.45}
+.graph .graph-caption,.graph .graph-title{font-size:.75rem}
+@media (max-width:374px){
+  .glance-label{font-size:.6875rem}
+  .glance strong{font-size:.8125rem}
+  .glance-reading small{font-size:.6875rem}
+}
